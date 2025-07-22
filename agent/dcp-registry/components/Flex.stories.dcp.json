@@ -1,0 +1,19 @@
+{
+  "name": "Flex.stories",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [
+      "sds-color-background-brand-default",
+      "sds-color-text-brand-on-brand"
+    ],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/stories/layout/Flex.stories.tsx"
+}

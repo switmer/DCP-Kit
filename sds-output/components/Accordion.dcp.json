@@ -1,0 +1,116 @@
+{
+  "name": "Accordion",
+  "description": "",
+  "props": {},
+  "tokensUsed": {
+    "cssModules": {
+      "accordion": {
+        "display": "flex",
+        "flex-direction": "column",
+        "gap": "var(--sds-size-space-400)",
+        "width": "100%"
+      },
+      "accordion-item": {
+        "--border-radius": "var(--sds-size-radius-200)",
+        "background": "var(--sds-color-background-default-secondary-hover)",
+        "box-shadow": "inset 0 0 0 var(--sds-size-stroke-border)\n    var(--sds-color-border-default-default)",
+        "border-radius": "var(--border-radius)",
+        "display": "flex",
+        "flex-direction": "column",
+        "line-height": "var(--global-line-height-body)",
+        "width": "100%"
+      },
+      "accordion-item-indicator": {
+        "--icon-fill": "var(--sds-color-icon-default-default)"
+      },
+      "accordion-item-content": {
+        "margin-left": "auto",
+        "margin-right": "auto",
+        "max-height": "initial",
+        "padding-bottom": "var(--sds-size-space-400)",
+        "width": "calc(100% - var(--sds-size-space-400) * 2)"
+      }
+    },
+    "layout": {
+      "display": {
+        "value": "flex"
+      },
+      "flex-direction": {
+        "value": "column"
+      },
+      "position": {
+        "value": "absolute"
+      }
+    },
+    "spacing": {
+      "margin-left": {
+        "value": "auto"
+      },
+      "margin-right": {
+        "value": "auto"
+      }
+    },
+    "size": {
+      "width": {
+        "value": "100%"
+      },
+      "max-height": {
+        "value": "initial"
+      }
+    },
+    "border": {
+      "border-radius": {
+        "value": "var(--sds-size-radius-200)",
+        "variable": "--border-radius"
+      }
+    },
+    "color": {},
+    "typography": {},
+    "cssVariables": {
+      "sds-size-space-400);\n  width": "100%",
+      "border-radius": "var(--sds-size-radius-200)",
+      "sds-color-background-default-secondary);\n  box-shadow": "inset 0 0 0 var(--sds-size-stroke-border)\n    var(--sds-color-border-default-default)",
+      "border-radius);\n  display": "flex",
+      "global-line-height-body);\n  width": "100%",
+      "sds-color-background-default-secondary-hover);\n  }\n\n  &": "has(.accordion-item-title > button[data-focus-visible]) {\n    outline: none",
+      "offset": "calc(var(--sds-size-stroke-border) * 2)",
+      "border-radius) + var(--offset));\n      bottom": "calc(-1 * var(--offset))",
+      "global-focus-ring-size)\n        var(--global-focus-ring-color);\n      left": "calc(-1 * var(--offset))",
+      "offset));\n      top": "calc(-1 * var(--offset))",
+      "sds-color-text-default-default);\n    display": "flex",
+      "sds-size-space-400);\n    width": "100%",
+      "sds-font-body-strong);\n  }\n\n  .accordion-item-indicator {\n    --icon-fill": "var(--sds-color-icon-default-default)",
+      "sds-color-background-default-default);\n\n    > .accordion-item-title > button {\n      padding-bottom": "var(--sds-size-space-200)",
+      "sds-color-background-default-default-hover);\n    }\n\n    > .accordion-item-content {\n      margin-left": "auto",
+      "sds-size-space-400);\n      width": "calc(100% - var(--sds-size-space-400) * 2)"
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": true,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      "&::before": {
+        "category": "pseudo-element",
+        "pseudo": "before",
+        "properties": {
+          "content": "\"\"",
+          "border-radius": "calc(var(--border-radius) + var(--offset))",
+          "bottom": "calc(-1 * var(--offset))",
+          "box-shadow": "0 0 0 var(--global-focus-ring-size)\n        var(--global-focus-ring-color)",
+          "left": "calc(-1 * var(--offset))",
+          "position": "absolute",
+          "right": "calc(-1 * var(--offset))",
+          "top": "calc(-1 * var(--offset))"
+        }
+      }
+    },
+    "imports": []
+  }
+}

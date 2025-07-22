@@ -1,0 +1,11 @@
+{
+  "intent": "change all primary buttons to ghost variant",
+  "timestamp": "2025-07-22T05:53:32.937Z",
+  "patches": [],
+  "metadata": {
+    "componentsAffected": [],
+    "tokensAffected": [],
+    "riskLevel": "low"
+  },
+  "exported": "2025-07-22T05:53:32.939Z"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Tooltip",
+  "api": {
+    "props": {
+      "children": {
+        "type": "TSTypeReference",
+        "required": true,
+        "description": ""
+      }
+    },
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/ui/primitives/Tooltip/Tooltip.tsx"
+}

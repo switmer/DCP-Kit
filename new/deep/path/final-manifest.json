@@ -1,0 +1,13 @@
+{
+  "registryName": "Design System",
+  "version": "1.0.0",
+  "components": [],
+  "tokens": [],
+  "generator": {
+    "cli": "dcp-transformer",
+    "version": "1.1.0",
+    "llmUsed": false,
+    "schemaVersion": "1.0.0"
+  },
+  "generated": "2025-05-08T03:21:17.837Z"
+}

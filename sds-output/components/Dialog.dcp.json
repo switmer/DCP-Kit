@@ -1,0 +1,134 @@
+{
+  "name": "Dialog",
+  "description": "",
+  "props": {},
+  "tokensUsed": {
+    "cssModules": {
+      "dialog-container": {
+        "align-items": "center",
+        "bottom": "0",
+        "display": "flex",
+        "justify-content": "center",
+        "left": "0",
+        "position": "fixed",
+        "right": "0",
+        "top": "0",
+        "z-index": "var(--global-stack-dialog-container)"
+      },
+      "dialog-backdrop": {
+        "backdrop-filter": "var(--sds-effects-backdrop-filter-blur-overlay)",
+        "background": "var(--sds-color-background-utilities-scrim)",
+        "bottom": "0",
+        "left": "0",
+        "position": "fixed",
+        "right": "0",
+        "top": "0",
+        "z-index": "var(--global-stack-dialog-backdrop)"
+      },
+      "dialog": {
+        "--dialog-padding-y": "var(--sds-size-space-800)",
+        "background": "var(--sds-color-background-default-default)",
+        "box-shadow": "var(--sds-effects-shadows-drop-shadow-400)",
+        "box-sizing": "border-box",
+        "display": "flex",
+        "flex-direction": "column",
+        "padding-bottom": "var(--dialog-padding-y)",
+        "padding-top": "var(--dialog-padding-y)",
+        "position": "relative",
+        "outline": "none"
+      },
+      "dialog-close": {
+        "position": "absolute",
+        "top": "var(--sds-size-space-200)",
+        "right": "var(--sds-size-space-200)"
+      },
+      "dialog-type-card": {
+        "border-radius": "var(--sds-size-radius-200)",
+        "border": "var(--sds-size-stroke-border) solid\n    var(--sds-color-border-default-default)",
+        "max-width": "var(--global-dialog-max-width)",
+        "width": "calc(100% - var(--sds-size-space-400) * 2)"
+      },
+      "dialog-type-sheet": {
+        "align-self": "flex-end",
+        "border-top": "var(--sds-size-stroke-border) solid\n    var(--sds-color-border-default-default)",
+        "max-width": "100%",
+        "width": "100%",
+        "padding-left": "calc((100% - min(var(--global-container-max-width), 100%)) / 2)",
+        "padding-right": "calc(\n    (100% - min(var(--global-container-max-width), 100%)) / 2\n  )"
+      },
+      "dialog-body": {
+        "margin-top": "var(--sds-size-space-600)"
+      },
+      "dialog-body-bleed": {
+        "margin-left": "calc(-1 * var(--sds-size-space-800))",
+        "margin-right": "calc(-1 * var(--sds-size-space-800))",
+        "--table-gutter-inset": "var(--sds-size-space-800)"
+      },
+      "button-group": {
+        "margin-top": "var(--sds-size-space-600)"
+      },
+      "dialog-description": {
+        "margin-top": "var(--sds-size-space-200)"
+      }
+    },
+    "layout": {
+      "display": {
+        "value": "flex"
+      },
+      "position": {
+        "value": "absolute"
+      },
+      "flex-direction": {
+        "value": "column"
+      }
+    },
+    "spacing": {},
+    "color": {},
+    "border": {},
+    "size": {
+      "max-width": {
+        "value": "100%"
+      },
+      "width": {
+        "value": "100%"
+      }
+    },
+    "cssVariables": {
+      "global-stack-dialog-container);\n}\n\n.dialog-backdrop {\n  backdrop-filter": "var(--sds-effects-backdrop-filter-blur-overlay)",
+      "sds-color-background-utilities-scrim);\n  bottom": "0",
+      "global-stack-dialog-backdrop);\n}\n\n.dialog {\n  --dialog-padding-y": "var(--sds-size-space-800)",
+      "sds-color-background-default-default);\n  box-shadow": "var(--sds-effects-shadows-drop-shadow-400)",
+      "dialog-padding-y);\n  padding-top": "var(--dialog-padding-y)",
+      "sds-size-space-200);\n    right": "var(--sds-size-space-200)",
+      "sds-size-radius-200);\n  border": "var(--sds-size-stroke-border) solid\n    var(--sds-color-border-default-default)",
+      "global-dialog-max-width);\n  width": "calc(100% - var(--sds-size-space-400) * 2)",
+      "sds-size-stroke-border) solid\n    var(--sds-color-border-default-default);\n  max-width": "100%",
+      "global-container-max-width), 100%)) / 2);\n  padding-right": "calc(\n    (100% - min(var(--global-container-max-width), 100%)) / 2\n  )",
+      "sds-size-space-800);\n  padding-right": "var(--sds-size-space-800)",
+      "sds-size-space-800));\n  margin-right": "calc(-1 * var(--sds-size-space-800))",
+      "table-gutter-inset": "var(--sds-size-space-800)",
+      "sds-size-space-600);\n}\n\n.dialog-body {\n  margin-top": "var(--sds-size-space-600)"
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": true,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      "&:focus": {
+        "category": "interaction",
+        "pseudo": "focus",
+        "properties": {
+          "outline": "none"
+        }
+      }
+    },
+    "imports": []
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "name": "ListBox",
+  "description": "",
+  "props": {},
+  "tokensUsed": {
+    "border": {},
+    "color": {
+      "background-color": {
+        "value": "transparent"
+      },
+      "color": {
+        "value": "var(--sds-color-text-default-default)",
+        "variable": "--list-box-label-color"
+      },
+      "--icon-color": {
+        "value": "var(--sds-color-icon-brand-on-brand)",
+        "variable": "--list-box-icon-color"
+      }
+    },
+    "layout": {
+      "display": {
+        "value": "grid"
+      },
+      "flex-direction": {
+        "value": "row"
+      },
+      "grid-area": {
+        "value": "image"
+      },
+      "grid-template-columns": {
+        "value": "auto 1fr"
+      },
+      "grid-auto-flow": {
+        "value": "column"
+      },
+      "grid-template-rows": {
+        "value": "auto auto"
+      },
+      "grid-auto-columns": {
+        "value": "auto"
+      },
+      "grid-template-areas": {
+        "value": "\"only-child\"",
+        "variable": "--list-box-item-template-areas"
+      }
+    },
+    "spacing": {},
+    "size": {
+      "width": {
+        "value": "100%"
+      },
+      "max-width": {
+        "value": "none"
+      },
+      "height": {
+        "value": "auto"
+      }
+    },
+    "cssVariables": {
+      "list-box-item-template-areas": "\"only-child\"",
+      "sds-color-background-default-default);\n  border-radius": "var(--sds-size-radius-200)",
+      "sds-size-stroke-border) var(--sds-color-border-default-default),\n    var(--sds-effects-shadows-drop-shadow-400);\n  display": "flex",
+      "sds-size-space-200);\n\n  &[data-orientation=\"horizontal\"],\n  &[data-layout=\"grid\"] {\n    align-items": "center",
+      "list-box-label-color": "var(--sds-color-text-default-default)",
+      "list-box-description-color": "var(--sds-color-text-brand-on-brand)",
+      "list-box-icon-color": "var(--sds-color-icon-brand-on-brand)",
+      "sds-size-radius-200);\n  color": "var(--list-box-label-color)",
+      "sds-size-space-200);\n  cursor": "pointer",
+      "list-box-item-template-areas);\n  grid-template-columns": "auto 1fr",
+      "sds-size-space-200) var(--sds-size-space-200);\n\n  > .icon {\n    --icon-color": "var(--list-box-icon-color)",
+      "sds-color-text-disabled-default);\n  }\n\n  &[data-focused] {\n    --list-box-label-color": "var(--sds-color-text-brand-on-brand)",
+      "sds-color-background-brand-default);\n    outline": "none"
+    },
+    "cssModules": {
+      "list-box": {
+        "--list-box-item-template-areas": "\"label\" \"description\"",
+        "background": "var(--sds-color-background-default-default)",
+        "border-radius": "var(--sds-size-radius-200)",
+        "box-shadow": "0 0 0 var(--sds-size-stroke-border) var(--sds-color-border-default-default),\n    var(--sds-effects-shadows-drop-shadow-400)",
+        "display": "flex",
+        "flex-direction": "row",
+        "outline": "none",
+        "overflow-y": "auto",
+        "padding": "var(--sds-size-space-200)",
+        "align-items": "center",
+        "width": "fit-content",
+        "max-width": "100%"
+      },
+      "list-box-item": {
+        "--list-box-label-color": "var(--sds-color-text-default-default)",
+        "--list-box-description-color": "var(--sds-color-text-default-secondary)",
+        "--list-box-icon-color": "var(--sds-color-icon-default-default)",
+        "align-items": "center",
+        "background-color": "transparent",
+        "border-radius": "var(--sds-size-radius-200)",
+        "color": "var(--list-box-label-color)",
+        "column-gap": "var(--sds-size-space-200)",
+        "cursor": "pointer",
+        "display": "grid",
+        "grid-template-areas": "var(--list-box-item-template-areas)",
+        "grid-template-columns": "auto 1fr",
+        "padding": "var(--sds-size-space-200) var(--sds-size-space-200)",
+        "--icon-color": "var(--list-box-icon-color)",
+        "opacity": "0"
+      },
+      "icon": {
+        "opacity": "1"
+      }
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": false,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      ".list-box-item:has([slot=\"image\"]):not(:has(:only-child))": {
+        "category": "other",
+        "pseudo": "only-child))",
+        "properties": {
+          "--list-box-item-template-areas": "\"image .\" \"image label\" \"image description\"\n      \"image .\""
+        }
+      },
+      ".list-box-item:not(:has(:only-child))": {
+        "category": "other",
+        "pseudo": "only-child))",
+        "properties": {
+          "--list-box-item-template-areas": "\"image\" \"label\" \"description\""
+        }
+      },
+      ".list-box-item:has(:only-child)": {
+        "category": "other",
+        "pseudo": "only-child)",
+        "properties": {
+          "--list-box-item-template-areas": "\"only-child\"",
+          "grid-area": "only-child"
+        }
+      }
+    },
+    "imports": []
+  }
+}

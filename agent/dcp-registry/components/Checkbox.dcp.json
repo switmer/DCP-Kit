@@ -1,0 +1,22 @@
+{
+  "name": "Checkbox",
+  "api": {
+    "props": {
+      "children": {
+        "type": "TSTypeReference",
+        "required": false,
+        "description": ""
+      }
+    },
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/ui/primitives/Checkbox/Checkbox.tsx"
+}

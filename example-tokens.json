@@ -1,0 +1,122 @@
+{
+  "colors": {
+    "primary": {
+      "value": "#3b82f6",
+      "type": "color",
+      "description": "Primary brand color"
+    },
+    "secondary": {
+      "value": "#6b7280",
+      "type": "color", 
+      "description": "Secondary brand color"
+    },
+    "danger": {
+      "value": "#dc2626",
+      "type": "color",
+      "description": "Error and danger states"
+    },
+    "success": {
+      "value": "#059669",
+      "type": "color",
+      "description": "Success states"
+    }
+  },
+  "spacing": {
+    "xs": {
+      "value": "0.25rem",
+      "type": "dimension",
+      "description": "Extra small spacing"
+    },
+    "sm": {
+      "value": "0.5rem",
+      "type": "dimension",
+      "description": "Small spacing"
+    },
+    "md": {
+      "value": "1rem",
+      "type": "dimension",
+      "description": "Medium spacing"
+    },
+    "lg": {
+      "value": "1.5rem",
+      "type": "dimension",
+      "description": "Large spacing"
+    },
+    "xl": {
+      "value": "2rem",
+      "type": "dimension",
+      "description": "Extra large spacing"
+    }
+  },
+  "typography": {
+    "font-family-base": {
+      "value": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+      "type": "fontFamily",
+      "description": "Base font family"
+    },
+    "font-size-sm": {
+      "value": "0.875rem",
+      "type": "dimension",
+      "description": "Small font size"
+    },
+    "font-size-base": {
+      "value": "1rem",
+      "type": "dimension",
+      "description": "Base font size"
+    },
+    "font-size-lg": {
+      "value": "1.125rem",
+      "type": "dimension",
+      "description": "Large font size"
+    },
+    "font-weight-normal": {
+      "value": "400",
+      "type": "fontWeight",
+      "description": "Normal font weight"
+    },
+    "font-weight-medium": {
+      "value": "500",
+      "type": "fontWeight",
+      "description": "Medium font weight"
+    },
+    "font-weight-bold": {
+      "value": "700",
+      "type": "fontWeight",
+      "description": "Bold font weight"
+    }
+  },
+  "borderRadius": {
+    "sm": {
+      "value": "0.125rem",
+      "type": "dimension",
+      "description": "Small border radius"
+    },
+    "md": {
+      "value": "0.375rem",
+      "type": "dimension",
+      "description": "Medium border radius"
+    },
+    "lg": {
+      "value": "0.5rem",
+      "type": "dimension",
+      "description": "Large border radius"
+    }
+  },
+  "shadows": {
+    "sm": {
+      "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+      "type": "boxShadow",
+      "description": "Small shadow"
+    },
+    "md": {
+      "value": "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+      "type": "boxShadow",
+      "description": "Medium shadow"
+    },
+    "lg": {
+      "value": "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+      "type": "boxShadow",
+      "description": "Large shadow"
+    }
+  }
+}

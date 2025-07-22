@@ -1,0 +1,16 @@
+{
+  "name": "useMediaQuery.stories",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/stories/hooks/useMediaQuery.stories.tsx"
+}

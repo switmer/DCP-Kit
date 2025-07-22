@@ -1,0 +1,8 @@
+{
+  "registryName": "Example Design System",
+  "version": "1.0.0",
+  "components": "./components",
+  "tokens": "./tokens",
+  "output": "./dist/registry.json",
+  "llmEnrich": false
+} 

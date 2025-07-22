@@ -1,0 +1,16 @@
+{
+  "name": "Image.stories",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/stories/primitives/Image.stories.tsx"
+}

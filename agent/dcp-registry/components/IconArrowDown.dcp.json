@@ -1,0 +1,16 @@
+{
+  "name": "IconArrowDown",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/ui/icons/IconArrowDown.tsx"
+}

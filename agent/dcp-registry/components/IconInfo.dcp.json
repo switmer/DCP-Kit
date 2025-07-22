@@ -1,0 +1,16 @@
+{
+  "name": "IconInfo",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/ui/icons/IconInfo.tsx"
+}

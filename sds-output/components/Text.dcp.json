@@ -1,0 +1,208 @@
+{
+  "name": "Text",
+  "description": "",
+  "props": {},
+  "tokensUsed": {
+    "cssModules": {
+      "text-body-base": {
+        "font": "var(--sds-font-body-base)"
+      },
+      "text-line-height-single": {
+        "line-height": "1"
+      },
+      "text-line-height-body": {
+        "line-height": "var(--global-line-height-body)"
+      },
+      "text-body-small": {
+        "font": "var(--sds-font-body-small)"
+      },
+      "text-body-small-strong": {
+        "font": "var(--sds-font-body-small-strong)"
+      },
+      "text-body-strong": {
+        "font": "var(--sds-font-body-strong)"
+      },
+      "text-body-emphasis": {
+        "font": "var(--sds-font-body-emphasis)"
+      },
+      "text-body-link": {
+        "--border-radius": "var(--sds-size-radius-100)",
+        "color": "inherit",
+        "cursor": "pointer",
+        "font": "var(--sds-font-body-link)",
+        "position": "relative",
+        "text-decoration": "underline"
+      },
+      "text-input": {
+        "font": "var(--sds-font-input)"
+      },
+      "text-body-code": {
+        "font": "var(--sds-font-body-code)"
+      },
+      "text-subtitle": {
+        "font": "var(--sds-font-subtitle)"
+      },
+      "text-subheading": {
+        "font": "var(--sds-font-subheading)"
+      },
+      "text-heading": {
+        "font": "var(--sds-font-heading)"
+      },
+      "text-title-hero": {
+        "font": "var(--sds-font-title-hero)"
+      },
+      "text-title-page": {
+        "font": "var(--sds-font-title-page)"
+      },
+      "text-list": {
+        "display": "flex",
+        "flex-direction": "column",
+        "margin": "0",
+        "gap": "var(--sds-size-space-300)",
+        "margin-bottom": "var(--sds-size-space-400)"
+      },
+      "text-list-density-tight": {
+        "gap": "var(--sds-size-space-200)",
+        "margin-bottom": "var(--sds-size-space-100)"
+      },
+      "text-link-list": {
+        "list-style": "none",
+        "padding": "0"
+      },
+      "text-list-item": {
+        "font": "var(--sds-font-body)"
+      },
+      "text-price": {
+        "align-items": "end",
+        "display": "flex",
+        "gap": "var(--sds-size-space-100)",
+        "margin-bottom": "var(--sds-size-space-100)"
+      },
+      "text-price-size-large": {
+        "gap": "var(--sds-size-space-200)",
+        "margin-bottom": "var(--sds-size-space-300)"
+      },
+      "text-price-currency": {
+        "font-size": "0.6em",
+        "margin-right": "var(--sds-size-space-050)"
+      },
+      "text-align-center": {
+        "text-align": "center"
+      },
+      "text-align-start": {
+        "text-align": "left"
+      },
+      "text-align-end": {
+        "text-align": "right"
+      },
+      "text-content-heading": {
+        "width": "100%"
+      }
+    },
+    "fontSize": {
+      "list.title": "typography.size.list.title"
+    },
+    "typography": {
+      "line-height": {
+        "value": "1"
+      },
+      "font-size": {
+        "value": "0.6em"
+      }
+    },
+    "border": {},
+    "color": {
+      "color": {
+        "value": "inherit"
+      }
+    },
+    "layout": {
+      "position": {
+        "value": "absolute"
+      },
+      "display": {
+        "value": "flex"
+      },
+      "flex-direction": {
+        "value": "column"
+      }
+    },
+    "spacing": {
+      "margin": {
+        "value": "0"
+      },
+      "padding": {
+        "value": "0"
+      },
+      "padding-left": {
+        "value": "1rem"
+      }
+    },
+    "size": {
+      "width": {
+        "value": "100%"
+      }
+    },
+    "cssVariables": {
+      "sds-font-body-base);\n}\n.text-line-height-single {\n  line-height": "1",
+      "global-line-height-body);\n}\n.text-body-small {\n  font": "var(--sds-font-body-small)",
+      "sds-font-body-small-strong);\n}\n.text-body-strong {\n  font": "var(--sds-font-body-strong)",
+      "sds-font-body-emphasis);\n}\n\n.text-body-link {\n  --border-radius": "var(--sds-size-radius-100)",
+      "sds-font-body-link);\n  position": "relative",
+      "offset": "calc(var(--sds-size-stroke-border) * 2)",
+      "border-radius) + var(--offset));\n      bottom": "calc(-1 * var(--offset))",
+      "global-focus-ring-size)\n        var(--global-focus-ring-color);\n      left": "calc(-1 * var(--offset))",
+      "offset));\n      top": "calc(-1 * var(--offset))",
+      "global-stack-focus);\n    }\n  }\n}\n\n.text-input {\n  font": "var(--sds-font-input)",
+      "sds-font-body-code);\n}\n.text-subtitle {\n  font": "var(--sds-font-subtitle)",
+      "sds-font-subheading);\n}\n.text-heading {\n  font": "var(--sds-font-heading)",
+      "sds-font-title-hero);\n}\n.text-title-page {\n  font": "var(--sds-font-title-page)",
+      "sds-size-space-300);\n    .text-list-title {\n      margin-bottom": "var(--sds-size-space-400)",
+      "sds-size-space-200);\n    .text-list-title {\n      margin-bottom": "var(--sds-size-space-100)",
+      "sds-color-text-default-secondary);\n    padding-left": "1rem",
+      "sds-font-body);\n}\n\n.text-price {\n  align-items": "end",
+      "sds-size-space-100);\n\n    > .text-body-small {\n      margin-bottom": "var(--sds-size-space-100)",
+      "sds-size-space-200);\n\n    > .text-body-small {\n      margin-bottom": "var(--sds-size-space-300)",
+      "sds-size-space-050);\n  }\n}\n\n.text-align-center {\n  text-align": "center"
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": true,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      "&:focus-visible": {
+        "category": "other",
+        "pseudo": "focus-visible",
+        "properties": {
+          "outline": "none",
+          "--offset": "calc(var(--sds-size-stroke-border) * 2)",
+          "content": "\"\"",
+          "border-radius": "calc(var(--border-radius) + var(--offset))",
+          "bottom": "calc(-1 * var(--offset))",
+          "box-shadow": "0 0 0 var(--global-focus-ring-size)\n        var(--global-focus-ring-color)",
+          "left": "calc(-1 * var(--offset))",
+          "position": "absolute",
+          "right": "calc(-1 * var(--offset))",
+          "top": "calc(-1 * var(--offset))",
+          "z-index": "var(--global-stack-focus)"
+        }
+      },
+      "&:not(.text-link-list)": {
+        "category": "other",
+        "pseudo": "not(.text-link-list)",
+        "properties": {
+          "color": "var(--sds-color-text-default-secondary)",
+          "padding-left": "1rem"
+        }
+      }
+    },
+    "imports": []
+  }
+}

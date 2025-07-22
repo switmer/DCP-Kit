@@ -1,0 +1,27 @@
+{
+  "name": "Select",
+  "api": {
+    "props": {
+      "items": {
+        "type": "TSTypeReference",
+        "required": false,
+        "description": ""
+      },
+      "children": {
+        "type": "TSUnionType",
+        "required": true,
+        "description": ""
+      }
+    },
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/ui/primitives/Select/Select.tsx"
+}

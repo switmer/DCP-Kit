@@ -1,0 +1,76 @@
+{
+  "name": "Logo",
+  "description": "",
+  "props": {},
+  "tokensUsed": {
+    "border": {
+      "border-radius": {
+        "value": "var(--sds-size-radius-200)",
+        "variable": "--border-radius"
+      }
+    },
+    "layout": {
+      "position": {
+        "value": "absolute"
+      }
+    },
+    "color": {},
+    "size": {
+      "height": {
+        "value": "auto"
+      }
+    },
+    "cssVariables": {
+      "border-radius": "var(--sds-size-radius-200)",
+      "border-radius);\n  position": "relative",
+      "offset": "calc(var(--sds-size-stroke-border) * 2)",
+      "border-radius) + var(--offset));\n      bottom": "calc(-1 * var(--offset))",
+      "global-focus-ring-size)\n        var(--global-focus-ring-color);\n      left": "calc(-1 * var(--offset))",
+      "offset));\n      top": "calc(-1 * var(--offset))",
+      "logo-color": "var(--sds-color-icon-default-default)"
+    },
+    "cssModules": {
+      "logo": {
+        "--border-radius": "var(--sds-size-radius-200)",
+        "border-radius": "calc(var(--border-radius) + var(--offset))",
+        "position": "absolute",
+        "outline": "none",
+        "--offset": "calc(var(--sds-size-stroke-border) * 2)",
+        "content": "\"\"",
+        "bottom": "calc(-1 * var(--offset))",
+        "box-shadow": "0 0 0 var(--global-focus-ring-size)\n        var(--global-focus-ring-color)",
+        "left": "calc(-1 * var(--offset))",
+        "right": "calc(-1 * var(--offset))",
+        "top": "calc(-1 * var(--offset))"
+      }
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": false,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      "&::before": {
+        "category": "pseudo-element",
+        "pseudo": "before",
+        "properties": {
+          "content": "\"\"",
+          "border-radius": "calc(var(--border-radius) + var(--offset))",
+          "bottom": "calc(-1 * var(--offset))",
+          "box-shadow": "0 0 0 var(--global-focus-ring-size)\n        var(--global-focus-ring-color)",
+          "left": "calc(-1 * var(--offset))",
+          "position": "absolute",
+          "right": "calc(-1 * var(--offset))",
+          "top": "calc(-1 * var(--offset))"
+        }
+      }
+    },
+    "imports": []
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "registryName": "Test Design System",
+  "version": "1.0.0",
+  "components": "./src/components",
+  "tokens": "./tokens",
+  "output": "./dist/registry.json",
+  "llmEnrich": false
+} 

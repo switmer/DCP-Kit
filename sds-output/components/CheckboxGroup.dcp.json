@@ -1,0 +1,157 @@
+{
+  "name": "CheckboxGroup",
+  "description": "",
+  "props": {
+    "label": {
+      "type": "string | undefined",
+      "description": "",
+      "required": false,
+      "source": "source"
+    },
+    "description": {
+      "type": "string | undefined",
+      "description": "",
+      "required": false,
+      "source": "source"
+    },
+    "placeholder": {
+      "type": "string | undefined",
+      "description": "",
+      "required": false,
+      "source": "source"
+    },
+    "errorMessage": {
+      "type": "string | ((validation: RACValidationResult) => string) | undefined",
+      "description": "",
+      "required": false,
+      "source": "source"
+    }
+  },
+  "tokensUsed": {
+    "cssModules": {
+      "checkbox": {
+        "--checkbox-background": "var(--sds-color-background-disabled-default)",
+        "--checkbox-border": "var(--sds-color-border-disabled-default)",
+        "--checkbox-icon": "var(--sds-color-icon-disabled-on-disabled)"
+      },
+      "icon-selected": {
+        "display": "block"
+      },
+      "icon-indeterminate": {
+        "display": "block"
+      },
+      "checkbox-group": {
+        "display": "flex",
+        "flex-direction": "column",
+        "gap": "var(--sds-size-space-200)"
+      },
+      "checkbox-field": {
+        "--checkbox-field-label-color": "var(--sds-color-text-default-default)",
+        "--checkbox-field-description-color": "var(--sds-color-text-default-secondary)",
+        "align-items": "center",
+        "column-gap": "var(--sds-size-space-400)",
+        "display": "grid",
+        "grid-template-columns": "var(--sds-size-space-300) 1fr",
+        "row-gap": "var(--sds-size-space-100)",
+        "width": "100%",
+        "grid-row-start": "1",
+        "grid-column-start": "1"
+      },
+      "label": {
+        "--checkbox-field-label-color": "var(--sds-color-text-disabled-default)"
+      },
+      "description": {
+        "--checkbox-field-description-color": "var(--sds-color-text-disabled-default)"
+      }
+    },
+    "border": {
+      "border-radius": {
+        "value": "var(--sds-size-radius-100)",
+        "variable": "--checkbox-border-radius"
+      }
+    },
+    "color": {
+      "--icon-color": {
+        "value": "var(--sds-color-icon-disabled-on-disabled)",
+        "variable": "--checkbox-icon"
+      },
+      "color": {
+        "value": "var(--sds-color-text-disabled-default)",
+        "variable": "--checkbox-field-description-color"
+      }
+    },
+    "layout": {
+      "display": {
+        "value": "grid"
+      },
+      "position": {
+        "value": "absolute"
+      },
+      "flex-direction": {
+        "value": "column"
+      },
+      "grid-row-start": {
+        "value": "2"
+      },
+      "grid-column-start": {
+        "value": "2"
+      }
+    },
+    "size": {
+      "width": {
+        "value": "100%"
+      }
+    },
+    "spacing": {},
+    "cssVariables": {
+      "checkbox-background": "var(--sds-color-background-disabled-default)",
+      "checkbox-border": "var(--sds-color-border-disabled-default)",
+      "checkbox-icon": "var(--sds-color-icon-disabled-on-disabled)",
+      "checkbox-border-radius": "var(--sds-size-radius-100)",
+      "checkbox-background);\n  box-shadow": "inset 0 0 0 var(--sds-size-stroke-border) var(--checkbox-border)",
+      "checkbox-border-radius);\n  display": "flex",
+      "sds-size-space-400);\n  justify-content": "center",
+      "sds-size-space-400);\n  > .icon {\n    --icon-color": "var(--checkbox-icon)",
+      "offset": "calc(var(--sds-size-stroke-border) * 2)",
+      "checkbox-border-radius) + var(--offset));\n  bottom": "calc(-1 * var(--offset))",
+      "global-focus-ring-size) var(--global-focus-ring-color);\n  left": "calc(-1 * var(--offset))",
+      "offset));\n  top": "calc(-1 * var(--offset))",
+      "sds-size-space-200);\n}\n\n.checkbox-field {\n  --checkbox-field-label-color": "var(--sds-color-text-default-default)",
+      "checkbox-field-description-color": "var(--sds-color-text-disabled-default)",
+      "sds-size-space-400);\n  display": "grid",
+      "sds-size-space-300) 1fr;\n  row-gap": "var(--sds-size-space-100)",
+      "checkbox-field-label-color);\n    grid-row-start": "1",
+      "checkbox-field-description-color);\n    grid-row-start": "2",
+      "checkbox-field-label-color": "var(--sds-color-text-disabled-default)"
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": true,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      ".checkbox::before": {
+        "category": "pseudo-element",
+        "pseudo": "before",
+        "properties": {
+          "--offset": "calc(var(--sds-size-stroke-border) * 2)",
+          "content": "\"\"",
+          "border-radius": "calc(var(--checkbox-border-radius) + var(--offset))",
+          "bottom": "calc(-1 * var(--offset))",
+          "box-shadow": "0 0 0 var(--global-focus-ring-size) var(--global-focus-ring-color)",
+          "left": "calc(-1 * var(--offset))",
+          "position": "absolute",
+          "right": "calc(-1 * var(--offset))",
+          "top": "calc(-1 * var(--offset))"
+        }
+      }
+    },
+    "imports": []
+  }
+}

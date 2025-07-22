@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DCP Registry Preview</title>
+  <style>
+    body { font-family: Arial, system-ui; padding: 1rem; max-width: 960px; margin: auto; }
+    pre { background: #f6f6f6; padding: .5rem; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>🧩 Components</h1>
+  <% components.forEach(c => { %>
+    <h2><%= c.name %></h2>
+    <p><%= c.description || 'No description' %></p>
+    <h4>Props</h4>
+    <pre><%= JSON.stringify(c.props, null, 2) %></pre>
+  <% }) %>
+</body>
+</html>

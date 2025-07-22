@@ -1,0 +1,16 @@
+{
+  "name": "Pagination.figma",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/figma/primitives/Pagination.figma.tsx"
+}

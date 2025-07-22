@@ -1,0 +1,102 @@
+{
+  "name": "Tab",
+  "description": "",
+  "props": {},
+  "tokensUsed": {
+    "color": {
+      "color": {
+        "value": "var(--sds-color-text-default-default)",
+        "variable": "--color"
+      }
+    },
+    "border": {
+      "border-radius": {
+        "value": "var(--sds-size-radius-100)",
+        "variable": "--border-radius"
+      }
+    },
+    "spacing": {},
+    "layout": {
+      "position": {
+        "value": "absolute"
+      },
+      "z-index": {
+        "value": "1"
+      },
+      "display": {
+        "value": "flex"
+      }
+    },
+    "cssVariables": {
+      "color": "var(--sds-color-text-default-default)",
+      "border-color": "var(--sds-color-border-default-secondary)",
+      "border-radius": "var(--sds-size-radius-100)",
+      "sds-size-space-100) var(--sds-size-space-300);\n  border-bottom": "solid var(--sds-size-stroke-border) var(--border-color)",
+      "border-radius) var(--border-radius) 0 0;\n  box-sizing": "border-box",
+      "color);\n  cursor": "pointer",
+      "sds-color-background-default-default-hover);\n  }\n\n  &[data-focus-visible] {\n    --offset": "calc(var(--sds-size-stroke-border) * 0)",
+      "border-radius) + var(--offset))\n        calc(var(--border-radius) + var(--offset)) 0 0;\n      bottom": "calc(-1 * var(--offset))",
+      "global-focus-ring-size)\n        var(--global-focus-ring-color);\n      left": "calc(-1 * var(--offset))",
+      "offset));\n      top": "calc(-1 * var(--offset))"
+    },
+    "cssModules": {
+      "tabs": {},
+      "tab": {
+        "--color": "var(--sds-color-text-default-default)",
+        "--border-color": "var(--sds-color-border-default-secondary)",
+        "--border-radius": "var(--sds-size-radius-100)",
+        "padding": "var(--sds-size-space-100) var(--sds-size-space-300)",
+        "border-bottom": "solid var(--sds-size-stroke-border) var(--border-color)",
+        "border-radius": "var(--border-radius) var(--border-radius) 0 0",
+        "box-sizing": "border-box",
+        "color": "var(--color)",
+        "cursor": "pointer",
+        "outline": "none",
+        "position": "relative",
+        "z-index": "1"
+      },
+      "tab-list": {
+        "display": "flex"
+      },
+      "tab-panel": {
+        "outline": "none",
+        "padding": "var(--sds-size-space-300)"
+      }
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": false,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      "&[data-hovered]:not([data-selected])": {
+        "category": "other",
+        "pseudo": "not([data-selected])",
+        "properties": {
+          "background": "var(--sds-color-background-default-default-hover)"
+        }
+      },
+      "&::before": {
+        "category": "pseudo-element",
+        "pseudo": "before",
+        "properties": {
+          "content": "\"\"",
+          "border-radius": "calc(var(--border-radius) + var(--offset))\n        calc(var(--border-radius) + var(--offset)) 0 0",
+          "bottom": "calc(-1 * var(--offset))",
+          "box-shadow": "0 0 0 var(--global-focus-ring-size)\n        var(--global-focus-ring-color)",
+          "left": "calc(-1 * var(--offset))",
+          "position": "absolute",
+          "right": "calc(-1 * var(--offset))",
+          "top": "calc(-1 * var(--offset))"
+        }
+      }
+    },
+    "imports": []
+  }
+}

@@ -1,0 +1,109 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://dcp-schema.org/component",
+    "title": "DCP Component",
+    "type": "object",
+    "required": ["name", "description", "props"],
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "The name of the component"
+      },
+      "description": {
+        "type": "string",
+        "description": "A description of the component's purpose and usage"
+      },
+      "category": { "type": "string" },
+      "tags": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "props": {
+        "type": "object",
+        "description": "The component's props/properties",
+        "additionalProperties": {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["string", "number", "boolean", "enum", "object", "array"]
+            },
+            "description": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "source": {
+              "type": "string",
+              "enum": ["llm", "manual", "auto"]
+            }
+          }
+        }
+      },
+      "states": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "tokens": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "List of design tokens used by this component"
+      },
+      "accessibility": {
+        "type": "object",
+        "properties": {
+          "ariaRoles": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "keyboardSupport": { "type": "boolean" },
+          "focusVisible": { "type": "boolean" },
+          "colorContrastCompliant": { "type": "boolean" },
+          "a11yNotes": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "documentation": {
+        "type": "object",
+        "properties": {
+          "docFile": { "type": "string" },
+          "usageGuidelines": { "type": "string" },
+          "a11yNotes": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "examples": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["label", "code"],
+          "properties": {
+            "label": { "type": "string" },
+            "code": { "type": "string" }
+          }
+        }
+      },
+      "version": {
+        "type": "string",
+        "pattern": "^\\d+\\.\\d+\\.\\d+$",
+        "description": "Semantic version of the component"
+      },
+      "extensions": {
+        "type": "object",
+        "description": "Custom metadata fields",
+        "additionalProperties": true
+      }
+    },
+    "additionalProperties": false
+  }
+  

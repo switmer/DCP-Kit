@@ -1,0 +1,16 @@
+{
+  "name": "Accordion",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/ui/primitives/Accordion/Accordion.tsx"
+}

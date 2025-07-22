@@ -1,0 +1,275 @@
+{
+  "name": "fixtures",
+  "version": "1.0.0",
+  "description": "DCP registry extracted from tests/fixtures",
+  "components": [
+    {
+      "name": "SimpleButton",
+      "type": "component",
+      "category": "actions",
+      "description": "",
+      "filePath": "simple-button.tsx",
+      "props": [
+        {
+          "name": "variant",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "primary"
+        },
+        {
+          "name": "children",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "onClick",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        }
+      ],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T07:15:41.007Z"
+      }
+    },
+    {
+      "name": "ProblematicComponent",
+      "type": "component",
+      "category": "components",
+      "description": "",
+      "filePath": "problematic-component.tsx",
+      "props": [
+        {
+          "name": "id",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "variant",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "a"
+        },
+        {
+          "name": "onComplexEvent",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "data",
+          "type": "unknown",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "computed",
+          "type": "unknown",
+          "required": true,
+          "description": ""
+        }
+      ],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T07:15:41.014Z"
+      }
+    },
+    {
+      "name": "ClassComponent",
+      "type": "component",
+      "category": "components",
+      "description": "",
+      "filePath": "problematic-component.tsx",
+      "props": [],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "class",
+        "extractedAt": "2025-07-22T07:15:41.014Z"
+      }
+    },
+    {
+      "name": "NoPropsInterface",
+      "type": "component",
+      "category": "components",
+      "description": "",
+      "filePath": "problematic-component.tsx",
+      "props": [],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T07:15:41.014Z"
+      }
+    },
+    {
+      "name": "ComplexCard",
+      "type": "component",
+      "category": "layout",
+      "description": "",
+      "filePath": "complex-card.tsx",
+      "props": [
+        {
+          "name": "variant",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "default"
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "md"
+        },
+        {
+          "name": "interactive",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "className",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": ""
+        },
+        {
+          "name": "children",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "header",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "footer",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "actions",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "loading",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "onClick",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        }
+      ],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T07:15:41.019Z"
+      }
+    },
+    {
+      "name": "Button",
+      "type": "component",
+      "category": "actions",
+      "description": "",
+      "filePath": "src/components/Button.tsx",
+      "props": [
+        {
+          "name": "variant",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "primary"
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "medium"
+        },
+        {
+          "name": "disabled",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "children",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "onClick",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        }
+      ],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T07:15:41.021Z"
+      }
+    }
+  ],
+  "tokens": {},
+  "metadata": {
+    "extractedAt": "2025-07-22T07:15:40.987Z",
+    "sourceDir": "tests/fixtures",
+    "transformedFrom": "typescript-react",
+    "version": "2.0.0"
+  },
+  "lastModified": "2025-07-22T07:15:41.021Z"
+}

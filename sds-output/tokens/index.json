@@ -1,0 +1,59 @@
+{
+  "color.surface.primary": {
+    "value": "#0066CC"
+  },
+  "color.surface.secondary": {
+    "value": "#4D4D4D"
+  },
+  "color.surface.background": {
+    "value": "#FFFFFF"
+  },
+  "color.text.primary": {
+    "value": "#000000"
+  },
+  "color.text.secondary": {
+    "value": "#666666"
+  },
+  "color.text.inverse": {
+    "value": "#FFFFFF"
+  },
+  "spacing.xs": {
+    "value": "4px"
+  },
+  "spacing.sm": {
+    "value": "8px"
+  },
+  "spacing.md": {
+    "value": "16px"
+  },
+  "spacing.lg": {
+    "value": "24px"
+  },
+  "spacing.xl": {
+    "value": "32px"
+  },
+  "typography.size.xs": {
+    "value": "12px"
+  },
+  "typography.size.sm": {
+    "value": "14px"
+  },
+  "typography.size.md": {
+    "value": "16px"
+  },
+  "typography.size.lg": {
+    "value": "20px"
+  },
+  "typography.size.xl": {
+    "value": "24px"
+  },
+  "typography.weight.regular": {
+    "value": "400"
+  },
+  "typography.weight.medium": {
+    "value": "500"
+  },
+  "typography.weight.bold": {
+    "value": "700"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "Link",
+  "description": "",
+  "props": {
+    "href": {
+      "type": "string",
+      "description": "",
+      "required": false,
+      "source": "source"
+    }
+  },
+  "tokensUsed": {
+    "cssVariables": {},
+    "cssModules": {
+      "link": {
+        "text-decoration": "none"
+      }
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": false,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {},
+    "imports": []
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "name": "Navigation",
+  "description": "",
+  "props": {
+    "direction": {
+      "type": "enum",
+      "description": "",
+      "required": false,
+      "default": "row",
+      "source": "source"
+    }
+  },
+  "tokensUsed": {
+    "layout": {
+      "display": {
+        "value": "flex"
+      },
+      "flex-direction": {
+        "value": "row"
+      },
+      "position": {
+        "value": "absolute"
+      }
+    },
+    "spacing": {},
+    "size": {
+      "height": {
+        "value": "100%"
+      },
+      "width": {
+        "value": "100%"
+      }
+    },
+    "border": {
+      "border-radius": {
+        "value": "0px",
+        "variable": "--border-radius"
+      },
+      "--border-radius": {
+        "value": "0px"
+      }
+    },
+    "color": {},
+    "typography": {
+      "line-height": {
+        "value": "1"
+      }
+    },
+    "cssVariables": {
+      "sds-size-space-200);\n}\n\n.navigation-direction-row {\n  flex-direction": "row",
+      "border-radius": "0px",
+      "border-radius);\n  color": "var(--sds-color-text-default-secondary)",
+      "sds-size-space-200);\n  position": "relative",
+      "sds-color-background-default-default-hover);\n  }\n\n  &[data-selected] {\n    color": "var(--sds-color-text-brand-on-brand-secondary)",
+      "sds-color-background-brand-tertiary);\n  }\n\n  &[data-focus-visible] {\n    outline": "none",
+      "offset": "calc(var(--sds-size-stroke-border) * 2)",
+      "border-radius) + var(--offset));\n      bottom": "calc(-1 * var(--offset))",
+      "global-focus-ring-size)\n        var(--global-focus-ring-color);\n      left": "calc(-1 * var(--offset))",
+      "offset));\n      top": "calc(-1 * var(--offset))",
+      "sds-size-space-200);\n  line-height": "1",
+      "icon-color": "var(--sds-color-icon-default-secondary)",
+      "sds-color-text-brand-default);\n\n    > .icon {\n      --icon-color": "var(--sds-color-icon-brand-default)",
+      "sds-color-background-default-default-hover);\n  }\n\n  &[data-focus-visible] {\n    outline": "none",
+      "sds-font-body-small-strong);\n  }\n\n  &.navigation-button-size-medium {\n    font": "var(--sds-font-body-base)"
+    },
+    "cssModules": {
+      "navigation": {
+        "display": "flex",
+        "align-items": "center",
+        "gap": "var(--sds-size-space-200)"
+      },
+      "navigation-direction-row": {
+        "flex-direction": "row",
+        "height": "100%",
+        "justify-content": "center"
+      },
+      "navigation-direction-column": {
+        "flex-direction": "column",
+        "width": "100%"
+      },
+      "navigation-pill": {
+        "--border-radius": "var(--sds-size-radius-200)",
+        "background": "var(--sds-color-background-default-default-hover)",
+        "border-radius": "var(--border-radius)",
+        "color": "var(--sds-color-text-default-default)",
+        "cursor": "pointer",
+        "padding": "var(--sds-size-space-200)",
+        "position": "relative"
+      },
+      "navigation-button": {
+        "--border-radius": "0px",
+        "align-items": "center",
+        "background": "transparent",
+        "border-radius": "var(--border-radius)",
+        "color": "var(--sds-color-text-default-secondary)",
+        "cursor": "pointer",
+        "display": "flex",
+        "gap": "var(--sds-size-space-200)",
+        "line-height": "1",
+        "padding": "var(--sds-size-space-200)",
+        "position": "relative",
+        "--icon-color": "var(--sds-color-icon-default-secondary)"
+      },
+      "icon": {
+        "--icon-color": "var(--sds-color-icon-brand-default)"
+      },
+      "navigation-button-direction-column": {
+        "flex-direction": "column"
+      },
+      "navigation-button-direction-row": {
+        "flex-direction": "row"
+      },
+      "navigation-button-size-small": {
+        "font": "var(--sds-font-body-small-strong)"
+      },
+      "navigation-button-size-medium": {
+        "font": "var(--sds-font-body-base)"
+      }
+    }
+  },
+  "styles": {
+    "hasCSS": true,
+    "hasTailwind": false,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {
+      "&::before": {
+        "category": "pseudo-element",
+        "pseudo": "before",
+        "properties": {
+          "content": "\"\"",
+          "border-radius": "calc(var(--border-radius) + var(--offset))",
+          "bottom": "calc(-1 * var(--offset))",
+          "box-shadow": "0 0 0 var(--global-focus-ring-size)\n        var(--global-focus-ring-color)",
+          "left": "calc(-1 * var(--offset))",
+          "position": "absolute",
+          "right": "calc(-1 * var(--offset))",
+          "top": "calc(-1 * var(--offset))"
+        }
+      }
+    },
+    "imports": []
+  }
+}

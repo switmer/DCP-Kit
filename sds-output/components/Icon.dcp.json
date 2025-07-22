@@ -1,0 +1,36 @@
+{
+  "name": "Icon",
+  "description": "",
+  "props": {
+    "className": {
+      "type": "string | undefined",
+      "description": "",
+      "required": false,
+      "source": "source"
+    },
+    "size": {
+      "type": "enum",
+      "description": "",
+      "required": false,
+      "default": "16",
+      "source": "source"
+    }
+  },
+  "tokensUsed": {
+    "cssVariables": {},
+    "cssModules": {}
+  },
+  "styles": {
+    "hasCSS": false,
+    "hasTailwind": false,
+    "hasCSSInJS": false,
+    "cssInJs": {
+      "libraries": [],
+      "styles": {}
+    },
+    "animations": {},
+    "mediaQueries": {},
+    "pseudoClasses": {},
+    "imports": []
+  }
+}

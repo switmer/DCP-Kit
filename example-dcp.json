@@ -1,0 +1,227 @@
+{
+  "name": "Example Design System",
+  "version": "1.0.0",
+  "description": "Example DCP registry for testing mutations",
+  "components": [
+    {
+      "name": "Button",
+      "description": "Primary button component for user interactions",
+      "props": [
+        {
+          "name": "variant",
+          "type": "string",
+          "required": false,
+          "default": "primary",
+          "description": "Visual style variant of the button"
+        },
+        {
+          "name": "size",
+          "type": "string",
+          "required": false,
+          "default": "medium",
+          "description": "Size of the button"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Whether the button is disabled"
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "description": "Button content"
+        }
+      ],
+      "variants": ["primary", "secondary", "ghost", "danger"],
+      "examples": [
+        {
+          "name": "Primary Button",
+          "props": {
+            "variant": "primary",
+            "children": "Save Changes"
+          }
+        },
+        {
+          "name": "Secondary Button",
+          "props": {
+            "variant": "secondary", 
+            "children": "Cancel"
+          }
+        },
+        {
+          "name": "Ghost Button",
+          "props": {
+            "variant": "ghost",
+            "children": "Learn More"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "description": "Container component for grouping related content",
+      "props": [
+        {
+          "name": "padding",
+          "type": "string",
+          "required": false,
+          "default": "medium",
+          "description": "Internal padding of the card"
+        },
+        {
+          "name": "shadow",
+          "type": "boolean",
+          "required": false,
+          "default": true,
+          "description": "Whether to show card shadow"
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "description": "Card content"
+        }
+      ],
+      "variants": ["default", "elevated", "outlined"],
+      "examples": [
+        {
+          "name": "Default Card",
+          "props": {
+            "children": "Card content here"
+          }
+        },
+        {
+          "name": "Elevated Card", 
+          "props": {
+            "shadow": true,
+            "padding": "large",
+            "children": "Important card content"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Input",
+      "description": "Text input component for forms",
+      "props": [
+        {
+          "name": "type",
+          "type": "string",
+          "required": false,
+          "default": "text",
+          "description": "Type of input field"
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": "Placeholder text"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean", 
+          "required": false,
+          "default": false,
+          "description": "Whether the input is disabled"
+        },
+        {
+          "name": "error",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "Whether the input has an error state"
+        }
+      ],
+      "variants": ["default", "error", "success"],
+      "examples": [
+        {
+          "name": "Text Input",
+          "props": {
+            "type": "text",
+            "placeholder": "Enter your name"
+          }
+        },
+        {
+          "name": "Email Input",
+          "props": {
+            "type": "email",
+            "placeholder": "Enter your email"
+          }
+        },
+        {
+          "name": "Error Input",
+          "props": {
+            "type": "text",
+            "placeholder": "Required field",
+            "error": true
+          }
+        }
+      ]
+    }
+  ],
+  "tokens": {
+    "colors": {
+      "primary": {
+        "50": "#eff6ff",
+        "100": "#dbeafe", 
+        "200": "#bfdbfe",
+        "300": "#93c5fd",
+        "400": "#60a5fa",
+        "500": "#3b82f6",
+        "600": "#2563eb",
+        "700": "#1d4ed8",
+        "800": "#1e40af",
+        "900": "#1e3a8a"
+      },
+      "gray": {
+        "50": "#f9fafb",
+        "100": "#f3f4f6",
+        "200": "#e5e7eb", 
+        "300": "#d1d5db",
+        "400": "#9ca3af",
+        "500": "#6b7280",
+        "600": "#4b5563",
+        "700": "#374151",
+        "800": "#1f2937",
+        "900": "#111827"
+      }
+    },
+    "spacing": {
+      "xs": "0.25rem",
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "1.5rem",
+      "xl": "2rem",
+      "2xl": "3rem"
+    },
+    "typography": {
+      "fontFamily": {
+        "sans": ["Inter", "sans-serif"],
+        "mono": ["Fira Code", "monospace"]
+      },
+      "fontSize": {
+        "xs": "0.75rem",
+        "sm": "0.875rem", 
+        "base": "1rem",
+        "lg": "1.125rem",
+        "xl": "1.25rem",
+        "2xl": "1.5rem"
+      }
+    },
+    "borderRadius": {
+      "none": "0",
+      "sm": "0.125rem",
+      "md": "0.375rem", 
+      "lg": "0.5rem",
+      "full": "9999px"
+    }
+  },
+  "metadata": {
+    "generatedBy": "dcp-transformer",
+    "generatedAt": "2024-01-15T10:30:00Z",
+    "version": "1.2.0"
+  }
+}

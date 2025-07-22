@@ -1,0 +1,16 @@
+{
+  "name": "Accordion.figma",
+  "api": {
+    "props": {},
+    "description": "",
+    "displayName": "",
+    "defaultProps": {}
+  },
+  "tokens": {
+    "colors": [],
+    "spacing": [],
+    "typography": [],
+    "other": []
+  },
+  "sourcePath": "../../sds/src/figma/primitives/Accordion.figma.tsx"
+}
