@@ -1,0 +1,17 @@
+[
+  {
+    "op": "replace",
+    "path": "/description",
+    "value": "MUTATED: Design Component Protocol registry extracted from fixtures"
+  },
+  {
+    "op": "add",
+    "path": "/metadata/mutated",
+    "value": true
+  },
+  {
+    "op": "add",
+    "path": "/metadata/mutatedAt",
+    "value": "2025-07-22T07:30:00.000Z"
+  }
+]

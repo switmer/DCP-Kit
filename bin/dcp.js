@@ -85,4 +85,46 @@ program
     }
   });
 
+program
+  .command('mutate <registry> <patch> <output>')
+  .description('Apply JSON Patch mutations to registry')
+  .option('--undo <file>', 'Generate undo patch file')
+  .option('--schema <path>', 'Schema for validation', 'schemas/manifest.schema.json')
+  .action(async (registry, patch, output, options) => {
+    try {
+      const { runBatchMutate } = await import('../commands/batchMutate.js');
+      const result = await runBatchMutate(registry, patch, output, {
+        undo: options.undo,
+        schema: options.schema
+      });
+      
+      console.log(`✅ Applied ${result.mutations} mutations`);
+      if (result.undo) {
+        console.log(`↩️  Undo patch available: ${result.undo}`);
+      }
+    } catch (error) {
+      console.error('❌ Mutation failed:', error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('rollback <registry> <undo>')
+  .description('Rollback using undo patch')
+  .option('--backup', 'Create backup before rollback')
+  .action(async (registry, undo, options) => {
+    try {
+      const { runRollback } = await import('../commands/rollback.js');
+      const result = await runRollback(registry, undo, {
+        backup: options.backup
+      });
+      
+      console.log(`✅ Rollback complete: ${result.rollback}`);
+      console.log(`↩️  Applied ${result.patchCount} undo patches`);
+    } catch (error) {
+      console.error('❌ Rollback failed:', error.message);
+      process.exit(1);
+    }
+  });
+
 program.parse();

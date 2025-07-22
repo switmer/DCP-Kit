@@ -1,0 +1,2 @@
+{"timestamp":"2025-07-22T07:28:16.689Z","operation":"batch_mutate","source":"test-mutation-workflow/registry.json","patch":"test-mutation.patch.json","output":"test-mutation-workflow/mutated-registry.json","undo":"test-mutation-workflow/undo.patch.json","patchCount":3}
+{"timestamp":"2025-07-22T07:28:20.779Z","operation":"rollback","source":"test-mutation-workflow/mutated-registry.json","undo":"test-mutation-workflow/undo.patch.json","output":"test-mutation-workflow/mutated-registry.json","backup":true,"patchCount":3}

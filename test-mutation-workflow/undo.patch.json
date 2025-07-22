@@ -1,0 +1,15 @@
+[
+  {
+    "op": "remove",
+    "path": "/metadata/mutatedAt"
+  },
+  {
+    "op": "remove",
+    "path": "/metadata/mutated"
+  },
+  {
+    "op": "replace",
+    "path": "/description",
+    "value": "DCP registry extracted from tests/fixtures"
+  }
+]
