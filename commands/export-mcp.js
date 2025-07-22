@@ -148,12 +148,14 @@ class MCPExporter {
       })) || [],
       
       // Variants for AI to understand options
-      variants: component.variants?.map(variant => ({
-        name: variant.name,
-        description: variant.description,
-        props: variant.props,
-        mutationPath: `/components/${component.name}/variants/${variant.name}`
-      })) || [],
+      variants: component.variants && typeof component.variants === 'object' 
+        ? Object.entries(component.variants).map(([name, variant]) => ({
+            name,
+            description: variant.description || '',
+            props: variant.props || {},
+            mutationPath: `/components/${component.name}/variants/${name}`
+          }))
+        : [],
       
       // Examples if requested
       examples: this.includeExamples ? (component.examples || []) : [],
@@ -484,7 +486,9 @@ Use the mutation paths provided in the component data to create accurate patches
         name: component.name,
         category: component.category,
         propsCount: component.props?.length || 0,
-        variantsCount: component.variants?.length || 0,
+        variantsCount: component.variants && typeof component.variants === 'object' 
+          ? Object.keys(component.variants).length 
+          : 0,
         chunkId: Math.floor(idx / 10), // Rough estimate
         mutationPath: `/components/${component.name}`
       };

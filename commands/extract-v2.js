@@ -5,6 +5,7 @@ import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import chalk from 'chalk';
+import { extractCssCustomProps } from '../core/tokenHandler.js';
 
 /**
  * DCP Transformer V2 - AI-Native Component Extraction
@@ -25,10 +26,15 @@ export async function runExtract(source, options = {}) {
     glob: globPattern = '**/*.{tsx,jsx,ts,js}',
     includeStories = false,
     llmEnrich = false,
-    plan = false
+    plan = false,
+    json = false,
+    flattenTokens = false
   } = options;
 
-  console.log(chalk.blue(`🔍 Extracting components from: ${source}`));
+  // Only show console output if not in JSON mode
+  if (!json) {
+    console.log(chalk.blue(`🔍 Extracting components from: ${source}`));
+  }
   
   // Ensure output directory exists
   await fs.mkdir(outputDir, { recursive: true });
@@ -38,7 +44,8 @@ export async function runExtract(source, options = {}) {
     tokensPath,
     includeStories,
     llmEnrich,
-    verbose: options.verbose
+    flattenTokens,
+    verbose: options.verbose && !json  // Suppress verbose output in JSON mode
   });
   
   const result = await extractor.extract(globPattern);
@@ -52,16 +59,21 @@ export async function runExtract(source, options = {}) {
   await fs.writeFile(schemaPath, JSON.stringify(result.schemas, null, 2));
   await fs.writeFile(metadataPath, JSON.stringify(result.metadata, null, 2));
   
-  console.log(chalk.green(`📁 Registry written to: ${registryPath}`));
-  console.log(chalk.green(`📋 Schemas written to: ${schemaPath}`));
-  console.log(chalk.green(`📊 Metadata written to: ${metadataPath}`));
+  // Only show console output if not in JSON mode
+  if (!json) {
+    console.log(chalk.green(`📁 Registry written to: ${registryPath}`));
+    console.log(chalk.green(`📋 Schemas written to: ${schemaPath}`));
+    console.log(chalk.green(`📊 Metadata written to: ${metadataPath}`));
+  }
   
   // Generate mutation plan if requested
   if (plan) {
     const planPath = path.join(outputDir, 'mutation-plan.json');
     const mutationPlan = generateStarterMutationPlan(result.registry);
     await fs.writeFile(planPath, JSON.stringify(mutationPlan, null, 2));
-    console.log(chalk.green(`🧠 Mutation plan written to: ${planPath}`));
+    if (!json) {
+      console.log(chalk.green(`🧠 Mutation plan written to: ${planPath}`));
+    }
   }
   
   return {
@@ -81,6 +93,7 @@ class ComponentExtractor {
     this.tokensPath = options.tokensPath;
     this.includeStories = options.includeStories;
     this.llmEnrich = options.llmEnrich;
+    this.flattenTokens = options.flattenTokens;
     this.verbose = options.verbose;
     
     this.components = [];
@@ -143,13 +156,28 @@ class ComponentExtractor {
   async loadTokens() {
     try {
       const tokensContent = await fs.readFile(this.tokensPath, 'utf-8');
-      const rawTokens = JSON.parse(tokensContent);
       
-      // Normalize tokens into DCP format
-      this.tokens = this.normalizeTokens(rawTokens);
-      
-      if (this.verbose) {
-        console.log(chalk.gray(`Loaded ${Object.keys(this.tokens).length} design tokens`));
+      // Check if this looks like a CSS file and we're in flatten mode
+      if (this.flattenTokens || this.tokensPath.endsWith('.css')) {
+        // Extract CSS custom properties
+        this.tokens = extractCssCustomProps(tokensContent, this.flattenTokens);
+        
+        if (this.verbose) {
+          const tokenCount = this.flattenTokens ? 
+            Object.keys(this.tokens).length : 
+            Object.values(this.tokens).reduce((sum, cat) => sum + Object.keys(cat).length, 0);
+          console.log(chalk.gray(`Extracted ${tokenCount} CSS custom properties`));
+        }
+      } else {
+        // Parse as JSON
+        const rawTokens = JSON.parse(tokensContent);
+        
+        // Normalize tokens into DCP format
+        this.tokens = this.normalizeTokens(rawTokens);
+        
+        if (this.verbose) {
+          console.log(chalk.gray(`Loaded ${Object.keys(this.tokens).length} design tokens`));
+        }
       }
     } catch (error) {
       console.warn(chalk.yellow(`⚠️  Failed to load tokens: ${error.message}`));
@@ -224,6 +252,8 @@ class ComponentExtractor {
     // Extract components from AST
     const fileComponents = [];
     
+    const fileLevelVariants = this.detectCVAVariants(ast);
+
     traverse.default(ast, {
       // React function components
       FunctionDeclaration: (path) => {
@@ -248,16 +278,33 @@ class ComponentExtractor {
       }
     });
     
+    // Attach file-level variants (e.g., from CVA) to each component found in this file
+    if (Object.keys(fileLevelVariants).length) {
+      fileComponents.forEach(c => {
+        c.variants = { ...fileLevelVariants, ...c.variants };
+      });
+    }
+
+    // Detect composition relationships (sub-components)
+    fileComponents.forEach(parent => {
+      fileComponents.forEach(candidate => {
+        if (candidate === parent) return;
+        if (candidate.name.startsWith(parent.name)) {
+          parent.composition.subComponents.push(candidate.name);
+        }
+      });
+    });
+
     // Add to global components list
     this.components.push(...fileComponents);
   }
   
   extractFunctionComponent(node, source, filePath) {
     if (!this.isReactFunctionComponent(node)) return null;
-    
+
     const componentName = node.id?.name;
     if (!componentName) return null;
-    
+
     const component = {
       name: componentName,
       type: 'component',
@@ -266,6 +313,7 @@ class ComponentExtractor {
       filePath: filePath,
       props: this.extractProps(node),
       variants: this.extractVariants(node),
+      composition: { subComponents: [], slots: [] },
       examples: this.extractExamples(node, source),
       slots: this.extractSlots(node),
       metadata: {
@@ -273,37 +321,59 @@ class ComponentExtractor {
         extractedAt: new Date().toISOString()
       }
     };
-    
+
     // AI enrichment
     if (this.llmEnrich) {
       component.aiMetadata = this.generateAIMetadata(component);
     }
-    
+
     return component;
   }
   
   extractArrowComponent(node, source, filePath) {
-    if (!t.isArrowFunctionExpression(node.init) && !t.isFunctionExpression(node.init)) {
-      return null;
-    }
-    
     const componentName = node.id?.name;
     if (!componentName || !this.isReactComponentName(componentName)) {
       return null;
     }
+
+    let funcNode = null;
+    let componentType = 'arrow';
     
+    // Handle regular arrow/function expressions
+    if (t.isArrowFunctionExpression(node.init) || t.isFunctionExpression(node.init)) {
+      funcNode = node.init;
+    }
+    // Handle React.forwardRef patterns
+    else if (t.isCallExpression(node.init)) {
+      const isForwardRef = 
+        (t.isMemberExpression(node.init.callee) &&
+         t.isIdentifier(node.init.callee.object, { name: 'React' }) &&
+         t.isIdentifier(node.init.callee.property, { name: 'forwardRef' })) ||
+        t.isIdentifier(node.init.callee, { name: 'forwardRef' });
+         
+      if (isForwardRef && node.init.arguments[0]) {
+        funcNode = node.init.arguments[0];
+        componentType = 'forwardRef';
+      }
+    }
+    
+    if (!funcNode) {
+      return null;
+    }
+
     return {
       name: componentName,
       type: 'component',
       category: this.inferCategory(componentName),
       description: this.extractDescription(node, source),
       filePath: filePath,
-      props: this.extractPropsFromArrow(node.init),
-      variants: this.extractVariantsFromArrow(node.init),
+      props: this.extractPropsFromArrow(funcNode),
+      variants: this.extractVariantsFromArrow(funcNode),
+      composition: { subComponents: [], slots: [] },
       examples: [],
       slots: [],
       metadata: {
-        componentType: 'arrow',
+        componentType,
         extractedAt: new Date().toISOString()
       }
     };
@@ -317,7 +387,8 @@ class ComponentExtractor {
       description: this.extractDescription(node, source),
       filePath: filePath,
       props: this.extractPropsFromClass(node),
-      variants: [],
+      variants: {},
+      composition: { subComponents: [], slots: [] },
       examples: [],
       slots: [],
       metadata: {
@@ -348,11 +419,31 @@ class ComponentExtractor {
   }
   
   isReactComponent(node) {
-    return (
-      t.isIdentifier(node.id) &&
-      this.isReactComponentName(node.id.name) &&
-      (t.isArrowFunctionExpression(node.init) || t.isFunctionExpression(node.init))
-    );
+    if (!t.isIdentifier(node.id) || !this.isReactComponentName(node.id.name)) {
+      return false;
+    }
+    
+    // Standard arrow/function expressions
+    if (t.isArrowFunctionExpression(node.init) || t.isFunctionExpression(node.init)) {
+      return true;
+    }
+    
+    // React.forwardRef() patterns
+    if (t.isCallExpression(node.init)) {
+      // React.forwardRef pattern
+      if (t.isMemberExpression(node.init.callee) &&
+          t.isIdentifier(node.init.callee.object, { name: 'React' }) &&
+          t.isIdentifier(node.init.callee.property, { name: 'forwardRef' })) {
+        return true;
+      }
+      
+      // forwardRef (imported) pattern  
+      if (t.isIdentifier(node.init.callee, { name: 'forwardRef' })) {
+        return true;
+      }
+    }
+    
+    return false;
   }
   
   isReactComponentName(name) {
@@ -457,12 +548,122 @@ class ComponentExtractor {
   }
   
   extractVariants(node) {
-    // Extract variants from union types or prop patterns
-    return [];
+    const variants = {};
+
+    // From parameter union types
+    const param = node.params?.[0];
+    if (param?.typeAnnotation?.typeAnnotation) {
+      this.parseVariantsFromType(param.typeAnnotation.typeAnnotation, variants);
+    }
+
+    // From destructured props with type annotations
+    if (t.isObjectPattern(param)) {
+      param.properties.forEach(prop => {
+        if (t.isObjectProperty(prop) && prop.typeAnnotation?.typeAnnotation) {
+          const propName = prop.key.name;
+          this.parseVariantsFromType(prop.typeAnnotation.typeAnnotation, variants, propName);
+        }
+      });
+    }
+
+    return variants;
   }
   
   extractVariantsFromArrow(node) {
-    return [];
+    return this.extractVariants({ params: node.params });
+  }
+
+  parseVariantsFromType(typeNode, variants, propName = 'variant') {
+    if (!typeNode) return;
+
+    if (t.isTSUnionType(typeNode) && typeNode.types.every(tn => t.isTSLiteralType(tn) && t.isStringLiteral(tn.literal))) {
+      const values = typeNode.types.map(tn => tn.literal.value);
+      if (values.length) {
+        variants[propName] = values;
+      }
+    }
+  }
+
+  detectCVAVariants(ast) {
+    const variants = {};
+    traverse.default(ast, {
+      CallExpression: (p) => {
+        if (!t.isIdentifier(p.node.callee) || p.node.callee.name !== 'cva') return;
+        const [, optionsArg] = p.node.arguments;
+        if (!optionsArg || !t.isObjectExpression(optionsArg)) return;
+
+        const variantsProp = optionsArg.properties.find(prop => t.isObjectProperty(prop) && t.isIdentifier(prop.key, { name: 'variants' }));
+        if (!variantsProp || !t.isObjectProperty(variantsProp) || !t.isObjectExpression(variantsProp.value)) return;
+
+        variantsProp.value.properties.forEach(groupProp => {
+          if (!t.isObjectProperty(groupProp) || !t.isObjectExpression(groupProp.value)) return;
+          const groupName = groupProp.key.name || (t.isStringLiteral(groupProp.key) ? groupProp.key.value : undefined);
+          if (!groupName) return;
+          variants[groupName] = groupProp.value.properties.map(vProp => vProp.key.name || (t.isStringLiteral(vProp.key) ? vProp.key.value : undefined)).filter(Boolean);
+        });
+      }
+    });
+    return variants;
+  }
+  
+  // NEW: Detect component composition and relationships
+  detectComposition(ast, filePath) {
+    const composition = {
+      subComponents: [],
+      slots: [],
+      exports: []
+    };
+    
+    // Find all exports to detect component families
+    traverse.default(ast, {
+      ExportNamedDeclaration: (path) => {
+        if (path.node.declaration) {
+          // Direct export: export const CardHeader = ...
+          if (t.isVariableDeclaration(path.node.declaration)) {
+            path.node.declaration.declarations.forEach(decl => {
+              if (t.isIdentifier(decl.id)) {
+                composition.exports.push(decl.id.name);
+              }
+            });
+          }
+          // Function export: export function CardHeader() {}
+          if (t.isFunctionDeclaration(path.node.declaration)) {
+            composition.exports.push(path.node.declaration.id.name);
+          }
+        }
+        
+        // Named exports: export { CardHeader, CardContent }
+        if (path.node.specifiers) {
+          path.node.specifiers.forEach(spec => {
+            if (t.isExportSpecifier(spec)) {
+              composition.exports.push(spec.exported.name);
+            }
+          });
+        }
+      }
+    });
+    
+    // Detect component families by naming patterns
+    const mainComponents = composition.exports.filter(name => 
+      // Main components are usually shorter and don't contain other component names
+      !composition.exports.some(other => 
+        other !== name && name.startsWith(other) && name.length > other.length
+      )
+    );
+    
+    mainComponents.forEach(mainComponent => {
+      const subComponents = composition.exports.filter(name =>
+        name !== mainComponent && 
+        name.startsWith(mainComponent) &&
+        name.length > mainComponent.length
+      );
+      
+      if (subComponents.length > 0) {
+        composition.subComponents = subComponents;
+      }
+    });
+    
+    return composition;
   }
   
   extractExamples(node, source) {
@@ -540,12 +741,34 @@ class ComponentExtractor {
             }
           },
           variants: {
+            type: 'object',
+            additionalProperties: {
+              type: 'array',
+              items: { type: 'string' }
+            }
+          },
+          composition: {
+            type: 'object',
+            properties: {
+              slots: {
+                type: 'array',
+                items: { type: 'string' }
+              },
+              subComponents: {
+                type: 'array',
+                items: { type: 'string' }
+              }
+            },
+            additionalProperties: false
+          },
+          examples: {
             type: 'array',
-            items: { type: 'object' }
+            items: {
+              type: 'string'
+            }
           }
         },
-        required: ['name', 'props'],
-        additionalProperties: false
+        required: ['name', 'props']
       };
     });
     

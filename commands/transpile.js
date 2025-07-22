@@ -22,12 +22,16 @@ export async function runTranspile(registryPath, options = {}) {
     includeStories = false,
     includeStyles = true,
     format = 'typescript',
-    atomic = false
+    atomic = false,
+    json = false
   } = options;
 
-  console.log(chalk.blue(`🚀 Transpiling DCP registry: ${registryPath}`));
-  console.log(chalk.gray(`   Target: ${target}`));
-  console.log(chalk.gray(`   Output: ${outputDir}`));
+  // Only show console output if not in JSON mode
+  if (!json) {
+    console.log(chalk.blue(`🚀 Transpiling DCP registry: ${registryPath}`));
+    console.log(chalk.gray(`   Target: ${target}`));
+    console.log(chalk.gray(`   Output: ${outputDir}`));
+  }
   
   // Load registry
   const registryContent = await fs.readFile(registryPath, 'utf-8');
@@ -46,13 +50,16 @@ export async function runTranspile(registryPath, options = {}) {
   
   const result = await transpiler.transpile();
   
-  console.log(chalk.green(`✅ Transpilation complete!`));
-  console.log(chalk.green(`📁 Components written to: ${outputDir}`));
-  
-  if (options.verbose) {
-    console.log(chalk.gray(`   Files generated: ${result.files.length}`));
-    console.log(chalk.gray(`   Components: ${result.componentsGenerated}`));
-    console.log(chalk.gray(`   Stories: ${result.storiesGenerated}`));
+  // Only show console output if not in JSON mode
+  if (!json) {
+    console.log(chalk.green(`✅ Transpilation complete!`));
+    console.log(chalk.green(`📁 Components written to: ${outputDir}`));
+    
+    if (options.verbose) {
+      console.log(chalk.gray(`   Files generated: ${result.files.length}`));
+      console.log(chalk.gray(`   Components: ${result.componentsGenerated}`));
+      console.log(chalk.gray(`   Stories: ${result.storiesGenerated}`));
+    }
   }
   
   return {

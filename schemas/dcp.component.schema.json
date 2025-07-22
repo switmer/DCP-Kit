@@ -48,6 +48,29 @@
           }
         }
       },
+      "variants": {
+        "type": "object",
+        "description": "Variant groups and their allowed values",
+        "additionalProperties": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "composition": {
+        "type": "object",
+        "description": "Composition metadata (slots and subcomponents)",
+        "properties": {
+          "slots": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "subComponents": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      },
       "states": {
         "type": "array",
         "items": { "type": "string" }

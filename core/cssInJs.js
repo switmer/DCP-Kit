@@ -1,5 +1,18 @@
 import { extractProperties } from './parser.js';
 
+// -------------------------------------------------------------
+// SECURITY NOTE: direct `eval` is dangerous. By default it is
+// disabled.  Set env `DCP_UNSAFE_CSS_EVAL=1` to re-enable for
+// legacy repos.  All previous eval calls are now routed through
+// `safeEval` so we have a single choke-point.
+function safeEval(code) {
+  if (process.env.DCP_UNSAFE_CSS_EVAL === '1') {
+    // eslint-disable-next-line no-eval
+    return eval(code);
+  }
+  throw new Error('[DCP] CSS eval disabled by default.  Set DCP_UNSAFE_CSS_EVAL=1 to enable.');
+}
+
 // Detect CSS-in-JS library usage
 export function detectCSSInJSLibrary(source) {
   const patterns = {
@@ -48,8 +61,8 @@ export function extractEmotion(source) {
   while ((match = cssPropRegex.exec(source))) {
     const [_, cssObject] = match;
     try {
-      // Basic evaluation of the CSS object
-      const evaluated = eval(`(${cssObject})`);
+      // Basic evaluation of the CSS object (gated)
+      const evaluated = safeEval(`(${cssObject})`);
       styles[`inline-${Object.keys(styles).length}`] = {
         type: 'emotion-css-prop',
         properties: evaluated
@@ -84,7 +97,7 @@ export function extractStitches(source) {
   while ((match = styledRegex.exec(source))) {
     const [_, componentName, cssObject] = match;
     try {
-      const evaluated = eval(`(${cssObject})`);
+      const evaluated = safeEval(`(${cssObject})`);
       styles[componentName] = {
         type: 'stitches-component',
         properties: evaluated
@@ -99,7 +112,7 @@ export function extractStitches(source) {
   while ((match = variantsRegex.exec(source))) {
     const [_, variants] = match;
     try {
-      const evaluated = eval(`({${variants}})`);
+      const evaluated = safeEval(`({${variants}})`);
       styles[`variants-${Object.keys(styles).length}`] = {
         type: 'stitches-variants',
         variants: evaluated
@@ -123,7 +136,7 @@ export function extractVanillaExtract(source) {
   while ((match = styleRegex.exec(source))) {
     const [_, name, cssObject] = match;
     try {
-      const evaluated = eval(`(${cssObject})`);
+      const evaluated = safeEval(`(${cssObject})`);
       styles[name] = {
         type: 'vanilla-extract-style',
         properties: evaluated
@@ -138,7 +151,7 @@ export function extractVanillaExtract(source) {
   while ((match = themeRegex.exec(source))) {
     const [_, themeObject] = match;
     try {
-      const evaluated = eval(`({${themeObject}})`);
+      const evaluated = safeEval(`({${themeObject}})`);
       styles[`theme-${Object.keys(styles).length}`] = {
         type: 'vanilla-extract-theme',
         theme: evaluated

@@ -2,6 +2,58 @@ import fs from 'fs';
 import path from 'path';
 
 /**
+ * Extract CSS custom properties from CSS content using regex
+ * Fast, simple approach that doesn't require PostCSS dependencies
+ * @param {string} css - CSS content to parse
+ * @param {boolean} flattenOutput - Whether to return flat key-value pairs
+ * @returns {Object} Extracted custom properties
+ */
+export function extractCssCustomProps(css, flattenOutput = false) {
+  const tokens = {};
+  
+  // Match CSS custom properties: --category-name: value;
+  const customPropRegex = /--([a-zA-Z0-9-]+):\s*([^;]+);/g;
+  
+  let match;
+  while ((match = customPropRegex.exec(css)) !== null) {
+    const [, propName, value] = match;
+    
+    if (flattenOutput) {
+      // Flat output: just key-value pairs
+      tokens[`--${propName}`] = value.trim();
+    } else {
+      // Structured output: categorize by first part of name
+      const parts = propName.split('-');
+      const category = parts[0] || 'misc';
+      const name = parts.slice(1).join('-') || propName;
+      
+      // Infer type from value
+      const trimmedValue = value.trim();
+      let type = 'string';
+      
+      if (trimmedValue.includes('hsl') || trimmedValue.includes('rgb') || trimmedValue.startsWith('#')) {
+        type = 'color';
+      } else if (trimmedValue.match(/\d+(px|rem|em|%)/)) {
+        type = 'spacing';
+      } else if (trimmedValue.match(/\d+(\.\d+)?s/)) {
+        type = 'duration';
+      } else if (trimmedValue.match(/\d{3}/)) {
+        type = 'fontWeight';
+      }
+      
+      if (!tokens[category]) tokens[category] = {};
+      tokens[category][name] = {
+        value: trimmedValue,
+        type,
+        source: 'css-custom-props'
+      };
+    }
+  }
+  
+  return tokens;
+}
+
+/**
  * Safely load or create a design token file.
  * @param {string} tokenPath - Path to the token JSON file
  * @param {boolean} verbose - Enable verbose logging

@@ -130,7 +130,9 @@ program
   .option('--transpile-targets <targets>', 'Comma-separated transpile targets', 'react')
   .option('--registry-path <path>', 'Path to DCP registry', './dist/registry.json')
   .option('--dry-run', 'Preview changes without applying them')
-  .option('--non-interactive', 'Run without interactive prompts')\n  .option('--enable-git', 'Enable git integration (auto-commit changes)')\n  .option('--no-git', 'Disable git integration')
+  .option('--non-interactive', 'Run without interactive prompts')
+  .option('--enable-git', 'Enable git integration (auto-commit changes)')
+  .option('--no-git', 'Disable git integration')
   .action(wrapAction(async (prompt, options) => {
     try {
       // Convert transpile targets string to array
