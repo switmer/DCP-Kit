@@ -248,7 +248,11 @@ class DCPWatcher {
         console.log(chalk.gray(`   Components: ${this.stats.componentsCount}, Tokens: ${this.stats.tokensCount}`));
         
         if (changes.hasChanges) {
-          console.log(chalk.cyan(`   Changes: +${changes.added} -${changes.removed} ~${changes.modified}`));
+          const changesParts = [];
+          if (changes.added > 0) changesParts.push(chalk.green(`+${changes.added} added`));
+          if (changes.removed > 0) changesParts.push(chalk.red(`-${changes.removed} removed`));
+          if (changes.modified > 0) changesParts.push(chalk.yellow(`~${changes.modified} modified`));
+          console.log(`   Changes: ${changesParts.join(', ')}`);
         }
       }
       
