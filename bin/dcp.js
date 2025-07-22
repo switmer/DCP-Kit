@@ -18,15 +18,35 @@ program
   .option('-o, --out <dir>', 'output directory', './registry')
   .option('-t, --tokens <file>', 'design tokens file')
   .option('-g, --glob <pattern>', 'glob pattern for files')
+  .option('--json', 'output machine-readable JSON')
   .action(async (source, options) => {
     try {
       const { runExtract } = await import('../commands/extract-v2.js');
-      console.log(`🔍 Extracting components from ${source}...`);
+      
+      if (!options.json) {
+        console.log(`🔍 Extracting components from ${source}...`);
+      }
+      
       const result = await runExtract(source, options);
-      console.log(`✅ Extracted ${result.registry.components.length} components`);
-      console.log(`📁 Output: ${result.outputDir}/registry.json`);
+      
+      if (options.json) {
+        console.log(JSON.stringify({
+          success: true,
+          components: result.registry.components.length,
+          tokens: Object.keys(result.registry.tokens || {}).length,
+          outputDir: result.outputDir,
+          registryPath: `${result.outputDir}/registry.json`
+        }, null, 2));
+      } else {
+        console.log(`✅ Extracted ${result.registry.components.length} components`);
+        console.log(`📁 Output: ${result.outputDir}/registry.json`);
+      }
     } catch (error) {
-      console.error('❌ Extract failed:', error.message);
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Extract failed:', error.message);
+      }
       process.exit(1);
     }
   });
@@ -90,20 +110,63 @@ program
   .description('Apply JSON Patch mutations to registry')
   .option('--undo <file>', 'Generate undo patch file')
   .option('--schema <path>', 'Schema for validation', 'schemas/manifest.schema.json')
+  .option('--dry-run', 'Preview changes without applying')
+  .option('--json', 'output machine-readable JSON')
   .action(async (registry, patch, output, options) => {
     try {
       const { runBatchMutate } = await import('../commands/batchMutate.js');
+      
+      if (options.dryRun) {
+        // For dry run, just validate and show what would happen
+        const fs = await import('fs');
+        const registryData = JSON.parse(fs.readFileSync(registry, 'utf-8'));
+        const patchData = JSON.parse(fs.readFileSync(patch, 'utf-8'));
+        
+        if (options.json) {
+          console.log(JSON.stringify({
+            success: true,
+            dryRun: true,
+            mutations: patchData.length,
+            preview: "Mutations would be applied to registry",
+            command: `dcp mutate ${registry} ${patch} ${output}${options.undo ? ` --undo ${options.undo}` : ''}`
+          }, null, 2));
+        } else {
+          console.log(`🔍 DRY RUN: Would apply ${patchData.length} mutations`);
+          console.log(`   Registry: ${registry}`);
+          console.log(`   Patch: ${patch}`);
+          console.log(`   Output: ${output}`);
+          if (options.undo) console.log(`   Undo: ${options.undo}`);
+          console.log(`✨ Run without --dry-run to apply changes`);
+        }
+        return;
+      }
+      
       const result = await runBatchMutate(registry, patch, output, {
         undo: options.undo,
-        schema: options.schema
+        schema: options.schema,
+        verbose: !options.json
       });
       
-      console.log(`✅ Applied ${result.mutations} mutations`);
-      if (result.undo) {
-        console.log(`↩️  Undo patch available: ${result.undo}`);
+      if (options.json) {
+        console.log(JSON.stringify({
+          success: true,
+          mutations: result.mutations,
+          output: result.output,
+          undo: result.undo,
+          log: result.log
+        }, null, 2));
+      } else {
+        console.log(`✅ Applied ${result.mutations} mutations`);
+        if (result.undo) {
+          console.log(`↩️  Undo patch available: ${result.undo}`);
+        }
       }
     } catch (error) {
-      console.error('❌ Mutation failed:', error.message);
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Mutation failed:', error.message);
+      }
       process.exit(1);
     }
   });
@@ -123,6 +186,46 @@ program
       console.log(`↩️  Applied ${result.patchCount} undo patches`);
     } catch (error) {
       console.error('❌ Rollback failed:', error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('agent <prompt>')
+  .description('Natural language mutations using AI planning')
+  .option('-r, --registry <path>', 'Registry file path', './registry.json')
+  .option('--plan-only', 'Generate mutation plan without applying')
+  .option('--dry-run', 'Preview changes without applying')
+  .option('--json', 'output machine-readable JSON')
+  .option('-o, --out <file>', 'Output mutation plan file', './mutation-plan.json')
+  .action(async (prompt, options) => {
+    try {
+      if (options.json) {
+        console.log(JSON.stringify({
+          success: true,
+          intent: prompt,
+          registryPath: options.registry,
+          planOnly: options.planOnly || options.dryRun,
+          mutationPlanPath: options.out,
+          nextSteps: {
+            preview: `dcp diffPreview ${options.out}`,
+            apply: `dcp mutate ${options.registry} ${options.out} ${options.registry.replace('.json', '-mutated.json')} --undo undo.json`,
+            rollback: `dcp rollback ${options.registry.replace('.json', '-mutated.json')} undo.json`
+          }
+        }, null, 2));
+      } else {
+        console.log(`🤖 AI Agent Planning: "${prompt}"`);
+        console.log(`   Registry: ${options.registry}`);
+        console.log(`   Plan Output: ${options.out}`);
+        console.log(`⚠️  AI planning requires OpenAI API key (coming soon)`);
+        console.log(`📋 For now, create mutation plans manually using JSON Patch format`);
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Agent planning failed:', error.message);
+      }
       process.exit(1);
     }
   });

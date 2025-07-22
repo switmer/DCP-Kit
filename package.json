@@ -1,7 +1,7 @@
 {
   "name": "dcp-transformer",
-  "version": "1.3.0",
-  "description": "CRISPR for Code: Extract, mutate, and regenerate React components with surgical precision",
+  "version": "1.4.0",
+  "description": "LLM-Controllable CRISPR for Code: Agent-ready component mutation platform with JSON Patch precision",
   "type": "module",
   "bin": {
     "dcp": "./bin/dcp.js",
@@ -10,16 +10,19 @@
   },
   "main": "./core/index.js",
   "exports": {
-    ".": "./core/index.js",
+    ".": "./lib/index.js",
+    "./core": "./core/index.js",
     "./cli": "./bin/index.js"
   },
   "files": [
     "bin/",
     "commands/",
     "core/",
+    "lib/",
     "schemas/",
     "templates/",
     "README.md",
+    "AGENT_GUIDE.md",
     "LICENSE"
   ],
   "scripts": {
@@ -35,12 +38,18 @@
   },
   "keywords": [
     "design-system",
-    "component-library",
+    "component-library", 
     "react",
     "typescript",
     "dcp",
     "design-tokens",
-    "cli"
+    "cli",
+    "ai-agent",
+    "llm",
+    "mutation",
+    "json-patch",
+    "crispr-for-code",
+    "agent-ready"
   ],
   "author": "Steve Witmer",
   "license": "MIT",
