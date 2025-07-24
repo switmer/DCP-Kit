@@ -148,7 +148,8 @@ program
         transpileTargets: options.transpileTargets,
         registryPath: options.registryPath,
         dryRun: options.dryRun,
-        interactive: !options.nonInteractive,\n        enableGit: options.enableGit || !options.noGit,
+        interactive: !options.nonInteractive,
+        enableGit: options.enableGit || !options.noGit,
         verbose: global.verbose
       };
 

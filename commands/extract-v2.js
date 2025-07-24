@@ -275,6 +275,12 @@ class ComponentExtractor {
           const component = this.extractClassComponent(path.node, content, relativePath);
           if (component) fileComponents.push(component);
         }
+      },
+
+      // Default exports (export default function Component() {})
+      ExportDefaultDeclaration: (path) => {
+        const component = this.extractDefaultExportComponent(path.node, content, relativePath);
+        if (component) fileComponents.push(component);
       }
     });
     
@@ -295,8 +301,30 @@ class ComponentExtractor {
       });
     });
 
+    // Deduplicate components by name (prefer named exports over defaults)
+    const deduplicatedComponents = [];
+    const nameMap = new Map();
+    
+    fileComponents.forEach(component => {
+      const existing = nameMap.get(component.name);
+      if (!existing) {
+        nameMap.set(component.name, component);
+        deduplicatedComponents.push(component);
+      } else {
+        // Prefer named exports over default exports
+        if (existing.metadata.componentType.includes('default') && 
+            !component.metadata.componentType.includes('default')) {
+          nameMap.set(component.name, component);
+          const index = deduplicatedComponents.findIndex(c => c.name === component.name);
+          if (index >= 0) {
+            deduplicatedComponents[index] = component;
+          }
+        }
+      }
+    });
+
     // Add to global components list
-    this.components.push(...fileComponents);
+    this.components.push(...deduplicatedComponents);
   }
   
   extractFunctionComponent(node, source, filePath) {
@@ -396,6 +424,121 @@ class ComponentExtractor {
         extractedAt: new Date().toISOString()
       }
     };
+  }
+  
+  extractDefaultExportComponent(node, source, filePath) {
+    const declaration = node.declaration;
+    
+    // Unwrap common HOC patterns (forwardRef, memo, etc.)
+    const unwrapped = this.unwrapHOC(declaration);
+    
+    // Handle different types of default exports
+    if (t.isFunctionDeclaration(unwrapped)) {
+      // export default function Component() {}
+      const name = unwrapped.id?.name || this.inferComponentName(filePath);
+      if (!this.isReactComponentName(name)) return null;
+      
+      return {
+        name,
+        type: 'component',
+        category: this.inferCategory(name),
+        description: this.extractDescription(unwrapped, source),
+        filePath: filePath,
+        props: this.extractProps(unwrapped),
+        variants: this.extractVariants(unwrapped),
+        composition: { subComponents: [], slots: [] },
+        examples: [],
+        slots: [],
+        metadata: {
+          componentType: 'defaultFunction',
+          extractedAt: new Date().toISOString()
+        }
+      };
+    }
+    
+    if (t.isArrowFunctionExpression(unwrapped) || t.isFunctionExpression(unwrapped)) {
+      // export default () => {} or const Component = () => {}; export default Component;
+      const name = this.inferComponentName(filePath);
+      if (!this.isReactComponentName(name)) return null;
+      
+      return {
+        name,
+        type: 'component',
+        category: this.inferCategory(name),
+        description: this.extractDescription(unwrapped, source),
+        filePath: filePath,
+        props: this.extractPropsFromArrow(unwrapped),
+        variants: this.extractVariantsFromArrow(unwrapped),
+        composition: { subComponents: [], slots: [] },
+        examples: [],
+        slots: [],
+        metadata: {
+          componentType: 'defaultArrow',
+          extractedAt: new Date().toISOString()
+        }
+      };
+    }
+    
+    if (t.isIdentifier(declaration)) {
+      // export default Component (where Component is defined elsewhere in the file)
+      const name = declaration.name;
+      if (!this.isReactComponentName(name)) return null;
+      
+      // We need to find the actual declaration in the AST
+      // For now, create a basic component structure
+      return {
+        name,
+        type: 'component',
+        category: this.inferCategory(name),
+        description: '',
+        filePath: filePath,
+        props: [],
+        variants: {},
+        composition: { subComponents: [], slots: [] },
+        examples: [],
+        slots: [],
+        metadata: {
+          componentType: 'defaultIdentifier',
+          extractedAt: new Date().toISOString()
+        }
+      };
+    }
+    
+    return null;
+  }
+  
+  unwrapHOC(node) {
+    // Recursively unwrap Higher-Order Components like forwardRef, memo, etc.
+    if (t.isCallExpression(node)) {
+      const callee = node.callee;
+      
+      // React.forwardRef, React.memo, etc.
+      if (t.isMemberExpression(callee) && 
+          t.isIdentifier(callee.object, { name: 'React' }) &&
+          ['forwardRef', 'memo'].includes(callee.property.name)) {
+        return this.unwrapHOC(node.arguments[0]);
+      }
+      
+      // forwardRef, memo (imported)
+      if (t.isIdentifier(callee) && ['forwardRef', 'memo'].includes(callee.name)) {
+        return this.unwrapHOC(node.arguments[0]);
+      }
+    }
+    
+    return node;
+  }
+  
+  inferComponentName(filePath) {
+    // Extract component name from file path
+    const fileName = path.basename(filePath, path.extname(filePath));
+    
+    // Convert kebab-case or snake_case to PascalCase
+    const pascalCase = fileName
+      .split(/[-_]/)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('');
+    
+    return pascalCase;
   }
   
   isReactFunctionComponent(node) {

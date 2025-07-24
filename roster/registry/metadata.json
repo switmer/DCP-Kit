@@ -1,0 +1,10 @@
+{
+  "extractedAt": "2025-07-24T07:24:20.901Z",
+  "sourceDir": "src/components/ui/expandable-card.tsx",
+  "transformedFrom": "multi-framework",
+  "version": "3.0.0",
+  "adaptorRegistry": [
+    "react-tsx",
+    "shadcn-react-tsx"
+  ]
+}

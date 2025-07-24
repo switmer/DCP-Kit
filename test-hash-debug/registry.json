@@ -1,0 +1,18 @@
+{
+  "name": "test-project",
+  "version": "1.0.0",
+  "description": "DCP registry extracted from test-project",
+  "components": [],
+  "tokens": {},
+  "metadata": {
+    "extractedAt": "2025-07-23T20:05:10.110Z",
+    "sourceDir": "test-project",
+    "transformedFrom": "multi-framework",
+    "version": "3.0.0",
+    "adaptorRegistry": [
+      "react-tsx",
+      "shadcn-react-tsx"
+    ]
+  },
+  "lastModified": "2025-07-23T20:05:10.116Z"
+}

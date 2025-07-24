@@ -1,0 +1,10 @@
+{
+  "extractedAt": "2025-07-24T07:01:24.093Z",
+  "sourceDir": "roster/src/components",
+  "transformedFrom": "multi-framework",
+  "version": "3.0.0",
+  "adaptorRegistry": [
+    "react-tsx",
+    "shadcn-react-tsx"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "demo-registry",
+  "version": "1.0.0",
+  "components": [
+    {
+      "name": "Button",
+      "props": {
+        "variant": {
+          "type": "string",
+          "values": ["primary", "secondary"],
+          "default": "primary"
+        },
+        "size": {
+          "type": "string",
+          "values": ["sm", "md", "lg"],
+          "default": "md"
+        }
+      }
+    }
+  ]
+}

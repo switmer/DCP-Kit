@@ -1,0 +1,53 @@
+{
+  "name": "@dcp/storybook-addon-registry",
+  "version": "0.1.0",
+  "description": "Live DCP Registry Explorer for Storybook",
+  "main": "dist/register.cjs",
+  "types": "dist/register.d.cts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.cjs"
+    },
+    "./preset": "./dist/preset.cjs",
+    "./register": "./dist/register.cjs"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "keywords": [
+    "storybook",
+    "addon",
+    "design-tokens",
+    "dcp",
+    "registry"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@storybook/manager-api": "^7.0.0 || ^8.0.0",
+    "@storybook/components": "^7.0.0 || ^8.0.0",
+    "react": "*",
+    "react-dom": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "storybook": {
+    "displayName": "DCP Registry",
+    "supportedFrameworks": [
+      "react",
+      "vue",
+      "angular",
+      "web-components",
+      "html"
+    ],
+    "icon": "https://raw.githubusercontent.com/stevewitmer/dcp-transformer/main/icon.svg"
+  }
+}

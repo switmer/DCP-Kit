@@ -3,10 +3,14 @@ import path from 'path';
 import { withCustomConfig } from 'react-docgen-typescript';
 import { extractCSSInJSStyles } from './cssInJs.js';
 import { parseCSSFile } from './cssParser.js';
+import { ThemeHandler } from './themeHandler.js';
 
 // Cache for parser instances and logging state
 const parserCache = new Map();
 const seenTsConfigs = new Set();
+
+// Initialize theme handler
+const themeHandler = new ThemeHandler();
 
 function extractCSSVariables(css) {
   const variables = {};
@@ -71,6 +75,46 @@ function extractProperties(cssBlock) {
   }
 
   return properties;
+}
+
+// Add variant style mapping extraction
+function extractVariantStyleMappings(src, projectRoot) {
+  const variantMappings = {};
+  
+  // Extract object literals that define variant classes
+  const variantObjectRegex = /const\s+(\w*[Cc]lasses?|\w*[Vv]ariants?)\s*=\s*\{([^}]+)\}/g;
+  let match;
+  
+  while ((match = variantObjectRegex.exec(src)) !== null) {
+    const [, varName, content] = match;
+    const variants = {};
+    
+    // Parse object properties (variant: "classes")
+    const propRegex = /(\w+):\s*["`']([^"`']+)["`']/g;
+    let propMatch;
+    
+    while ((propMatch = propRegex.exec(content)) !== null) {
+      const [, variant, classes] = propMatch;
+      variants[variant] = classes.trim();
+    }
+    
+    if (Object.keys(variants).length > 0) {
+      // Get theme context for these classes
+      const allClasses = Object.values(variants).join(' ').split(' ').filter(Boolean);
+      const themeContext = themeHandler.getComponentThemeContext(projectRoot, allClasses);
+      
+      variantMappings[varName] = {
+        variants,
+        themeContext: {
+          utilityMappings: themeContext.utilityMappings,
+          computedStyles: themeContext.computedStyles,
+          themeConfig: themeContext.themeConfig
+        }
+      };
+    }
+  }
+  
+  return variantMappings;
 }
 
 function extractMediaQueries(css) {
@@ -219,31 +263,37 @@ export function extractTailwindTokens(source, cssModules = {}) {
 }
 
 // Try to find a tsconfig.json in the component's directory or its parent directories
-function findTsConfig(componentPath) {
-  let dir = path.dirname(componentPath);
-  let lastDir = null;
+function findTsConfig(filePath) {
+  let dir = path.dirname(filePath);
   
-  // Go up directories until we find a tsconfig.json or hit the root
-  while (dir !== lastDir) {
+  while (dir !== path.dirname(dir)) {
     const tsconfigPath = path.join(dir, 'tsconfig.json');
     if (fs.existsSync(tsconfigPath)) {
-      if (global.verbose && !seenTsConfigs.has(tsconfigPath)) {
-        console.log(`🔍 Found tsconfig.json at ${tsconfigPath}`);
-        seenTsConfigs.add(tsconfigPath);
-      }
       return tsconfigPath;
     }
-    lastDir = dir;
     dir = path.dirname(dir);
   }
   
-  // Fallback to the default tsconfig
-  const defaultPath = './tsconfig.json';
-  if (global.verbose && !seenTsConfigs.has(defaultPath)) {
-    console.log('⚠️ No tsconfig.json found, using default');
-    seenTsConfigs.add(defaultPath);
+  return path.join(process.cwd(), 'tsconfig.json');
+}
+
+function findProjectRoot(filePath) {
+  let dir = path.dirname(filePath);
+  
+  while (dir !== path.dirname(dir)) {
+    // Look for package.json, components.json, or other root indicators
+    const indicators = ['package.json', 'components.json', 'next.config.js', 'vite.config.js'];
+    
+    for (const indicator of indicators) {
+      if (fs.existsSync(path.join(dir, indicator))) {
+        return dir;
+      }
+    }
+    
+    dir = path.dirname(dir);
   }
-  return defaultPath;
+  
+  return process.cwd();
 }
 
 function resolveImportPath(importPath, currentDir, tsconfig) {
@@ -318,6 +368,7 @@ export async function parseTSX(filePath) {
     
     const meta = components[0];
     const src = fs.readFileSync(filePath, 'utf-8');
+    const projectRoot = findProjectRoot(filePath);
     
     // Extract CSS information
     const { 
@@ -335,6 +386,9 @@ export async function parseTSX(filePath) {
     
     // Extract CSS-in-JS styles
     const cssInJs = extractCSSInJSStyles(src);
+    
+    // Extract variant style mappings with theme context
+    const variantStyleMappings = extractVariantStyleMappings(src, projectRoot);
     
     // Merge tokens from all sources
     const tokensUsed = {
@@ -385,6 +439,7 @@ export async function parseTSX(filePath) {
       description: meta.description || '',
       props,
       tokensUsed,
+      variantStyleMappings,
       styles: {
         hasCSS: Object.keys(cssModules).length > 0 || Object.keys(cssVars).length > 0,
         hasTailwind: Object.keys(tailwindTokens).length > 0,

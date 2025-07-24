@@ -2,6 +2,127 @@ import fs from 'fs';
 import path from 'path';
 
 /**
+ * Map Tailwind classes to CSS variables for theme-aware projects
+ * @param {string[]} classes - Array of Tailwind classes
+ * @param {Object} cssVariables - CSS variables from theme extraction
+ * @param {Object} themeConfig - Theme configuration
+ * @returns {Object} Mapping of classes to CSS variables
+ */
+export function mapTailwindClassesToCSSVariables(classes, cssVariables, themeConfig) {
+  const mappings = {};
+  
+  if (!themeConfig?.cssVariables) {
+    return mappings; // Not using CSS variables or no config
+  }
+  
+  for (const className of classes) {
+    const mapping = getTailwindClassMapping(className, themeConfig.baseColor || 'gray');
+    if (mapping) {
+      mappings[className] = {
+        cssVariable: mapping.variable,
+        category: mapping.category,
+        computed: getComputedValueForVariable(mapping.variable, cssVariables)
+      };
+    }
+  }
+  
+  return mappings;
+}
+
+/**
+ * Get CSS variable mapping for a Tailwind class
+ * @param {string} className - Tailwind class name
+ * @param {string} baseColor - Base color theme (slate, gray, etc.)
+ * @returns {Object|null} Variable mapping
+ */
+function getTailwindClassMapping(className, baseColor = 'gray') {
+  // Common semantic mappings for ShadCN/UI style systems
+  const semanticMappings = {
+    // Background colors
+    'bg-background': { variable: '--background', category: 'background' },
+    'bg-foreground': { variable: '--foreground', category: 'background' },
+    'bg-card': { variable: '--card', category: 'background' },
+    'bg-card-foreground': { variable: '--card-foreground', category: 'background' },
+    'bg-popover': { variable: '--popover', category: 'background' },
+    'bg-popover-foreground': { variable: '--popover-foreground', category: 'background' },
+    'bg-primary': { variable: '--primary', category: 'background' },
+    'bg-primary-foreground': { variable: '--primary-foreground', category: 'background' },
+    'bg-secondary': { variable: '--secondary', category: 'background' },
+    'bg-secondary-foreground': { variable: '--secondary-foreground', category: 'background' },
+    'bg-muted': { variable: '--muted', category: 'background' },
+    'bg-muted-foreground': { variable: '--muted-foreground', category: 'background' },
+    'bg-accent': { variable: '--accent', category: 'background' },
+    'bg-accent-foreground': { variable: '--accent-foreground', category: 'background' },
+    'bg-destructive': { variable: '--destructive', category: 'background' },
+    'bg-destructive-foreground': { variable: '--destructive-foreground', category: 'background' },
+    
+    // Text colors
+    'text-foreground': { variable: '--foreground', category: 'text' },
+    'text-background': { variable: '--background', category: 'text' },
+    'text-card-foreground': { variable: '--card-foreground', category: 'text' },
+    'text-popover-foreground': { variable: '--popover-foreground', category: 'text' },
+    'text-primary': { variable: '--primary', category: 'text' },
+    'text-primary-foreground': { variable: '--primary-foreground', category: 'text' },
+    'text-secondary-foreground': { variable: '--secondary-foreground', category: 'text' },
+    'text-muted-foreground': { variable: '--muted-foreground', category: 'text' },
+    'text-accent-foreground': { variable: '--accent-foreground', category: 'text' },
+    'text-destructive': { variable: '--destructive', category: 'text' },
+    'text-destructive-foreground': { variable: '--destructive-foreground', category: 'text' },
+    
+    // Border colors
+    'border': { variable: '--border', category: 'border' },
+    'border-border': { variable: '--border', category: 'border' },
+    'border-input': { variable: '--input', category: 'border' },
+    'border-ring': { variable: '--ring', category: 'border' },
+    'border-primary': { variable: '--primary', category: 'border' },
+    'border-secondary': { variable: '--secondary', category: 'border' },
+    'border-destructive': { variable: '--destructive', category: 'border' },
+    
+    // Ring colors
+    'ring-ring': { variable: '--ring', category: 'ring' },
+    'ring-primary': { variable: '--primary', category: 'ring' },
+    'ring-destructive': { variable: '--destructive', category: 'ring' },
+    
+    // Other utilities
+    'rounded-sm': { variable: '--radius', category: 'border-radius' },
+    'rounded': { variable: '--radius', category: 'border-radius' },
+    'rounded-md': { variable: '--radius', category: 'border-radius' },
+    'rounded-lg': { variable: '--radius', category: 'border-radius' }
+  };
+  
+  return semanticMappings[className] || null;
+}
+
+/**
+ * Get computed CSS value for a variable across themes
+ * @param {string} variable - CSS variable name
+ * @param {Object} cssVariables - CSS variables by theme
+ * @returns {Object} Computed values by theme
+ */
+function getComputedValueForVariable(variable, cssVariables) {
+  const computed = {};
+  
+  if (cssVariables.light && cssVariables.light[variable]) {
+    computed.light = cssVariables.light[variable].computed;
+  }
+  
+  if (cssVariables.dark && cssVariables.dark[variable]) {
+    computed.dark = cssVariables.dark[variable].computed;
+  }
+  
+  // Add custom themes
+  if (cssVariables.custom) {
+    for (const [themeName, themeVars] of Object.entries(cssVariables.custom)) {
+      if (themeVars[variable]) {
+        computed[themeName] = themeVars[variable].computed;
+      }
+    }
+  }
+  
+  return computed;
+}
+
+/**
  * Extract CSS custom properties from CSS content using regex
  * Fast, simple approach that doesn't require PostCSS dependencies
  * @param {string} css - CSS content to parse

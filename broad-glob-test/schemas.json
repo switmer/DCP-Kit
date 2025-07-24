@@ -1,0 +1,131 @@
+{
+  "Page": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "Page"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ],
+    "additionalProperties": false
+  },
+  "Header": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "Header"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ],
+    "additionalProperties": false
+  },
+  "Button": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "Button"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ],
+    "additionalProperties": false
+  }
+}

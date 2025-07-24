@@ -1,0 +1,5 @@
+
+> dcp-storybook-addon-demo@1.0.0 storybook
+> storybook dev -p 6006 --no-manager-cache
+
+error: unknown option '--no-manager-cache'

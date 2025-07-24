@@ -1,0 +1,101 @@
+{
+  "name": "expandable-card.tsx",
+  "version": "1.0.0",
+  "description": "DCP registry extracted from src/components/ui/expandable-card.tsx",
+  "components": [],
+  "tokens": {},
+  "themeContext": {
+    "config": null,
+    "cssVariables": {
+      "light": {},
+      "dark": {},
+      "custom": {}
+    },
+    "summary": "Theme Configuration: None detected\n- No theme configuration file found\n- No CSS variables extracted\n"
+  },
+  "metadata": {
+    "extractedAt": "2025-07-24T07:24:20.901Z",
+    "sourceDir": "src/components/ui/expandable-card.tsx",
+    "transformedFrom": "multi-framework",
+    "version": "3.0.0",
+    "adaptorRegistry": [
+      "react-tsx",
+      "shadcn-react-tsx"
+    ]
+  },
+  "lastModified": "2025-07-24T07:24:20.908Z",
+  "intelligence": {
+    "projectStructure": {
+      "detectedPaths": {},
+      "aliases": [],
+      "conventions": {
+        "framework": "unknown",
+        "styling": [],
+        "testing": "unknown",
+        "bundler": "unknown",
+        "features": []
+      },
+      "recommendations": [
+        "Consider adding tsconfig.json with path aliases for cleaner imports"
+      ]
+    },
+    "environment": {
+      "configFiles": {},
+      "missingFiles": [
+        "package.json",
+        "tsconfig.json",
+        "tailwind.config.js",
+        "tailwind.config.ts",
+        "components.json",
+        "next.config.js",
+        "vite.config.js",
+        ".eslintrc.json",
+        "prettier.config.js"
+      ],
+      "nodeVersion": null,
+      "packageManager": "npm"
+    },
+    "dependencies": {
+      "required": [],
+      "missing": [
+        "package.json"
+      ],
+      "versions": {},
+      "graph": {},
+      "suggestions": []
+    },
+    "assets": {
+      "imageProps": [],
+      "iconUsage": [],
+      "missingAssets": [],
+      "recommendations": [
+        "Use consistent image sizing (32x32, 64x64, etc.)",
+        "Provide fallback images for missing avatars",
+        "Consider using next/image for optimized loading",
+        "Use SVG icons for better scalability"
+      ]
+    },
+    "setupInstructions": [
+      "Install missing dependencies: npm install package.json",
+      "Initialize ShadCN: npx shadcn-ui@latest init"
+    ],
+    "integrationChecklist": [
+      "❌ Create components directory structure",
+      "❌ Install React",
+      "❌ Initialize package.json",
+      "⚠️ Verify all image assets are provided",
+      "⚠️ Test responsive behavior across breakpoints",
+      "⚠️ Validate accessibility requirements"
+    ],
+    "intelligence": {
+      "confidence": 0,
+      "readiness": "needs-setup",
+      "complexity": "high",
+      "recommendations": [
+        "Add path aliases to tsconfig.json for cleaner imports",
+        "Consider Tailwind CSS for utility-first styling",
+        "Add testing framework (Jest or Vitest)"
+      ]
+    }
+  }
+}

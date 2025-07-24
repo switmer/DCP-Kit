@@ -1,0 +1,12 @@
+👁️  Watching ./packages/storybook-addon-registry/demo/src for changes...
+🔌 WebSocket server starting on port 8080
+🔄 Extracting components...
+✅ Registry updated in 25ms
+   Components: 1, Tokens: 0
+   Changes: +1 added
+🔌 WebSocket server listening on ws://localhost:8080
+✅ Watch mode active - save a file to see live updates
+📝 change: Button.stories.tsx
+🔄 Extracting components...
+✅ Registry updated in 87ms
+   Components: 1, Tokens: 0

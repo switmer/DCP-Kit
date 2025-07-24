@@ -29,16 +29,28 @@ program
   .option('-o, --out <dir>', 'output directory', './registry')
   .option('-t, --tokens <file>', 'design tokens file (JSON)')
   .option('-g, --glob <pattern>', 'glob pattern for files (e.g., "**/*.{tsx,jsx}")')
+  .option('-a, --adaptor <name>', 'force specific adaptor (react-tsx, vue-sfc, svelte)', 'react-tsx')
   .option('--flatten-tokens', 'extract CSS custom props as flat key-value pairs, skip Tailwind mapping')
+  .option('--max-depth <number>', 'maximum barrel recursion depth', '10')
+  .option('--trace-barrels', 'trace barrel file resolution for debugging')
+  .option('--no-barrels', 'disable barrel file following')
+  .option('--security-scan', 'scan for security issues and malicious patterns')
+  .option('--validate-file-types', 'validate only expected file types are included')
+  .option('--detect-obfuscation', 'detect obfuscated or minified code')
+  .option('--agent-ready', 'optimize output for AI/agent consumption')
+  .option('--verbose', 'enable verbose logging')
   .option('--json', 'output machine-readable JSON')
   .addHelpText('after', `
 Examples:
   $ dcp extract ./src --json > registry.json
   $ dcp extract ./components --tokens design-tokens.json --out ./registry
-  $ dcp extract ./src --glob "**/*.tsx" --json`)
+  $ dcp extract ./src --glob "**/*.tsx" --adaptor react-tsx --verbose
+  $ dcp extract ./vue-components --adaptor vue-sfc --json
+  $ dcp extract ./src --trace-barrels --max-depth 5  # Debug barrel resolution
+  $ dcp extract ./src --no-barrels                   # Skip barrel files`)
   .action(async (source, options) => {
     try {
-      const { runExtract } = await import('../commands/extract-v2.js');
+      const { runExtract } = await import('../commands/extract-v3.js');
       
       if (!options.json) {
         console.log(`🔍 Extracting components from ${source}...`);
@@ -52,7 +64,8 @@ Examples:
           components: result.registry.components.length,
           tokens: Object.keys(result.registry.tokens || {}).length,
           outputDir: result.outputDir,
-          registryPath: `${result.outputDir}/registry.json`
+          registryPath: `${result.outputDir}/registry.json`,
+          adaptorUsage: result.summary.adaptorUsage
         }, null, 2));
       } else {
         console.log(`✅ Extracted ${result.registry.components.length} components`);
@@ -69,20 +82,288 @@ Examples:
   });
 
 program
+  .command('build')
+  .description('Build DCP registry from configuration')
+  .option('-c, --config <path>', 'config file path', './dcp.config.json')
+  .option('--verbose', 'verbose logging')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp build
+  $ dcp build --config ./custom.config.json
+  $ dcp build --verbose --json`)
+  .action(async (options) => {
+    try {
+      const { runBuild } = await import('../commands/build.js');
+      const result = await runBuild({
+        configPath: options.config,
+        verbose: options.verbose || !options.json
+      });
+      
+      if (options.json) {
+        console.log(JSON.stringify({
+          success: true,
+          components: result.components?.length || 0,
+          configPath: options.config
+        }, null, 2));
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Build failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('build-packs <registry>')
+  .description('Build static component packages for distribution')
+  .option('-o, --out <dir>', 'output directory for component packs', './dist/packs')
+  .option('--base-url <url>', 'base URL for hosted blobs', '')
+  .option('--namespace <name>', 'component namespace/scope', 'ui')
+  .option('--version <version>', 'package version', '1.0.0')
+  .option('--verbose', 'verbose logging')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp build-packs registry/registry.json --out dist/packs
+  $ dcp build-packs registry.json --base-url https://cdn.example.com
+  $ dcp build-packs registry.json --namespace acme-ui --version 2.1.0
+  $ dcp build-packs registry.json --json`)
+  .action(async (registry, options) => {
+    try {
+      const { runBuildPacks } = await import('../commands/build-packs.js');
+      
+      if (!options.json) {
+        console.log(`📦 Building component packs from ${registry}...`);
+      }
+      
+      const result = await runBuildPacks(registry, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        console.log(`✅ Built ${result.packs} component packs`);
+        if (result.errors > 0) {
+          console.log(`⚠️  ${result.errors} components failed to build`);
+        }
+        console.log(`📁 Output: ${result.outputDir}`);
+        console.log(`📋 Index: ${result.indexUrl}`);
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Build failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('serve-registry [packs-dir]')
+  .description('Serve component packs via HTTP for development')
+  .option('-p, --port <number>', 'server port', '7401')
+  .option('-h, --host <host>', 'server host', 'localhost')
+  .option('--no-cors', 'disable CORS')
+  .option('--secret <secret>', 'JWT secret for private registries')
+  .option('--base-url <url>', 'base URL for hosted files')
+  .option('--verbose', 'verbose logging')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp serve-registry dist/packs
+  $ dcp serve-registry dist/packs --port 8080 --verbose
+  $ dcp serve-registry dist/packs --secret mytoken --base-url https://cdn.example.com
+  $ dcp serve-registry dist/packs --json`)
+  .action(async (packsDir = './dist/packs', options) => {
+    try {
+      const { runServeRegistry } = await import('../commands/serve-registry.js');
+      
+      if (!options.json) {
+        console.log(`🚀 Starting registry server for ${packsDir}...`);
+      }
+      
+      const result = await runServeRegistry(packsDir, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        console.log(`✅ Registry server running at ${result.url}`);
+        console.log(`📁 Serving: ${result.packsDir}`);
+        console.log(`\nPress Ctrl+C to stop`);
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Server failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('publish-static <packs-dir>')
+  .description('Publish component packs to static hosting')
+  .option('--provider <provider>', 'hosting provider (s3, github-pages, generic)', 'detect')
+  .option('--bucket <bucket>', 'S3 bucket name')
+  .option('--region <region>', 'AWS region', 'us-east-1')
+  .option('--base-url <url>', 'base URL for hosted files')
+  .option('--namespace <name>', 'component namespace', 'ui')
+  .option('--dry-run', 'preview without uploading')
+  .option('--verbose', 'verbose logging')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp publish-static dist/packs --bucket my-components --region us-west-2
+  $ dcp publish-static dist/packs --provider github-pages
+  $ dcp publish-static dist/packs --provider generic --base-url https://cdn.example.com
+  $ dcp publish-static dist/packs --dry-run --verbose`)
+  .action(async (packsDir, options) => {
+    try {
+      const { runPublishStatic } = await import('../commands/publish-static.js');
+      
+      if (!options.json) {
+        console.log(`📤 Publishing packs from ${packsDir}...`);
+      }
+      
+      const result = await runPublishStatic(packsDir, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        if (result.dryRun) {
+          console.log(`🔍 Dry run completed - ${result.files} files ready to upload`);
+        } else {
+          console.log(`✅ Published ${result.files} files successfully`);
+          if (result.errors > 0) {
+            console.log(`⚠️  ${result.errors} files failed to upload`);
+          }
+          console.log(`🌍 Registry URL: ${result.registryUrl}`);
+        }
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Publish failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('add <component-url>')
+  .description('Install a component from a registry')
+  .option('-t, --target <dir>', 'target directory for components', './components/ui')
+  .option('--package-json <file>', 'path to package.json', './package.json')
+  .option('--no-install', 'skip peer dependency installation')
+  .option('--dry-run', 'preview installation without making changes')
+  .option('--force', 'overwrite existing components')
+  .option('--token <token>', 'authentication token for private registries')
+  .option('--verbose', 'verbose logging')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp add https://registry.example.com/r/ui/button
+  $ dcp add https://registry.example.com/r/ui/button@1.0.0
+  $ dcp add /r/ui/button --token abc123
+  $ dcp add https://registry.example.com/r/ui/card --target ./src/components --dry-run`)
+  .action(async (componentUrl, options) => {
+    try {
+      const { runDcpAdd } = await import('../commands/dcp-add.js');
+      
+      if (!options.json) {
+        console.log(`📦 Installing component from ${componentUrl}...`);
+      }
+      
+      const result = await runDcpAdd(componentUrl, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        if (result.dryRun) {
+          console.log(`🔍 Dry run completed - component ready to install`);
+        } else {
+          console.log(`✅ Successfully installed ${result.component.name}`);
+          console.log(`📁 Location: ${result.targetDir}`);
+          console.log(`📄 Files: ${result.files}`);
+          if (result.peerDepsInstalled) {
+            console.log(`📦 Dependencies: Updated`);
+          }
+        }
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Installation failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('adaptors')
+  .description('List available component extraction adaptors')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp adaptors
+  $ dcp adaptors --json`)
+  .action(async (options) => {
+    try {
+      const { listAdaptors } = await import('../adaptors/registry.js');
+      const adaptors = listAdaptors();
+      
+      if (options.json) {
+        console.log(JSON.stringify({
+          success: true,
+          adaptors
+        }, null, 2));
+      } else {
+        console.log('🔧 Available Component Adaptors:');
+        console.log('');
+        adaptors.forEach(adaptor => {
+          console.log(`📦 ${adaptor.name}`);
+          console.log(`   ${adaptor.description}`);
+          console.log(`   Extensions: ${adaptor.extensions.join(', ')}`);
+          if (adaptor.experimental) {
+            console.log(`   ⚠️  Experimental`);
+          }
+          console.log('');
+        });
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Failed to list adaptors:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
   .command('watch <source>')
   .description('Watch source directory for changes and update registry live')
   .option('-o, --out <dir>', 'output directory', './registry')
   .option('-t, --tokens <file>', 'design tokens file (JSON)')
   .option('-g, --glob <pattern>', 'glob pattern for files (e.g., "**/*.{tsx,jsx}")')
+  .option('-a, --adaptor <name>', 'force specific adaptor (react-tsx, vue-sfc, svelte)', 'react-tsx')
   .option('--flatten-tokens', 'extract CSS custom props as flat key-value pairs, skip Tailwind mapping')
   .option('--debounce <ms>', 'debounce delay in milliseconds', '300')
   .option('--ws <port>', 'enable WebSocket server on port for live updates')
+  .option('--verbose', 'enable verbose logging')
   .option('--quiet', 'suppress console output')
   .addHelpText('after', `
 Examples:
   $ dcp watch ./src --out ./registry
-  $ dcp watch ./components --tokens globals.css --ws 7070
-  $ dcp watch ./src --debounce 500 --quiet`)
+  $ dcp watch ./components --tokens globals.css --ws 7070 --adaptor react-tsx
+  $ dcp watch ./src --debounce 500 --quiet --verbose`)
   .action(async (source, options) => {
     try {
       const { runWatch } = await import('../commands/watch.js');
@@ -189,6 +470,20 @@ program
   .description('Validate registry structure against DCP schema')
   .option('--json', 'output machine-readable JSON')
   .option('--strict', 'enable strict validation mode')
+  .option('--agent-schema', 'validate agent/LLM compatibility')
+  .option('--comprehensive', 'run comprehensive validation checks')
+  .option('--check-examples', 'validate component examples')
+  .option('--check-tokens', 'validate design token usage')
+  .option('--strict-tokens', 'strict token value format validation')
+  .option('--check-source <dir>', 'validate against source code')
+  .option('--check-naming', 'validate naming conventions')
+  .option('--check-combinations', 'validate prop combinations')
+  .option('--check-jsx', 'validate JSX syntax in examples')
+  .option('--check-typescript', 'validate TypeScript compatibility')
+  .option('--security-audit', 'run security audit on dependencies')
+  .option('--check-vulnerabilities', 'check for known vulnerabilities')
+  .option('--check-licenses', 'validate license compatibility')
+  .option('--verify-integrity', 'verify registry checksums and signatures')
   .addHelpText('after', `
 Examples:
   $ dcp validate registry.json --json
@@ -230,6 +525,7 @@ program
   .option('--undo <file>', 'generate undo patch file for rollback')
   .option('--schema <path>', 'schema file for validation', 'schemas/manifest.schema.json')
   .option('--dry-run', 'preview changes without applying them')
+  .option('--agent-mode', 'enable agent-friendly mutation processing')
   .option('--json', 'output machine-readable JSON')
   .addHelpText('after', `
 Examples:
@@ -336,11 +632,41 @@ Note: The undo file is generated by the mutate command with --undo flag`)
   });
 
 program
+  .command('diff <from> <to>')
+  .description('Compare two DCP registries and show differences')
+  .option('--json', 'output machine-readable JSON')
+  .option('--detailed', 'show detailed prop-level changes')
+  .addHelpText('after', `
+Examples:
+  $ dcp diff old-registry.json new-registry.json
+  $ dcp diff v1.json v2.json --json
+  $ dcp diff before.json after.json --detailed`)
+  .action(async (from, to, options) => {
+    try {
+      const { runDiff } = await import('../commands/diff.js');
+      const result = await runDiff(from, to, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      }
+      // Console output handled by runDiff function
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Diff failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
   .command('agent <prompt>')
   .description('Natural language mutations using AI planning')
   .option('-r, --registry <path>', 'registry file path', './registry.json')
   .option('--plan-only', 'generate mutation plan without applying')
   .option('--dry-run', 'preview changes without applying')
+  .option('--analyze-relationships', 'analyze component relationships for context')
   .option('--json', 'output machine-readable JSON')
   .option('-o, --out <file>', 'output mutation plan file', './mutation-plan.json')
   .addHelpText('after', `
@@ -357,31 +683,320 @@ Supported prompts:
   - "Update [pattern] across library"`)
   .action(async (prompt, options) => {
     try {
-      if (options.json) {
-        console.log(JSON.stringify({
-          success: true,
-          intent: prompt,
-          registryPath: options.registry,
-          planOnly: options.planOnly || options.dryRun,
-          mutationPlanPath: options.out,
-          nextSteps: {
-            preview: `dcp diffPreview ${options.out}`,
-            apply: `dcp mutate ${options.registry} ${options.out} ${options.registry.replace('.json', '-mutated.json')} --undo undo.json`,
-            rollback: `dcp rollback ${options.registry.replace('.json', '-mutated.json')} undo.json`
-          }
-        }, null, 2));
-      } else {
+      const { runAgent } = await import('../commands/agent.js');
+      
+      if (!options.json) {
         console.log(`🤖 AI Agent Planning: "${prompt}"`);
-        console.log(`   Registry: ${options.registry}`);
-        console.log(`   Plan Output: ${options.out}`);
-        console.log(`⚠️  AI planning requires OpenAI API key (coming soon)`);
-        console.log(`📋 For now, create mutation plans manually using JSON Patch format`);
+      }
+      
+      const result = await runAgent(prompt, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        if (result.success) {
+          console.log(`✅ Agent analysis complete`);
+          console.log(`📋 Intent: ${result.intent}`);
+          if (result.affectedComponents) {
+            console.log(`📦 Affected components: ${result.affectedComponents.join(', ')}`);
+          }
+          if (result.mutationPlan) {
+            console.log(`📄 Mutation plan saved: ${options.out}`);
+          }
+          if (result.nextSteps) {
+            console.log(`\n🎯 Next Steps:`);
+            console.log(`   Preview: ${result.nextSteps.preview}`);
+            console.log(`   Apply: ${result.nextSteps.apply}`);
+            console.log(`   Rollback: ${result.nextSteps.rollback}`);
+          }
+        } else {
+          console.log(`❌ Agent planning failed`);
+          result.errors?.forEach(error => console.log(`   Error: ${error}`));
+        }
+        
+        if (result.warnings && result.warnings.length > 0) {
+          result.warnings.forEach(warning => console.log(`   Warning: ${warning}`));
+        }
       }
     } catch (error) {
       if (options.json) {
         console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Agent planning failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+// Add token commands
+program
+  .command('export-tokens <registry>')
+  .description('Export DCP registry tokens to DTCG format')
+  .option('-o, --out <file>', 'output file path', 'design.tokens.json')
+  .option('--no-validate', 'skip DTCG validation')
+  .option('--no-extensions', 'exclude DCP extensions')
+  .option('--group-prefix <prefix>', 'prefix for token groups')
+  .option('--json', 'output JSON stats instead of logs')
+  .action(async (registry, options) => {
+    try {
+      const { runExportTokens } = await import('../commands/export-tokens.js');
+      await runExportTokens(registry, options);
+    } catch (error) {
+      console.error('❌ Export failed:', error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('import-tokens <tokens>')
+  .description('Import DTCG tokens into DCP registry')
+  .option('-r, --registry <file>', 'target registry file', 'registry.json')
+  .option('--merge', 'merge with existing registry')
+  .option('--no-validate', 'skip DTCG validation')
+  .option('--json', 'output JSON stats instead of logs')
+  .action(async (tokens, options) => {
+    try {
+      const { runImportTokens } = await import('../commands/import-tokens.js');
+      await runImportTokens(tokens, options);
+    } catch (error) {
+      console.error('❌ Import failed:', error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('build-assets [tokens]')
+  .description('Generate CSS / native platform files from design tokens using Style Dictionary')
+  .option('-p, --platform <name>', 'only build a specific platform (css, android, ios)')
+  .option('-o, --out <dir>', 'output directory', 'build/')
+  .option('-t, --theme <key>', 'build only a specific theme/group path')
+  .option('--json', 'machine-readable JSON output')
+  .action(async (tokens, options) => {
+    try {
+      const { runBuildAssets } = await import('../commands/build-assets.js');
+      await runBuildAssets(tokens, options);
+    } catch (error) {
+      console.error('❌ build-assets failed:', error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('query <selector>')
+  .description('Query design system registry with CSS-like selectors')
+  .option('-r, --registry <path>', 'registry directory path', './registry')
+  .option('-f, --format <format>', 'output format (json, table, list, count, default)', 'default')
+  .option('-o, --output <file>', 'write results to file')
+  .option('--pretty', 'pretty-print JSON output')
+  .option('--verbose', 'verbose logging')
+  .option('--json', 'machine-readable JSON output')
+  .addHelpText('after', `
+Examples:
+  $ dcp query "tokens.color.*"                    # All color tokens
+  $ dcp query "tokens where tokenSet != 'system'" # Non-system tokens
+  $ dcp query "components where name = 'Button'"  # Button component
+  $ dcp query "tokens.spacing.*" --format table   # Spacing tokens as table
+  $ dcp query "components" --format list          # List all components
+  $ dcp query "tokens.color.*" --output colors.json --pretty`)
+  .action(async (selector, options) => {
+    try {
+      const { runQuery } = await import('../commands/query.js');
+      await runQuery(selector, options);
+    } catch (error) {
+      if (options.json) {
+        console.error(JSON.stringify({ error: error.message }));
+      } else {
+        console.error('❌ Query failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('validate-ci <source>')
+  .description('Validate code against design system contract (CI-ready)')
+  .option('-r, --registry <path>', 'registry directory path', './registry')
+  .option('-f, --format <format>', 'output format (default, json, github, junit)', 'default')
+  .option('-o, --output <file>', 'write report to file')
+  .option('--no-fail-on-violations', 'do not exit with error code on violations')
+  .option('--no-check-tokens', 'skip token validation')
+  .option('--no-check-props', 'skip prop validation')
+  .option('--no-check-variants', 'skip variant validation')
+  .option('--allowed-hardcoded <values...>', 'allowed hardcoded values (comma-separated)')
+  .option('--ignore <patterns...>', 'ignore patterns (e.g., "test/**,*.stories.*")')
+  .option('-g, --glob <pattern>', 'file glob pattern', '**/*.{tsx,jsx,ts,js}')
+  .option('--verbose', 'verbose logging')
+  .option('--json', 'machine-readable JSON output')
+  .addHelpText('after', `
+Examples:
+  $ dcp validate-ci ./src                       # Validate entire src directory
+  $ dcp validate-ci ./src --format github       # GitHub Actions format
+  $ dcp validate-ci ./src --format junit -o report.xml  # JUnit report
+  $ dcp validate-ci ./src --no-check-tokens     # Skip token validation
+  $ dcp validate-ci ./src --allowed-hardcoded transparent,inherit  # Allow specific values
+  $ dcp validate-ci ./src --ignore "**/*.stories.*,**/*.test.*"    # Ignore test files
+  
+CI Integration:
+  # GitHub Actions
+  - run: npx dcp validate-ci ./src --format github
+  
+  # Exit codes:
+  # 0 = validation passed
+  # 1 = violations found (if --fail-on-violations enabled)`)
+  .action(async (source, options) => {
+    try {
+      const { runValidateCI } = await import('../commands/validate-ci.js');
+      await runValidateCI(source, options);
+    } catch (error) {
+      if (options.json) {
+        console.error(JSON.stringify({ error: error.message }));
+      } else {
+        console.error('❌ Validation failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('diff <file1> <file2>')
+  .description('Show differences between two registry files')
+  .option('--json', 'output machine-readable JSON')
+  .option('--format <format>', 'output format (unified, context, json)', 'unified')
+  .option('--security-check', 'flag security-relevant changes')
+  .addHelpText('after', `
+Examples:
+  $ dcp diff original.json modified.json
+  $ dcp diff original.json modified.json --json
+  $ dcp diff original.json modified.json --format context
+  $ dcp diff original.json modified.json --security-check`)
+  .action(async (file1, file2, options) => {
+    try {
+      const { runDiff } = await import('../commands/diff.js');
+      
+      if (!options.json) {
+        console.log(`📊 Comparing ${file1} and ${file2}...`);
+      }
+      
+      const result = await runDiff(file1, file2, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        if (result.changes && result.changes.length > 0) {
+          console.log(`📋 Found ${result.changes.length} differences:`);
+          result.changes.forEach((change, index) => {
+            console.log(`  ${index + 1}. ${change.op} at ${change.path}: ${JSON.stringify(change.value)}`);
+          });
+          
+          if (result.securityChanges && result.securityChanges.length > 0) {
+            console.log(`\n🔒 Security-relevant changes:`);
+            result.securityChanges.forEach(change => {
+              console.log(`   ⚠️  ${change}`);
+            });
+          }
+        } else {
+          console.log('✅ No differences found');
+        }
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Diff failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+// Demo command
+program
+  .command('demo <demo-file>')
+  .description('Compile and validate component demo files')
+  .option('--render', 'compile and analyze demo for prop usage')
+  .option('--validate-api', 'validate demo examples against component API')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp demo Button.demo.tsx --render --json
+  $ dcp demo Card.demo.tsx --validate-api
+  $ dcp demo Alert.demo.tsx --render --validate-api`)
+  .action(async (demoFile, options) => {
+    try {
+      const { runDemo } = await import('../commands/demo.js');
+      
+      if (!options.json) {
+        console.log(`🔍 Processing demo: ${demoFile}...`);
+      }
+      
+      const result = await runDemo(demoFile, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        if (result.success) {
+          console.log(`✅ Demo validation passed`);
+          if (result.compiled) {
+            console.log(`✅ TypeScript compilation successful`);
+          }
+          if (result.detectedProps && Object.keys(result.detectedProps).length > 0) {
+            console.log(`📊 Detected props:`, result.detectedProps);
+          }
+        } else {
+          console.log(`❌ Demo validation failed`);
+          result.errors.forEach(error => console.log(`   Error: ${error}`));
+        }
+        
+        if (result.warnings && result.warnings.length > 0) {
+          result.warnings.forEach(warning => console.log(`   Warning: ${warning}`));
+        }
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Demo processing failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+// Docs command
+program
+  .command('docs <source>')
+  .description('Generate README and documentation from components')
+  .option('--format <format>', 'output format (markdown, html)', 'markdown')
+  .option('--include-examples', 'generate examples for each variant')
+  .option('--output <file>', 'output file path (default: README.md in source dir)')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp docs ./components --format markdown --include-examples
+  $ dcp docs ./src/Button.tsx --output ./docs/Button.md
+  $ dcp docs ./components --json`)
+  .action(async (source, options) => {
+    try {
+      const { runDocs } = await import('../commands/docs.js');
+      
+      if (!options.json) {
+        console.log(`📝 Generating documentation for ${source}...`);
+      }
+      
+      const result = await runDocs(source, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        console.log(`✅ Documentation generated successfully`);
+        console.log(`📁 Output: ${result.outputPath}`);
+        if (result.componentsDocumented) {
+          console.log(`📊 Components documented: ${result.componentsDocumented}`);
+        }
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Documentation generation failed:', error.message);
       }
       process.exit(1);
     }

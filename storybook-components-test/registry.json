@@ -1,0 +1,155 @@
+{
+  "name": "src",
+  "version": "1.0.0",
+  "description": "DCP registry extracted from src/",
+  "components": [
+    {
+      "name": "Button",
+      "type": "component",
+      "category": "actions",
+      "description": "",
+      "filePath": "components/Button.tsx",
+      "props": [
+        {
+          "name": "variant",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "primary"
+        },
+        {
+          "name": "children",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "onClick",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        }
+      ],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T19:42:16.575Z"
+      }
+    },
+    {
+      "name": "Page",
+      "type": "component",
+      "category": "components",
+      "description": "",
+      "filePath": "stories/Page.tsx",
+      "props": [],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T19:42:16.581Z"
+      }
+    },
+    {
+      "name": "Header",
+      "type": "component",
+      "category": "components",
+      "description": "",
+      "filePath": "stories/Header.tsx",
+      "props": [
+        {
+          "name": "user",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "onLogin",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "onLogout",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "onCreateAccount",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        }
+      ],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T19:42:16.587Z"
+      }
+    },
+    {
+      "name": "Button",
+      "type": "component",
+      "category": "actions",
+      "description": "",
+      "filePath": "stories/Button.tsx",
+      "props": [
+        {
+          "name": "primary",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "medium"
+        },
+        {
+          "name": "backgroundColor",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "label",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        }
+      ],
+      "variants": [],
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "extractedAt": "2025-07-22T19:42:16.591Z"
+      }
+    }
+  ],
+  "tokens": {},
+  "metadata": {
+    "extractedAt": "2025-07-22T19:42:16.555Z",
+    "sourceDir": "src/",
+    "transformedFrom": "typescript-react",
+    "version": "2.0.0"
+  },
+  "lastModified": "2025-07-22T19:42:16.591Z"
+}

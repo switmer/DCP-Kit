@@ -1,0 +1,11 @@
+🧠 Starting DCP MCP HTTP Server...
+📁 Registry: ./registry
+🌐 Port: 3001
+🚀 DCP MCP HTTP Server running at http://0.0.0.0:3001
+📁 Registry: ./registry
+🧠 MCP Endpoint: http://0.0.0.0:3001/mcp
+📋 Install Instructions: http://0.0.0.0:3001/install
+💡 Registry Info: http://0.0.0.0:3001/
+2025-07-24T08:02:45.942Z GET /install
+2025-07-24T08:03:11.169Z GET /meta.json
+2025-07-24T08:03:18.971Z GET /mcp/tools

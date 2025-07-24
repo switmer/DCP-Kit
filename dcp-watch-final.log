@@ -1,0 +1,33 @@
+👁️  Watching packages/storybook-addon-registry/demo/src for changes...
+🔌 WebSocket server starting on port 8080
+🔄 Extracting components...
+✅ Registry updated in 22ms
+   Components: 1, Tokens: 0
+   Changes: +1 added
+🔌 WebSocket server listening on ws://localhost:8080
+✅ Watch mode active - save a file to see live updates
+node:events:492
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8080
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at new WebSocketServer (/Users/stevewitmer/local_AI_Projects/DCP-Transformer/node_modules/ws/lib/websocket-server.js:102:20)
+    at DCPWatcher.setupWebSocket (file:///Users/stevewitmer/local_AI_Projects/DCP-Transformer/commands/watch.js:136:21)
+    at DCPWatcher.start (file:///Users/stevewitmer/local_AI_Projects/DCP-Transformer/commands/watch.js:90:12)
+    at async runWatch (file:///Users/stevewitmer/local_AI_Projects/DCP-Transformer/commands/watch.js:39:3)
+    at async Command.<anonymous> (file:///Users/stevewitmer/local_AI_Projects/DCP-Transformer/bin/dcp.js:141:7)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.emit (node:events:514:28)
+    at emitErrorNT (node:net:1899:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 8080
+}
+
+Node.js v20.5.0

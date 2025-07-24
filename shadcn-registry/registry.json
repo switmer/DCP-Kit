@@ -1,0 +1,6 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "my-component-library",
+  "homepage": "https://my-components.com",
+  "items": []
+}

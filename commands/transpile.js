@@ -281,7 +281,7 @@ ${defaultProps}`;
   }
   
   buildVariants(component) {
-    if (!component.variants || component.variants.length === 0) return '';
+    if (!component.variants || !Array.isArray(component.variants) || component.variants.length === 0) return '';
     
     const variantObject = {};
     

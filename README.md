@@ -95,6 +95,8 @@ dcp export-mcp registry.json --out mcp.json
 
 > **"DCP-Transformer scans your React/TS codebase and builds a validated JSON graph of every component, prop, variant, and relationship. You can safely mutate that graph using JSON Patch with full rollback, then export it for any AI tool to consume. It's the missing semantic layer between your design system and AI agents - with Git-level safety built in."**
 
+**✨ NEW: Full DTCG compatibility makes DCP interoperable with the entire modern token ecosystem - Style Dictionary, Tokens Studio, Figma Variables, and any W3C Design Tokens Community Group compliant tool.**
+
 **The infrastructure is solid. The vision is achievable. But we need to ship the Storybook addon and agent integration to match the pitch.**
 
 ## 🚀 Installation & Quick Start
@@ -114,6 +116,22 @@ dcp transpile ./registry/registry.json --target react --out ./clean-components
 ```
 
 ## 📦 Core Commands
+
+### Export/Import Design Tokens (DTCG Compatible)
+```bash
+# Export DCP tokens to W3C DTCG format
+dcp export-tokens registry.json --out tokens.json
+
+# Import DTCG tokens into DCP registry
+dcp import-tokens figma-tokens.json --merge --registry ./registry.json
+
+# Round-trip with Style Dictionary, Tokens Studio, Figma Variables
+dcp export-tokens registry.json --out tokens.json
+# Process with external tools...
+dcp import-tokens processed-tokens.json --merge
+```
+
+**DTCG Interoperability**: DCP now speaks the same language as Style Dictionary v4+, Tokens Studio, Figma Variables API, and any W3C Design Tokens Community Group compliant tool. Export your tokens, process them through any modern design token pipeline, then import them back with full metadata preservation.
 
 ### Extract Components
 ```bash
@@ -271,6 +289,18 @@ We welcome contributions! The codebase is well-tested and modular:
 - `tests/` - Comprehensive test suite
 - `schemas/` - JSON schemas for validation
 
+## 🏆 Standards & Compatibility
+
+<div align="center">
+
+[![W3C Design Tokens](https://img.shields.io/badge/W3C-Design_Tokens_Community_Group-blue?style=for-the-badge&logo=w3c)](https://design-tokens.github.io/community-group/format/)
+[![JSON Patch](https://img.shields.io/badge/RFC_6902-JSON_Patch-green?style=for-the-badge)](https://tools.ietf.org/html/rfc6902)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+
+</div>
+
+**Standards-Based Architecture**: DCP-Transformer follows established W3C and IETF specifications for maximum interoperability and future-proofing.
+
 ## 📄 License
 
 MIT © Steve Witmer
@@ -279,4 +309,98 @@ MIT © Steve Witmer
 
 **Ready to transform your codebase?** Start with `dcp extract ./src --json` and see your components parsed into the DCP format. That's your "CRISPR for Code" in action - surgical extraction of component DNA for analysis and transformation.
 
+**NEW:** Export your tokens to industry-standard DTCG format with `dcp export-tokens registry.json` and integrate with any modern design system pipeline.
+
 The platform is ready. The infrastructure is solid. Pick a target and start transforming! 🎯
+
+## DTCG Token Support
+
+DCP-Transformer now supports the [W3C Design Tokens Community Group](https://design-tokens.github.io/community-group/format/) format, making it interoperable with the entire modern token ecosystem:
+
+- [Style Dictionary](https://amzn.github.io/style-dictionary) v4+
+- [Tokens Studio](https://tokens.studio)
+- [Figma Variables API](https://www.figma.com/developers/api#variables)
+- Any DTCG-compliant tool
+
+### Export/Import Design Tokens
+
+```bash
+# Export DCP tokens to W3C DTCG format
+dcp export-tokens registry.json --out tokens.json
+
+# Import DTCG tokens into DCP registry
+dcp import-tokens figma-tokens.json --merge --registry ./registry.json
+
+# Round-trip with Style Dictionary, Tokens Studio, Figma Variables
+dcp export-tokens registry.json --out tokens.json
+# Process with external tools...
+dcp import-tokens processed-tokens.json --merge
+```
+
+### Token Format
+
+DCP-Transformer follows the DTCG spec for token structure:
+
+```json
+{
+  "$schema": "https://design-tokens.github.io/tokens/schema.json",
+  "tokens": {
+    "color": {
+    "primary": {
+        "$type": "color",
+        "$value": "#0066cc",
+        "$description": "Primary brand color"
+    }
+  },
+  "spacing": {
+      "small": {
+        "$type": "dimension",
+        "$value": {
+          "value": 8,
+          "unit": "px"
+        }
+      }
+    }
+  }
+}
+```
+
+### DCP Extensions
+
+When exporting tokens, DCP-specific metadata is preserved under `$extensions`:
+
+```json
+{
+  "$extensions": {
+    "dev.dcp": {
+      "version": "1.0.0",
+      "metadata": { /* ... */ },
+      "componentRefs": [
+        {
+          "id": "Button",
+          "tokens": ["color.primary", "spacing.small"]
+        }
+      ]
+    }
+  }
+}
+```
+
+This enables round-trip compatibility while maintaining compliance with the DTCG spec.
+
+### Build platform assets (optional)
+
+Generate ready-to-ship artifacts (CSS variables, Android XML, iOS Swift) using Style Dictionary.
+
+```bash
+# Install Style Dictionary only if you need asset outputs
+pnpm add -D style-dictionary
+
+# Build all default platforms (css, android, ios)
+dcp build-assets design.tokens.json
+
+# Build only CSS to a custom directory
+dcp build-assets design.tokens.json --platform css --out ./dist/
+```
+
+The command loads Style Dictionary at runtime, so projects that don’t need compiled assets stay dependency-free.
