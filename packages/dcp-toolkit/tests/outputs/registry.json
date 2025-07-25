@@ -1,0 +1,192 @@
+{
+  "name": "components",
+  "version": "1.0.0",
+  "description": "DCP registry extracted from ./tests/unit/fixtures/src/components/",
+  "components": [
+    {
+      "name": "Button",
+      "type": "component",
+      "category": "actions",
+      "description": "",
+      "filePath": "tests/unit/fixtures/src/components/Button.tsx",
+      "props": [
+        {
+          "name": "variant",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "primary",
+          "styleMapping": {
+            "type": "variant-styles",
+            "values": [],
+            "mappings": {},
+            "themeAware": false
+          }
+        },
+        {
+          "name": "size",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": "medium",
+          "styleMapping": {
+            "type": "variant-styles",
+            "values": [],
+            "mappings": {},
+            "themeAware": false
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "children",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        },
+        {
+          "name": "onClick",
+          "type": "unknown",
+          "required": true,
+          "description": "",
+          "default": null
+        }
+      ],
+      "variants": {},
+      "composition": {
+        "subComponents": [],
+        "slots": []
+      },
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-25T02:03:16.227Z"
+      },
+      "themeContext": null
+    },
+    {
+      "name": "Button",
+      "type": "component",
+      "category": "actions",
+      "description": "",
+      "filePath": "tests/unit/fixtures/src/components/Button.js",
+      "props": [],
+      "variants": {},
+      "composition": {
+        "subComponents": [],
+        "slots": []
+      },
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-25T02:03:16.232Z"
+      },
+      "themeContext": null
+    }
+  ],
+  "tokens": {},
+  "themeContext": {
+    "config": null,
+    "cssVariables": {
+      "light": {},
+      "dark": {},
+      "custom": {}
+    },
+    "summary": "Theme Configuration: None detected\n- No theme configuration file found\n- No CSS variables extracted\n"
+  },
+  "metadata": {
+    "extractedAt": "2025-07-25T02:03:16.198Z",
+    "sourceDir": "./tests/unit/fixtures/src/components/",
+    "transformedFrom": "multi-framework",
+    "version": "3.0.0",
+    "adaptorRegistry": [
+      "react-tsx",
+      "shadcn-react-tsx"
+    ]
+  },
+  "lastModified": "2025-07-25T02:03:16.233Z",
+  "intelligence": {
+    "projectStructure": {
+      "detectedPaths": {},
+      "aliases": [],
+      "conventions": {
+        "framework": "unknown",
+        "styling": [],
+        "testing": "unknown",
+        "bundler": "unknown",
+        "features": []
+      },
+      "recommendations": [
+        "Consider adding tsconfig.json with path aliases for cleaner imports"
+      ]
+    },
+    "environment": {
+      "configFiles": {},
+      "missingFiles": [
+        "package.json",
+        "tsconfig.json",
+        "tailwind.config.js",
+        "tailwind.config.ts",
+        "components.json",
+        "next.config.js",
+        "vite.config.js",
+        ".eslintrc.json",
+        "prettier.config.js"
+      ],
+      "nodeVersion": null,
+      "packageManager": "npm"
+    },
+    "dependencies": {
+      "required": [],
+      "missing": [
+        "package.json"
+      ],
+      "versions": {},
+      "graph": {},
+      "suggestions": []
+    },
+    "assets": {
+      "imageProps": [],
+      "iconUsage": [],
+      "missingAssets": [],
+      "recommendations": [
+        "Use consistent image sizing (32x32, 64x64, etc.)",
+        "Provide fallback images for missing avatars",
+        "Consider using next/image for optimized loading",
+        "Use SVG icons for better scalability"
+      ]
+    },
+    "setupInstructions": [
+      "Install missing dependencies: npm install package.json",
+      "Initialize ShadCN: npx shadcn-ui@latest init"
+    ],
+    "integrationChecklist": [
+      "❌ Create components directory structure",
+      "❌ Install React",
+      "❌ Initialize package.json",
+      "⚠️ Verify all image assets are provided",
+      "⚠️ Test responsive behavior across breakpoints",
+      "⚠️ Validate accessibility requirements"
+    ],
+    "intelligence": {
+      "confidence": 0,
+      "readiness": "needs-setup",
+      "complexity": "high",
+      "recommendations": [
+        "Add path aliases to tsconfig.json for cleaner imports",
+        "Consider Tailwind CSS for utility-first styling",
+        "Add testing framework (Jest or Vitest)"
+      ]
+    }
+  }
+}

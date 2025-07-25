@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../schemas/manifest.schema.json",
+  "name": "Test Design System Invalid",
+  "version": "1.0.0",
+  "description": "An invalid test registry (missing components array).",
+  "tokens": {
+    "colors": {
+      "primary": "#007bff"
+    }
+  },
+  "generated": "2024-05-08T00:00:00.000Z"
+} 

@@ -1,0 +1,88 @@
+{
+  "colors": {
+    "primary": {
+      "value": "#007bff",
+      "type": "color",
+      "description": "Primary brand color"
+    },
+    "secondary": {
+      "value": "#6c757d",
+      "type": "color",
+      "description": "Secondary color"
+    },
+    "success": {
+      "value": "#28a745",
+      "type": "color",
+      "description": "Success state color"
+    },
+    "danger": {
+      "value": "#dc3545",
+      "type": "color",
+      "description": "Error state color"
+    },
+    "warning": {
+      "value": "#ffc107",
+      "type": "color",
+      "description": "Warning state color"
+    }
+  },
+  "spacing": {
+    "xs": {
+      "value": "0.25rem",
+      "type": "dimension",
+      "description": "Extra small spacing"
+    },
+    "sm": {
+      "value": "0.5rem",
+      "type": "dimension",
+      "description": "Small spacing"
+    },
+    "md": {
+      "value": "1rem",
+      "type": "dimension",
+      "description": "Medium spacing"
+    },
+    "lg": {
+      "value": "1.5rem",
+      "type": "dimension",
+      "description": "Large spacing"
+    },
+    "xl": {
+      "value": "2rem",
+      "type": "dimension",
+      "description": "Extra large spacing"
+    }
+  },
+  "typography": {
+    "font-size-xs": {
+      "value": "0.75rem",
+      "type": "dimension",
+      "description": "Extra small font size"
+    },
+    "font-size-sm": {
+      "value": "0.875rem",
+      "type": "dimension",
+      "description": "Small font size"
+    },
+    "font-size-base": {
+      "value": "1rem",
+      "type": "dimension",
+      "description": "Base font size"
+    },
+    "font-size-lg": {
+      "value": "1.25rem",
+      "type": "dimension",
+      "description": "Large font size"
+    },
+    "font-weight-normal": {
+      "value": "400",
+      "type": "fontWeight",
+      "description": "Normal font weight"
+    },
+    "font-weight-bold": {
+      "value": "700",
+      "type": "fontWeight",
+      "description": "Bold font weight"
+    }
+  }
+}

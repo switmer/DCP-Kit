@@ -1,0 +1,12 @@
+[
+  {
+    "op": "replace",
+    "path": "/components/0/props/variant/default",
+    "value": null
+  },
+  {
+    "op": "replace",
+    "path": "/components/0/props/variant/default",
+    "value": null
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "name": "ComplexCard",
+  "type": "component",
+  "category": "layout",
+  "description": "",
+  "filePath": "tests/unit/fixtures/complex-card.js",
+  "props": [],
+  "variants": {},
+  "composition": {
+    "subComponents": [],
+    "slots": []
+  },
+  "examples": [],
+  "slots": [],
+  "metadata": {
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-25T03:00:30.889Z"
+  },
+  "themeContext": null
+}

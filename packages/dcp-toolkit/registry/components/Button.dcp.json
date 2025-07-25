@@ -1,0 +1,77 @@
+{
+  "name": "Button",
+  "type": "component",
+  "category": "actions",
+  "description": "",
+  "filePath": "tests/unit/fixtures/shadcn/button.tsx",
+  "props": [
+    {
+      "name": "className",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "variant",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null,
+      "styleMapping": {
+        "type": "variant-styles",
+        "values": [],
+        "mappings": {},
+        "themeAware": false
+      }
+    },
+    {
+      "name": "size",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null,
+      "styleMapping": {
+        "type": "variant-styles",
+        "values": [],
+        "mappings": {},
+        "themeAware": false
+      }
+    },
+    {
+      "name": "asChild",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": false
+    }
+  ],
+  "variants": {
+    "variant": [
+      "default",
+      "destructive",
+      "outline",
+      "secondary",
+      "ghost",
+      "link"
+    ],
+    "size": [
+      "default",
+      "sm",
+      "lg",
+      "icon"
+    ]
+  },
+  "composition": {
+    "subComponents": [],
+    "slots": []
+  },
+  "examples": [],
+  "slots": [],
+  "metadata": {
+    "componentType": "forwardRef",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-25T03:00:30.949Z"
+  },
+  "themeContext": null
+}

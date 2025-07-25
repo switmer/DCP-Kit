@@ -1,0 +1,133 @@
+{
+  "name": "vscode-dcp",
+  "displayName": "DCP Design System",
+  "description": "Live design system validation and autocomplete for React, Vue, and Svelte",
+  "version": "0.1.0",
+  "publisher": "dcp-platform",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Linters",
+    "Other",
+    "Snippets"
+  ],
+  "keywords": [
+    "design-system",
+    "components",
+    "tokens",
+    "validation",
+    "autocomplete",
+    "react",
+    "typescript"
+  ],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:vue",
+    "onLanguage:svelte"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "dcp.validateFile",
+        "title": "DCP: Validate Current File"
+      },
+      {
+        "command": "dcp.refreshRegistry",
+        "title": "DCP: Refresh Registry"
+      },
+      {
+        "command": "dcp.openRegistry",
+        "title": "DCP: Open Registry"
+      },
+      {
+        "command": "dcp.extractRegistry",
+        "title": "DCP: Extract Registry from Source"
+      }
+    ],
+    "configuration": {
+      "title": "DCP Design System",
+      "properties": {
+        "dcp.registryPath": {
+          "type": "string",
+          "default": "./registry",
+          "description": "Path to DCP registry directory"
+        },
+        "dcp.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:7401/api/v1",
+          "description": "DCP API server URL (fallback if no local registry)"
+        },
+        "dcp.enableValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable live validation"
+        },
+        "dcp.validationTrigger": {
+          "type": "string",
+          "enum": ["onSave", "onType", "manual"],
+          "default": "onSave",
+          "description": "When to trigger validation"
+        },
+        "dcp.enableAutoComplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable design system autocomplete"
+        },
+        "dcp.enableHoverPreviews": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable token hover previews"
+        },
+        "dcp.validationLevel": {
+          "type": "string",
+          "enum": ["error", "warning", "info"],
+          "default": "error",
+          "description": "Severity level for validation issues"
+        },
+        "dcp.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-refresh registry when files change"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "@vscode/test-electron": "^2.2.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4",
+    "@vscode/vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chokidar": "^3.5.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevewitmer/dcp-transformer.git",
+    "directory": "integrations/vscode-dcp"
+  },
+  "bugs": {
+    "url": "https://github.com/stevewitmer/dcp-transformer/issues"
+  },
+  "homepage": "https://github.com/stevewitmer/dcp-transformer#readme"
+}

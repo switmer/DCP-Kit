@@ -1,0 +1,156 @@
+{
+  "name": "file-types",
+  "version": "1.0.0",
+  "description": "DCP registry extracted from /Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/file-types",
+  "components": [
+    {
+      "name": "Component",
+      "type": "component",
+      "category": "components",
+      "description": "",
+      "filePath": "tests/unit/temp-security-trust/file-types/Component.tsx",
+      "props": [],
+      "variants": {},
+      "composition": {
+        "subComponents": [],
+        "slots": []
+      },
+      "examples": [],
+      "slots": [],
+      "metadata": {
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-25T03:00:34.407Z"
+      },
+      "themeContext": null
+    }
+  ],
+  "tokens": {},
+  "themeContext": {
+    "config": null,
+    "cssVariables": {
+      "light": {},
+      "dark": {},
+      "custom": {}
+    },
+    "summary": "Theme Configuration: None detected\n- No theme configuration file found\n- No CSS variables extracted\n"
+  },
+  "metadata": {
+    "extractedAt": "2025-07-25T03:00:19.439Z",
+    "sourceDir": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/file-types",
+    "transformedFrom": "multi-framework",
+    "version": "3.0.0",
+    "adaptorRegistry": [
+      "react-tsx",
+      "shadcn-react-tsx"
+    ]
+  },
+  "lastModified": "2025-07-25T03:00:37.926Z",
+  "intelligence": {
+    "projectStructure": {
+      "detectedPaths": {},
+      "aliases": [],
+      "conventions": {
+        "framework": "unknown",
+        "styling": [],
+        "testing": "unknown",
+        "bundler": "unknown",
+        "features": []
+      },
+      "recommendations": [
+        "Consider adding tsconfig.json with path aliases for cleaner imports"
+      ]
+    },
+    "environment": {
+      "configFiles": {
+        "package.json": {
+          "exists": true,
+          "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/file-types/package.json"
+        }
+      },
+      "missingFiles": [
+        "tsconfig.json",
+        "tailwind.config.js",
+        "tailwind.config.ts",
+        "components.json",
+        "next.config.js",
+        "vite.config.js",
+        ".eslintrc.json",
+        "prettier.config.js"
+      ],
+      "nodeVersion": null,
+      "packageManager": "npm"
+    },
+    "dependencies": {
+      "required": [],
+      "missing": [
+        "react"
+      ],
+      "versions": {},
+      "graph": {},
+      "suggestions": [
+        {
+          "package": "typescript",
+          "reason": "For better type safety"
+        },
+        {
+          "package": "tailwindcss",
+          "reason": "For utility-first styling"
+        },
+        {
+          "package": "@radix-ui/react-slot",
+          "reason": "For flexible component composition"
+        },
+        {
+          "package": "class-variance-authority",
+          "reason": "For variant-driven components"
+        },
+        {
+          "package": "clsx",
+          "reason": "For conditional className composition"
+        },
+        {
+          "package": "lucide-react",
+          "reason": "For consistent iconography"
+        },
+        {
+          "package": "framer-motion",
+          "reason": "For smooth animations"
+        }
+      ]
+    },
+    "assets": {
+      "imageProps": [],
+      "iconUsage": [],
+      "missingAssets": [],
+      "recommendations": [
+        "Use consistent image sizing (32x32, 64x64, etc.)",
+        "Provide fallback images for missing avatars",
+        "Consider using next/image for optimized loading",
+        "Use SVG icons for better scalability"
+      ]
+    },
+    "setupInstructions": [
+      "Install missing dependencies: npm install react",
+      "Initialize ShadCN: npx shadcn-ui@latest init"
+    ],
+    "integrationChecklist": [
+      "❌ Create components directory structure",
+      "❌ Install React",
+      "✅ Package.json is present",
+      "⚠️ Verify all image assets are provided",
+      "⚠️ Test responsive behavior across breakpoints",
+      "⚠️ Validate accessibility requirements"
+    ],
+    "intelligence": {
+      "confidence": 20,
+      "readiness": "needs-setup",
+      "complexity": "high",
+      "recommendations": [
+        "Add path aliases to tsconfig.json for cleaner imports",
+        "Consider Tailwind CSS for utility-first styling",
+        "Add testing framework (Jest or Vitest)"
+      ]
+    }
+  }
+}

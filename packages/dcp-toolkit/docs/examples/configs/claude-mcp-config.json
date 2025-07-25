@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "dcp-registry": {
+      "command": "node",
+      "args": ["/Users/stevewitmer/local_AI_Projects/DCP-Transformer/mcp-server.js", "./registry"],
+      "cwd": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer"
+    }
+  }
+}

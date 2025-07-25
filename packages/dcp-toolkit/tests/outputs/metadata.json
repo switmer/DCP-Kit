@@ -1,0 +1,10 @@
+{
+  "extractedAt": "2025-07-25T02:03:16.198Z",
+  "sourceDir": "./tests/unit/fixtures/src/components/",
+  "transformedFrom": "multi-framework",
+  "version": "3.0.0",
+  "adaptorRegistry": [
+    "react-tsx",
+    "shadcn-react-tsx"
+  ]
+}

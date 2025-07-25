@@ -1,0 +1,21 @@
+{
+  "name": "Component",
+  "type": "component",
+  "category": "components",
+  "description": "",
+  "filePath": "tests/unit/temp-security-trust/file-types/Component.tsx",
+  "props": [],
+  "variants": {},
+  "composition": {
+    "subComponents": [],
+    "slots": []
+  },
+  "examples": [],
+  "slots": [],
+  "metadata": {
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-25T03:00:34.407Z"
+  },
+  "themeContext": null
+}

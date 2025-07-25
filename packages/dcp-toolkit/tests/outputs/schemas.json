@@ -1,0 +1,47 @@
+{
+  "Button": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "Button"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ]
+  }
+}

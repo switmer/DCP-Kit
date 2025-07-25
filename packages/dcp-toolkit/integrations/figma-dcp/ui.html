@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>DCP Design System</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #1a1a1a;
+      background: #ffffff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      padding: 20px 16px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b, #ef4444);
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .header .subtitle {
+      font-size: 12px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 400;
+    }
+
+    .content {
+      flex: 1;
+      padding: 0;
+      overflow-y: auto;
+      background: #fafafa;
+    }
+
+    .section {
+      background: white;
+      margin: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #f0f0f0;
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #f5f5f5;
+      background: #fafafa;
+    }
+
+    .section-header h2 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-body {
+      padding: 16px 20px 20px;
+    }
+
+    .button {
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #f8fafc;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #374151;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .button:hover {
+      background: #f1f5f9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+    }
+
+    .button.primary:hover {
+      background: linear-gradient(135deg, #2563eb, #1e40af);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .button.success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+
+    .button.success:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    .button.secondary {
+      background: white;
+      border: 2px solid #e5e7eb;
+      color: #374151;
+    }
+
+    .button.secondary:hover {
+      border-color: #d1d5db;
+      background: #f9fafb;
+    }
+
+    .button:disabled {
+      background: #f3f4f6;
+      color: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .button-small {
+      padding: 6px 12px;
+      font-size: 11px;
+      width: auto;
+      margin: 0;
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+      background: white;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 12px;
+      background: white;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    .status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+
+    .status.connected {
+      background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+      color: #166534;
+      border-color: #22c55e;
+    }
+
+    .status.error {
+      background: linear-gradient(135deg, #fee2e2, #fecaca);
+      color: #dc2626;
+      border-color: #ef4444;
+    }
+
+    .status.loading {
+      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+      color: #1d4ed8;
+      border-color: #3b82f6;
+    }
+
+    .status.disconnected {
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      color: #64748b;
+      border-color: #cbd5e1;
+    }
+
+    .registry-info {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 1px solid #0ea5e9;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .registry-name {
+      font-weight: 600;
+      color: #0c4a6e;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .registry-stats {
+      font-size: 11px;
+      color: #0369a1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-badge {
+      background: rgba(255,255,255,0.7);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .help-text {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .validation-results {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .validation-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 11px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: background-color 0.2s ease;
+    }
+
+    .validation-item:last-child {
+      border-bottom: none;
+    }
+
+    .validation-item:hover {
+      background: #fafafa;
+    }
+
+    .validation-item.error {
+      background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      border-left: 3px solid #ef4444;
+    }
+
+    .validation-item.error .validation-icon {
+      color: #ef4444;
+    }
+
+    .validation-item.warning {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border-left: 3px solid #f59e0b;
+    }
+
+    .validation-item.warning .validation-icon {
+      color: #f59e0b;
+    }
+
+    .validation-item.success {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border-left: 3px solid #22c55e;
+    }
+
+    .validation-item.success .validation-icon {
+      color: #22c55e;
+    }
+
+    .validation-icon {
+      font-size: 14px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .validation-content {
+      flex: 1;
+    }
+
+    .token-count {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      color: #0369a1;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #bae6fd;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .layer-name {
+      font-weight: 600;
+      color: #1f2937;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .issue-message {
+      font-size: 11px;
+      line-height: 1.4;
+      color: #6b7280;
+    }
+
+    .validation-item.error .layer-name {
+      color: #991b1b;
+    }
+
+    .validation-item.error .issue-message {
+      color: #dc2626;
+    }
+
+    .validation-item.warning .layer-name {
+      color: #92400e;
+    }
+
+    .validation-item.warning .issue-message {
+      color: #d97706;
+    }
+
+    .validation-item.success .layer-name {
+      color: #166534;
+    }
+
+    .validation-item.success .issue-message {
+      color: #059669;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 24px;
+      color: #9ca3af;
+      font-size: 11px;
+      line-height: 1.5;
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border-radius: 8px;
+      border: 2px dashed #e5e7eb;
+    }
+
+    .empty-state.success {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      color: #166534;
+      border-color: #22c55e;
+    }
+
+    .loading-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid #e5e7eb;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>
+      🧬 DCP Design System
+    </h1>
+    <div class="subtitle">Sync tokens and validate designs</div>
+  </div>
+
+  <div class="content">
+    <!-- Connection Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2>🔗 Connection</h2>
+      </div>
+      <div class="section-body">
+        <div id="connection-status" class="status disconnected">
+          <span>⚪</span>
+          <span>Disconnected</span>
+        </div>
+
+        <!-- Registry picker -->
+        <label style="font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block;">
+          Registry Source
+        </label>
+        <select id="registry-select" class="select"></select>
+
+        <label style="font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 6px; display: block; margin-top: 12px;">
+          API Endpoint
+        </label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input 
+            type="text" 
+            id="api-url" 
+            class="input" 
+            placeholder="DCP API URL (e.g., http://localhost:7401/api/v1)"
+            value="http://localhost:7401/api/v1"
+          />
+          <span class="info-tooltip" title="Point to your team's DCP API (e.g., https://design.acme.com/api/v1)" style="font-size: 14px; cursor: help; color: #9ca3af;">ℹ️</span>
+        </div>
+        
+        <button id="connect-btn" class="button primary">
+          <span>🔗</span>
+          Connect to DCP
+        </button>
+      </div>
+    </div>
+
+    <!-- Token Sync Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2>🎨 Token Sync</h2>
+      </div>
+      <div class="section-body">
+        <p style="font-size: 11px; color: #6b7280; margin-bottom: 12px; line-height: 1.4;">
+          Pull design tokens from your DCP registry to validate against Figma layers
+        </p>
+        
+        <button id="sync-tokens-btn" class="button secondary" disabled>
+          <span>⬇️</span>
+          Sync Design Tokens
+        </button>
+        
+        <div id="token-count" class="token-count" style="display: none;">
+          Synced 0 tokens
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2>✅ Validation</h2>
+      </div>
+      <div class="section-body">
+        <p style="font-size: 11px; color: #6b7280; margin-bottom: 16px; line-height: 1.4;">
+          Check your designs against design system tokens and component APIs
+        </p>
+        
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button id="validate-page-btn" class="button secondary" disabled style="flex: 1;">
+            <span>📄</span>
+            Page
+          </button>
+
+          <button id="validate-selection-btn" class="button" disabled style="flex: 1;">
+            <span>🎯</span>
+            Selection
+          </button>
+        </div>
+        
+        <div id="validation-results" style="display: none;">
+          <div class="validation-results">
+            <div class="empty-state">
+              Select layers and click "Validate Selection" to check against your design system
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // UI State Management
+    let isConnected = false;
+    let apiUrl = 'http://localhost:7401/api/v1';
+    let registryData = null;
+
+    /* ---------------- Registry persistence ---------------- */
+
+    const REGISTRY_STORAGE_KEY = 'dcpRegistries';
+
+    function loadRegistries() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(REGISTRY_STORAGE_KEY) || '[]');
+        if (Array.isArray(stored) && stored.length) return stored;
+      } catch {}
+      return ['http://localhost:7401/api/v1'];
+    }
+
+    function saveRegistry(url) {
+      const regs = loadRegistries();
+      if (!regs.includes(url)) {
+        regs.unshift(url);
+      }
+      localStorage.setItem(REGISTRY_STORAGE_KEY, JSON.stringify(regs.slice(0, 5)));
+    }
+
+    function populateRegistrySelect() {
+      const options = loadRegistries();
+      registrySelect.innerHTML = '';
+      options.forEach((opt) => {
+        const el = document.createElement('option');
+        el.value = opt;
+        el.textContent = opt;
+        registrySelect.appendChild(el);
+      });
+      const custom = document.createElement('option');
+      custom.value = '__custom__';
+      custom.textContent = 'Custom…';
+      registrySelect.appendChild(custom);
+    }
+
+    /* ------------------------------------------------------ */
+
+    // DOM Elements
+    const connectionStatus = document.getElementById('connection-status');
+    const registrySelect = document.getElementById('registry-select');
+    const apiUrlInput = document.getElementById('api-url');
+    const connectBtn = document.getElementById('connect-btn');
+    const syncTokensBtn = document.getElementById('sync-tokens-btn');
+    const tokenCount = document.getElementById('token-count');
+    const validateSelectionBtn = document.getElementById('validate-selection-btn');
+    const validatePageBtn = document.getElementById('validate-page-btn');
+    const validationResults = document.getElementById('validation-results');
+
+    // Event Handlers
+    connectBtn.onclick = () => {
+      apiUrl = apiUrlInput.value.trim();
+      if (!apiUrl) {
+        showError('Please enter a valid API URL');
+        return;
+      }
+      
+      setConnecting();
+      parent.postMessage({
+        pluginMessage: {
+          type: 'connect',
+          apiUrl,
+        },
+      }, '*');
+    };
+
+    syncTokensBtn.onclick = () => {
+      setLoading(syncTokensBtn, 'Syncing...');
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'sync-tokens' 
+        } 
+      }, '*');
+    };
+
+    validateSelectionBtn.onclick = () => {
+      setLoading(validateSelectionBtn, 'Validating...');
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'validate-selection' 
+        } 
+      }, '*');
+    };
+
+    validatePageBtn.onclick = () => {
+      setLoading(validatePageBtn, 'Validating...');
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'validate-page' 
+        } 
+      }, '*');
+    };
+
+    // Registry select handler
+    registrySelect.onchange = () => {
+      const val = registrySelect.value;
+      if (val === '__custom__') {
+        apiUrlInput.focus();
+        return;
+      }
+      apiUrlInput.value = val;
+    };
+
+    // Populate registry dropdown on init
+    populateRegistrySelect();
+    apiUrlInput.value = loadRegistries()[0];
+
+    // Message Handler
+    window.onmessage = (event) => {
+      const { type, data, error } = event.data.pluginMessage;
+
+      switch (type) {
+        case 'connection-success':
+          setConnected(data);
+          break;
+        
+        case 'connection-error':
+          setDisconnected();
+          showError(error || 'Failed to connect to DCP API');
+          break;
+        
+        case 'tokens-synced':
+          setTokensSynced(data.count);
+          resetButton(syncTokensBtn, 'Sync Design Tokens');
+          break;
+        
+        case 'tokens-error':
+          resetButton(syncTokensBtn, 'Sync Design Tokens');
+          // More helpful messaging when tokens are missing
+          const msg = error && error.toLowerCase().includes('no tokens')
+            ? 'No tokens available. Please sync design tokens first.'
+            : (error || 'Failed to sync tokens');
+          showError(msg);
+          break;
+        
+        case 'validation-results':
+          showValidationResults(data);
+          resetButton(validateSelectionBtn, 'Validate Selection');
+          resetButton(validatePageBtn, 'Validate Current Page');
+          break;
+        
+        case 'validation-error':
+          resetButton(validateSelectionBtn, 'Validate Selection');
+          resetButton(validatePageBtn, 'Validate Current Page');
+          showError(error || 'Validation failed');
+          break;
+      }
+    };
+
+    // UI State Functions
+    function setConnecting() {
+      connectionStatus.className = 'status loading';
+      connectionStatus.innerHTML = '<div class="loading-spinner"></div><span>Connecting...</span>';
+      connectBtn.disabled = true;
+      connectBtn.textContent = 'Connecting...';
+    }
+
+    function setConnected(data) {
+      isConnected = true;
+      registryData = data;
+      
+      // Save registry URL for future sessions
+      saveRegistry(apiUrl);
+
+      populateRegistrySelect();
+
+      connectionStatus.className = 'status connected';
+      let statusHtml = '<span>🟢</span><span>Connected to DCP';
+      if (registryData?.metadata?.name) {
+        statusHtml += ` — ${registryData.metadata.name}`;
+      }
+      statusHtml += '</span>';
+      connectionStatus.innerHTML = statusHtml;
+      
+      connectBtn.disabled = false;
+      connectBtn.textContent = 'Connected ✓';
+      connectBtn.className = 'button success';
+      
+      // Enable other buttons
+      syncTokensBtn.disabled = false;
+      validateSelectionBtn.disabled = false;
+      validatePageBtn.disabled = false;
+    }
+
+    function setDisconnected() {
+      isConnected = false;
+      registryData = null;
+      
+      connectionStatus.className = 'status disconnected';
+      connectionStatus.innerHTML = '<span>⚪</span><span>Disconnected</span>';
+      
+      connectBtn.disabled = false;
+      connectBtn.textContent = 'Connect to DCP';
+      connectBtn.className = 'button primary';
+      
+      // Disable other buttons
+      syncTokensBtn.disabled = true;
+      validateSelectionBtn.disabled = true;
+      validatePageBtn.disabled = true;
+      
+      // Hide results
+      tokenCount.style.display = 'none';
+      validationResults.style.display = 'none';
+    }
+
+    function setTokensSynced(count) {
+      tokenCount.textContent = `Synced ${count} tokens`;
+      tokenCount.style.display = 'block';
+    }
+
+    function showValidationResults(results) {
+      validationResults.style.display = 'block';
+      
+      const container = validationResults.querySelector('.validation-results');
+      container.innerHTML = '';
+      
+      if (!results || results.length === 0) {
+        container.innerHTML = '<div class="empty-state success">✅ Perfect! No design system issues found in your selection.</div>';
+        return;
+      }
+      
+      results.forEach(result => {
+        const item = document.createElement('div');
+        const severity = result.severity || 'error';
+        item.className = `validation-item ${severity}`;
+        
+        const iconMap = {
+          error: '❌',
+          warning: '⚠️',
+          success: '✅',
+          info: 'ℹ️'
+        };
+        
+        item.innerHTML = `
+          <div class="validation-icon">${iconMap[severity] || '❌'}</div>
+          <div class="validation-content">
+            <div class="layer-name">${result.layerName}</div>
+            <div class="issue-message">${result.message}</div>
+          </div>
+        `;
+        
+        container.appendChild(item);
+      });
+    }
+
+    function setLoading(button, text) {
+      button.disabled = true;
+      button.innerHTML = `<div class="loading-spinner"></div> ${text}`;
+    }
+
+    function resetButton(button, text) {
+      button.disabled = !isConnected;
+      button.innerHTML = text;
+    }
+
+    /**
+     * Show a transient success message below the connection block
+     */
+    function showSuccess(message) {
+      const successDiv = document.createElement('div');
+      successDiv.className = 'status connected';
+      successDiv.innerHTML = `<span>✅</span><span>${message}</span>`;
+
+      connectionStatus.parentNode.insertBefore(successDiv, connectionStatus.nextSibling);
+
+      setTimeout(() => {
+        successDiv.remove();
+      }, 3000);
+    }
+
+    function showError(message) {
+      // Create temporary error status
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'status error';
+      errorDiv.innerHTML = `<span>❌</span><span>${message}</span>`;
+      
+      // Insert after connection status
+      connectionStatus.parentNode.insertBefore(errorDiv, connectionStatus.nextSibling);
+      
+      // Remove after 5 seconds
+      setTimeout(() => {
+        if (errorDiv.parentNode) {
+          errorDiv.parentNode.removeChild(errorDiv);
+        }
+      }, 5000);
+    }
+
+    // Initialize
+    // apiUrlInput.value = apiUrl;
+  </script>
+</body>
+</html>

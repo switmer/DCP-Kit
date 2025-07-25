@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Design System Extractor</title>
+  <link rel="stylesheet" href="sidepanel.css"/>
+</head>
+<body>
+  <header>
+    <h1>Design System Extractor</h1>
+    <label>
+      <input type="checkbox" id="toggleMatchers"/>
+      Custom heuristics
+    </label>
+  </header>
+  <div id="controls">
+    <button id="toggleExtractor" class="button primary">Enable Selection Mode</button>
+    <p class="help-text">Click elements on page to extract. Shift+Click = multi-select.</p>
+  </div>
+  <div class="history-list" id="historyList"></div>
+  <div id="emptyState" class="empty-state">
+    <div class="empty-icon">🪄</div>
+    <p>No extractions yet.<br/>Click <strong>Enable Selection Mode</strong> and choose elements to capture.</p>
+  </div>
+  <div class="details hidden" id="details"></div>
+  <script src="sidepanel.js"></script>
+</body>
+</html> 
