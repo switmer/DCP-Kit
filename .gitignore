@@ -6,6 +6,7 @@ yarn-error.log*
 
 # Testing
 coverage/
+tests/outputs/
 
 # Build
 dist/
@@ -24,5 +25,17 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
-.env.*.local 
+.env.*.local
+
+# Logs
+*.log
 *storybook.log
+
+# Temporary files
+temp-*
+api.log
+--verbose*
+
+# Test outputs (regeneratable)
+*-test/
+*-output/

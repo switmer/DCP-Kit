@@ -1,8 +1,0 @@
-👁️  Watching packages/storybook-addon-registry/demo/src for changes...
-🔌 WebSocket server starting on port 8081
-🔄 Extracting components...
-✅ Registry updated in 23ms
-   Components: 1, Tokens: 0
-   Changes: +1 added
-🔌 WebSocket server listening on ws://localhost:8081
-✅ Watch mode active - save a file to see live updates

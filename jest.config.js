@@ -6,7 +6,7 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['./tests/setup.js'],
+  setupFilesAfterEnv: ['./tests/unit/setup.js'],
   // Automatically clear mock calls and instances between every test
   clearMocks: true,
   // Indicates whether the coverage information should be collected while executing the test
@@ -14,10 +14,10 @@ export default {
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   collectCoverageFrom: [
     'bin/**/*.js',
-    'commands/**/*.js',
-    'core/**/*.js',
+    'src/**/*.js',
     '!**/node_modules/**',
-    '!**/dist/**'
+    '!**/dist/**',
+    '!**/tests/**'
   ],
   // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
@@ -30,7 +30,8 @@ export default {
   ],
   // Use this option to configure the pattern Jest uses to detect test files.
   testMatch: [
-    '**/tests/**/*.test.js',
+    '**/tests/unit/**/*.test.js',
+    '**/tests/integration/**/*.test.js',
     '**/__tests__/**/*.js'
   ],
   // Add a resolver for custom conditions like 'import' for ESM support with some loaders/packages

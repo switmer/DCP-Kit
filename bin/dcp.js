@@ -60,7 +60,7 @@ Examples:
     try {
       // Project validation (unless skipped)
       if (!options.skipValidation) {
-        const { ProjectValidator } = await import('../core/projectValidator.js');
+        const { ProjectValidator } = await import('../src/core/projectValidator.js');
         const validator = new ProjectValidator(source);
         const validation = await validator.validate();
         
@@ -101,7 +101,7 @@ Examples:
         }
       }
       
-      const { runExtract } = await import('../commands/extract-v3.js');
+      const { runExtract } = await import('../src/commands/extract-v3.js');
       
       if (!options.json) {
         console.log(`🔍 Extracting components from ${source}...`);
@@ -145,7 +145,7 @@ Examples:
   $ dcp validate --json             # Machine-readable output`)
   .action(async (projectPath = '.', options) => {
     try {
-      const { ProjectValidator } = await import('../core/projectValidator.js');
+      const { ProjectValidator } = await import('../src/core/projectValidator.js');
       const validator = new ProjectValidator(projectPath);
       const validation = await validator.validate();
       
@@ -203,7 +203,7 @@ Examples:
   $ dcp build --verbose --json`)
   .action(async (options) => {
     try {
-      const { runBuild } = await import('../commands/build.js');
+      const { runBuild } = await import('../src/commands/build.js');
       const result = await runBuild({
         configPath: options.config,
         verbose: options.verbose || !options.json
@@ -243,7 +243,7 @@ Examples:
   $ dcp build-packs registry.json --json`)
   .action(async (registry, options) => {
     try {
-      const { runBuildPacks } = await import('../commands/build-packs.js');
+      const { runBuildPacks } = await import('../src/commands/build-packs.js');
       
       if (!options.json) {
         console.log(`📦 Building component packs from ${registry}...`);
@@ -289,7 +289,7 @@ Examples:
   $ dcp serve-registry dist/packs --json`)
   .action(async (packsDir = './dist/packs', options) => {
     try {
-      const { runServeRegistry } = await import('../commands/serve-registry.js');
+      const { runServeRegistry } = await import('../src/commands/serve-registry.js');
       
       if (!options.json) {
         console.log(`🚀 Starting registry server for ${packsDir}...`);
@@ -333,7 +333,7 @@ Examples:
   $ dcp publish-static dist/packs --dry-run --verbose`)
   .action(async (packsDir, options) => {
     try {
-      const { runPublishStatic } = await import('../commands/publish-static.js');
+      const { runPublishStatic } = await import('../src/commands/publish-static.js');
       
       if (!options.json) {
         console.log(`📤 Publishing packs from ${packsDir}...`);
@@ -383,7 +383,7 @@ Examples:
   $ dcp add https://registry.example.com/r/ui/card --target ./src/components --dry-run`)
   .action(async (componentUrl, options) => {
     try {
-      const { runDcpAdd } = await import('../commands/dcp-add.js');
+      const { runDcpAdd } = await import('../src/commands/dcp-add.js');
       
       if (!options.json) {
         console.log(`📦 Installing component from ${componentUrl}...`);
@@ -475,7 +475,7 @@ Examples:
   $ dcp watch ./src --debounce 500 --quiet --verbose`)
   .action(async (source, options) => {
     try {
-      const { runWatch } = await import('../commands/watch.js');
+      const { runWatch } = await import('../src/commands/watch.js');
       await runWatch(source, options);
       
       // Keep process alive - runWatch handles SIGINT
@@ -501,7 +501,7 @@ Examples:
   $ dcp transpile registry.json --target vue --format javascript`)
   .action(async (registry, options) => {
     try {
-      const { runTranspile } = await import('../commands/transpile.js');
+      const { runTranspile } = await import('../src/commands/transpile.js');
       
       if (!options.json) {
         console.log(`🔄 Transpiling ${registry} to ${options.target}...`);
@@ -545,7 +545,7 @@ Examples:
   $ dcp export-mcp registry.json --optimize-for gpt4`)
   .action(async (registry, options) => {
     try {
-      const { runExportMCP } = await import('../commands/export-mcp.js');
+      const { runExportMCP } = await import('../src/commands/export-mcp.js');
       
       if (!options.json) {
         console.log(`📤 Exporting ${registry} to MCP format...`);
@@ -600,7 +600,7 @@ Examples:
   $ dcp validate registry.json`)
   .action(async (registry, options) => {
     try {
-      const { validateRegistry } = await import('../commands/validate.js');
+      const { validateRegistry } = await import('../src/commands/validate.js');
       
       if (!options.json) {
         console.log(`✅ Validating ${registry}...`);
@@ -646,7 +646,7 @@ JSON Patch format:
   [{"op": "replace", "path": "/components/0/props/variant", "value": "ghost"}]`)
   .action(async (registry, patch, output, options) => {
     try {
-      const { runBatchMutate } = await import('../commands/batchMutate.js');
+      const { runBatchMutate } = await import('../src/commands/batchMutate.js');
       
       if (options.dryRun) {
         // For dry run, just validate and show what would happen
@@ -717,7 +717,7 @@ Examples:
 Note: The undo file is generated by the mutate command with --undo flag`)
   .action(async (registry, undo, options) => {
     try {
-      const { runRollback } = await import('../commands/rollback.js');
+      const { runRollback } = await import('../src/commands/rollback.js');
       const result = await runRollback(registry, undo, {
         backup: options.backup,
         verbose: !options.json
@@ -752,7 +752,7 @@ Examples:
   $ dcp diff before.json after.json --detailed`)
   .action(async (from, to, options) => {
     try {
-      const { runDiff } = await import('../commands/diff.js');
+      const { runDiff } = await import('../src/commands/diff.js');
       const result = await runDiff(from, to, options);
       
       if (options.json) {
@@ -792,7 +792,7 @@ Supported prompts:
   - "Update [pattern] across library"`)
   .action(async (prompt, options) => {
     try {
-      const { runAgent } = await import('../commands/agent.js');
+      const { runAgent } = await import('../src/commands/agent.js');
       
       if (!options.json) {
         console.log(`🤖 AI Agent Planning: "${prompt}"`);
@@ -848,7 +848,7 @@ program
   .option('--json', 'output JSON stats instead of logs')
   .action(async (registry, options) => {
     try {
-      const { runExportTokens } = await import('../commands/export-tokens.js');
+      const { runExportTokens } = await import('../src/commands/export-tokens.js');
       await runExportTokens(registry, options);
     } catch (error) {
       console.error('❌ Export failed:', error.message);
@@ -865,7 +865,7 @@ program
   .option('--json', 'output JSON stats instead of logs')
   .action(async (tokens, options) => {
     try {
-      const { runImportTokens } = await import('../commands/import-tokens.js');
+      const { runImportTokens } = await import('../src/commands/import-tokens.js');
       await runImportTokens(tokens, options);
     } catch (error) {
       console.error('❌ Import failed:', error.message);
@@ -882,7 +882,7 @@ program
   .option('--json', 'machine-readable JSON output')
   .action(async (tokens, options) => {
     try {
-      const { runBuildAssets } = await import('../commands/build-assets.js');
+      const { runBuildAssets } = await import('../src/commands/build-assets.js');
       await runBuildAssets(tokens, options);
     } catch (error) {
       console.error('❌ build-assets failed:', error.message);
@@ -909,7 +909,7 @@ Examples:
   $ dcp query "tokens.color.*" --output colors.json --pretty`)
   .action(async (selector, options) => {
     try {
-      const { runQuery } = await import('../commands/query.js');
+      const { runQuery } = await import('../src/commands/query.js');
       await runQuery(selector, options);
     } catch (error) {
       if (options.json) {
@@ -954,7 +954,7 @@ CI Integration:
   # 1 = violations found (if --fail-on-violations enabled)`)
   .action(async (source, options) => {
     try {
-      const { runValidateCI } = await import('../commands/validate-ci.js');
+      const { runValidateCI } = await import('../src/commands/validate-ci.js');
       await runValidateCI(source, options);
     } catch (error) {
       if (options.json) {
@@ -980,7 +980,7 @@ Examples:
   $ dcp diff original.json modified.json --security-check`)
   .action(async (file1, file2, options) => {
     try {
-      const { runDiff } = await import('../commands/diff.js');
+      const { runDiff } = await import('../src/commands/diff.js');
       
       if (!options.json) {
         console.log(`📊 Comparing ${file1} and ${file2}...`);
@@ -1031,7 +1031,7 @@ Examples:
   $ dcp demo Alert.demo.tsx --render --validate-api`)
   .action(async (demoFile, options) => {
     try {
-      const { runDemo } = await import('../commands/demo.js');
+      const { runDemo } = await import('../src/commands/demo.js');
       
       if (!options.json) {
         console.log(`🔍 Processing demo: ${demoFile}...`);
@@ -1084,7 +1084,7 @@ Examples:
   $ dcp docs ./components --json`)
   .action(async (source, options) => {
     try {
-      const { runDocs } = await import('../commands/docs.js');
+      const { runDocs } = await import('../src/commands/docs.js');
       
       if (!options.json) {
         console.log(`📝 Generating documentation for ${source}...`);
@@ -1143,7 +1143,7 @@ Authentication:
   - Generate tokens with JWT secret`)
   .action(async (options) => {
     try {
-      const { runApiServer } = await import('../api-server.js');
+      const { runApiServer } = await import('../src/api-server.js');
       
       console.log(`🚀 Starting DCP API Server v2.0...`);
       console.log(`📁 Registry: ${options.registry}`);
@@ -1207,7 +1207,7 @@ Usage with VS Code:
   2. Open VS Code in any project
   3. Extension auto-discovers available registries`)
   .action((options) => {
-    import('../commands/companion.js')
+    import('../src/commands/companion.js')
       .then(({ default: CompanionServer }) => {
         const server = new CompanionServer(parseInt(options.port));
         return server.start();

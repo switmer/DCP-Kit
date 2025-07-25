@@ -7,25 +7,22 @@
     "dcp": "./bin/dcp.js",
     "dcp-transformer": "./bin/dcp.js",
     "dcp-transform": "./bin/dcp-transformer.js",
-    "dcp-mcp": "./mcp-server.js",
-    "dcp-mcp-http": "./mcp-server-http.js",
-    "dcp-api": "./api-server.js"
+    "dcp-mcp": "./src/mcp-server.js",
+    "dcp-mcp-http": "./src/mcp-server-http.js",
+    "dcp-api": "./src/api-server.js"
   },
-  "main": "./core/index.js",
+  "main": "./src/lib/index.js",
   "exports": {
-    ".": "./lib/index.js",
-    "./core": "./core/index.js",
+    ".": "./src/lib/index.js",
+    "./core": "./src/core/index.js",
     "./cli": "./bin/index.js"
   },
   "files": [
     "bin/",
-    "commands/",
-    "core/",
-    "lib/",
+    "src/",
     "schemas/",
     "templates/",
     "README.md",
-    "AGENT_GUIDE.md",
     "LICENSE"
   ],
   "scripts": {
@@ -35,9 +32,9 @@
     "prepublishOnly": "echo 'Publishing dcp-transformer...'",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "serve": "node commands/serve.js",
-    "extract": "node commands/extract.js",
-    "build:storybook": "storybook build --docs --dry-run-json > .storybook-meta.json && node commands/extract.js --storybook-json .storybook-meta.json"
+    "serve": "node src/commands/serve.js",
+    "extract": "node src/commands/extract.js",
+    "build:storybook": "storybook build --docs --dry-run-json > .storybook-meta.json && node src/commands/extract.js --storybook-json .storybook-meta.json"
   },
   "keywords": [
     "design-system",
