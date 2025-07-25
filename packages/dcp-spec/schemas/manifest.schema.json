@@ -1,0 +1,70 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://dcp-schema.org/manifest",
+    "title": "DCP Registry Manifest",
+    "type": "object",
+    "required": ["registryName", "registryVersion", "generatedAt", "components", "tokens"],
+    "properties": {
+      "registryName": { "type": "string" },
+      "registryVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+      "generatedAt": { "type": "string", "format": "date-time" },
+      "generator": {
+        "type": "object",
+        "properties": {
+          "cli": { "type": "string" },
+          "version": { "type": "string" },
+          "llmUsed": { "type": "boolean" },
+          "schemaVersion": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "sourcePaths": {
+        "type": "object",
+        "properties": {
+          "components": { "type": "string" },
+          "tokens": { "type": "string" },
+          "docs": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "components": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["name", "path"],
+          "properties": {
+            "name": { "type": "string" },
+            "path": { "type": "string" },
+            "category": { "type": "string" },
+            "tags": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      },
+      "tokens": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["name", "path"],
+          "properties": {
+            "name": { "type": "string" },
+            "path": { "type": "string" },
+            "source": { "type": "string" }
+          }
+        }
+      },
+      "warnings": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "errors": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "notes": { "type": "string" }
+    },
+    "additionalProperties": false
+  }
+  

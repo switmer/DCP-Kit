@@ -1,0 +1,33 @@
+{
+  "name": "dcp-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Design Component Protocol",
+  "mcpVersion": "2024-11-05",
+  "capabilities": {
+    "tools": [
+      {
+        "name": "extract_components",
+        "description": "Extract React components and design tokens from a directory"
+      },
+      {
+        "name": "mutate_registry", 
+        "description": "Apply JSON Patch mutations to a DCP registry"
+      },
+      {
+        "name": "validate_registry",
+        "description": "Validate a DCP registry against the JSON schema"
+      },
+      {
+        "name": "query_registry",
+        "description": "Query components in a DCP registry"
+      }
+    ],
+    "resources": [
+      {
+        "uri": "dcp://registry",
+        "name": "DCP Registry",
+        "description": "Access to the current DCP registry data"
+      }
+    ]
+  }
+}

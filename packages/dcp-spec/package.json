@@ -1,0 +1,50 @@
+{
+  "name": "@dcp/spec",
+  "version": "1.0.0",
+  "description": "Design Component Protocol - JSON Schema definitions and OpenAPI specification",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./schemas": "./schemas/index.js",
+    "./schemas/*": "./schemas/*.json",
+    "./api": "./api/openapi.yaml",
+    "./mcp": "./mcp/manifest.json"
+  },
+  "files": [
+    "schemas/",
+    "api/",
+    "mcp/",
+    "index.js",
+    "README.md"
+  ],
+  "scripts": {
+    "lint": "npm run lint:schemas && npm run lint:openapi",
+    "lint:schemas": "node scripts/validate-schemas.js",
+    "lint:openapi": "echo 'TODO: Add OpenAPI validation'",
+    "build": "node --version",
+    "test": "npm run lint",
+    "validate": "npm run lint"
+  },
+  "keywords": [
+    "dcp",
+    "design-component-protocol",
+    "json-schema",
+    "openapi",
+    "mcp",
+    "specification",
+    "contract"
+  ],
+  "author": "Steve Witmer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevewitmer/dcp-transformer.git",
+    "directory": "packages/dcp-spec"
+  },
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^3.0.1",
+    "js-yaml": "^4.1.0"
+  }
+}
