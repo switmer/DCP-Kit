@@ -1,8 +1,0 @@
-{
-  "registryName": "Test Config",
-  "version": "1.0.0",
-  "componentSource": "./example/components",
-  "tokens": "./example/tokens/index.json",
-  "output": "./test-output/registry.json",
-  "llmEnrich": false
-}
