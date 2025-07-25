@@ -292,7 +292,7 @@ export const UserCard = () => {
 - [DCP Transformer](https://github.com/stevewitmer/dcp-transformer) - Main CLI tool
 - [DCP GitHub Action](../github-action/) - CI validation
 - [DCP Figma Plugin](../figma-plugin/) - Design-code sync
-- [API Documentation](../../docs/API_QUICKSTART.md) - REST API reference
+- [API Documentation](../docs/API_QUICKSTART.md) - REST API reference
 
 ## 📄 License
 

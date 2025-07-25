@@ -63,7 +63,7 @@ export async function runScaffold(options = {}) {
     dirs.forEach(dir => ensureDir(dir, verbose));
 
     // Copy templates
-    const templateDir = path.resolve(__dirname, '../templates');
+    const templateDir = path.resolve(__dirname, '../../templates');
     const vars = {
       projectName: name,
       year: new Date().getFullYear()

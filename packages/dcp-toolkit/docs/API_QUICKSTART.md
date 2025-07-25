@@ -363,10 +363,10 @@ export default async function handler(req, res) {
 ## 📚 Resources
 
 - **API Documentation**: http://localhost:7401/docs
-- **OpenAPI Spec**: [docs/openapi.yaml](../openapi.yaml)
+- **OpenAPI Spec**: [src/api/openapi.js](../src/api/openapi.js)
 - **TypeScript SDK**: Coming soon
 - **VS Code Extension**: Coming soon
-- **GitHub Actions**: [.github/workflows/dcp-validation.yml](../../.github/workflows/dcp-validation.yml)
+- **GitHub Actions**: [.github/workflows/](../../../.github/workflows/)
 
 ## 🔧 Configuration
 
@@ -466,7 +466,7 @@ curl http://localhost:7401/api/v1/registry/components
 
 ## 🎯 Next Steps
 
-1. **Generate TypeScript SDK**: `npx openapi-generator-cli generate -i docs/openapi.yaml -g typescript-fetch`
+1. **Generate TypeScript SDK**: `npx openapi-generator-cli generate -i src/api/openapi.js -g typescript-fetch`
 2. **Set up CI/CD**: Use the provided GitHub Actions workflow
 3. **Build VS Code Extension**: Use the validation endpoint for real-time linting
 4. **Create Figma Plugin**: Sync design tokens between Figma and code
