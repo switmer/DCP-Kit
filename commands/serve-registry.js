@@ -66,11 +66,24 @@ class RegistryServer {
   }
 
   setupMiddleware() {
-    // Enable CORS for web app integration
+    // Enable CORS for web app integration (especially Figma plugins)
     this.app.use(cors({
       origin: true,
-      credentials: true
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
     }));
+
+    // Override restrictive security headers for development
+    if (this.environment === 'development') {
+      this.app.use((req, res, next) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        next();
+      });
+    }
 
     // JSON parsing
     this.app.use(express.json());

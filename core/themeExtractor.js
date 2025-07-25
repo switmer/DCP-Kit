@@ -27,10 +27,17 @@ export async function extractThemeContext(sourceDir, options = {}) {
   // 1. Extract theme configuration (components.json, etc.)
   const themeConfig = extractThemeConfig(projectRoot);
   
-  // If no real theme config exists, return minimal context
-  if (!themeConfig) {
+  // 2. Extract CSS variables from stylesheets (even without config)
+  const cssVariables = await extractCSSVariables(projectRoot, themeConfig);
+  
+  // Check if we found any CSS variables
+  const foundVariables = Object.keys(cssVariables.light || {}).length > 0 || 
+                        Object.keys(cssVariables.dark || {}).length > 0;
+  
+  // If no config AND no CSS variables, return minimal context
+  if (!themeConfig && !foundVariables) {
     if (verbose) {
-      console.log('   No theme configuration found - skipping theme extraction');
+      console.log('   No theme configuration or CSS variables found - skipping theme extraction');
     }
     return {
       config: null,
@@ -44,11 +51,14 @@ export async function extractThemeContext(sourceDir, options = {}) {
     };
   }
   
-  // 2. Extract CSS variables from stylesheets
-  const cssVariables = await extractCSSVariables(projectRoot, themeConfig);
+  // 3. Build utility class mappings (use detected config or defaults)
+  const effectiveConfig = themeConfig || {
+    cssVariables: true,
+    baseColor: 'gray',
+    themingMode: foundVariables ? 'css-variables' : null
+  };
   
-  // 3. Build utility class mappings
-  const utilityMappings = buildUtilityMappings(cssVariables, themeConfig);
+  const utilityMappings = buildUtilityMappings(cssVariables, effectiveConfig);
   
   if (verbose) {
     console.log(`   Found ${Object.keys(cssVariables.light || {}).length} light theme variables`);
@@ -57,12 +67,12 @@ export async function extractThemeContext(sourceDir, options = {}) {
   }
   
   return {
-    config: themeConfig,
+    config: effectiveConfig,
     cssVariables,
     utilityMappings,
     metadata: {
       extractedAt: new Date().toISOString(),
-      themingMode: themeConfig?.themingMode || null,
+      themingMode: effectiveConfig?.themingMode || null,
       hasMultipleThemes: Object.keys(cssVariables.dark || {}).length > 0
     }
   };

@@ -13,6 +13,7 @@ program
   .version('1.2.0')
   .addHelpText('after', `
 Complete Workflow:
+  0. Validate:  dcp validate --auto-fix             # Ensure project is ready
   1. Extract:   dcp extract ./src --json > registry.json
   2. Mutate:    dcp mutate registry.json patch.json output.json --undo undo.json
   3. Rollback:  dcp rollback output.json undo.json (if needed)
@@ -20,6 +21,11 @@ Complete Workflow:
 
 Agent Mode:
   dcp agent "Make all buttons accessible" --json
+
+Project Setup:
+  dcp validate                                     # Check project configuration
+  dcp validate --auto-fix                         # Fix common issues automatically
+  dcp extract ./src --auto-fix                    # Extract with auto-fix
 
 Learn more: https://github.com/stevewitmer/dcp-transformer`);
 
@@ -38,6 +44,8 @@ program
   .option('--validate-file-types', 'validate only expected file types are included')
   .option('--detect-obfuscation', 'detect obfuscated or minified code')
   .option('--agent-ready', 'optimize output for AI/agent consumption')
+  .option('--skip-validation', 'skip project validation before extraction')
+  .option('--auto-fix', 'automatically fix common configuration issues')
   .option('--verbose', 'enable verbose logging')
   .option('--json', 'output machine-readable JSON')
   .addHelpText('after', `
@@ -50,6 +58,49 @@ Examples:
   $ dcp extract ./src --no-barrels                   # Skip barrel files`)
   .action(async (source, options) => {
     try {
+      // Project validation (unless skipped)
+      if (!options.skipValidation) {
+        const { ProjectValidator } = await import('../core/projectValidator.js');
+        const validator = new ProjectValidator(source);
+        const validation = await validator.validate();
+        
+        if (!validation.canProceed && !options.autoFix) {
+          if (options.json) {
+            console.log(JSON.stringify({ 
+              success: false, 
+              error: 'Project validation failed',
+              issues: validation.issues,
+              suggestion: 'Run with --auto-fix to attempt automatic fixes, or --skip-validation to proceed anyway'
+            }, null, 2));
+          } else {
+            console.error('❌ Cannot proceed with extraction due to validation errors.');
+            console.error('💡 Run with --auto-fix to attempt fixes, or --skip-validation to override.');
+          }
+          process.exit(1);
+        }
+        
+        // Auto-fix if requested and there are fixable issues
+        if (options.autoFix && validation.issues.some(i => i.autoFix)) {
+          await validator.autoFix();
+          console.log('🔧 Auto-fix completed. Re-running validation...\n');
+          
+          // Re-validate after fixes
+          const revalidation = await validator.validate();
+          if (!revalidation.canProceed) {
+            if (options.json) {
+              console.log(JSON.stringify({ 
+                success: false, 
+                error: 'Auto-fix did not resolve all critical issues',
+                issues: revalidation.issues
+              }, null, 2));
+            } else {
+              console.error('❌ Auto-fix did not resolve all critical issues.');
+            }
+            process.exit(1);
+          }
+        }
+      }
+      
       const { runExtract } = await import('../commands/extract-v3.js');
       
       if (!options.json) {
@@ -76,6 +127,64 @@ Examples:
         console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Extract failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('validate [path]')
+  .description('Validate project configuration for DCP extraction')
+  .option('--auto-fix', 'automatically fix common configuration issues')
+  .option('--json', 'output machine-readable JSON')
+  .addHelpText('after', `
+Examples:
+  $ dcp validate                     # Validate current directory
+  $ dcp validate ./src              # Validate specific path
+  $ dcp validate --auto-fix         # Validate and fix issues
+  $ dcp validate --json             # Machine-readable output`)
+  .action(async (projectPath = '.', options) => {
+    try {
+      const { ProjectValidator } = await import('../core/projectValidator.js');
+      const validator = new ProjectValidator(projectPath);
+      const validation = await validator.validate();
+      
+      // Auto-fix if requested
+      if (options.autoFix && validation.issues.some(i => i.autoFix)) {
+        await validator.autoFix();
+        console.log('🔧 Auto-fix completed. Re-running validation...\n');
+        
+        // Re-validate after fixes
+        const revalidation = await validator.validate();
+        
+        if (options.json) {
+          console.log(JSON.stringify({
+            success: revalidation.valid,
+            canProceed: revalidation.canProceed,
+            autoFixApplied: true,
+            ...revalidation.summary
+          }, null, 2));
+        }
+        process.exit(revalidation.canProceed ? 0 : 1);
+      }
+      
+      if (options.json) {
+        console.log(JSON.stringify({
+          success: validation.valid,
+          canProceed: validation.canProceed,
+          issues: validation.issues,
+          warnings: validation.warnings,
+          suggestions: validation.suggestions,
+          ...validation.summary
+        }, null, 2));
+      }
+      
+      process.exit(validation.canProceed ? 0 : 1);
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Validation failed:', error.message);
       }
       process.exit(1);
     }
@@ -1000,6 +1109,113 @@ Examples:
       }
       process.exit(1);
     }
+  });
+
+// API Server command
+program
+  .command('api')
+  .description('Start DCP REST API server')
+  .option('-p, --port <number>', 'server port', '7401')
+  .option('-h, --host <string>', 'server host', 'localhost')
+  .option('-r, --registry <path>', 'registry directory path', './registry')
+  .option('--jwt-secret <secret>', 'JWT secret for authentication (use DCP_JWT_SECRET env var in production)')
+  .option('--rate-limit <number>', 'rate limit per 15 minutes', '1000')
+  .option('--env <environment>', 'environment (development, production)', 'development')
+  .option('--verbose', 'enable verbose logging')
+  .addHelpText('after', `
+Examples:
+  $ dcp api                                    # Start on localhost:7401
+  $ dcp api --port 8080 --registry ./dist     # Custom port and registry
+  $ dcp api --env production --jwt-secret xyz # Production mode with auth
+  
+API Endpoints:
+  GET  /health                                 # Health check
+  GET  /docs                                   # API documentation  
+  GET  /api/v1/registry                        # Full registry
+  GET  /api/v1/registry/components             # Component list
+  POST /api/v1/validate                        # Code validation
+  POST /api/v1/query                           # Advanced queries
+  POST /api/v1/mutate                          # Apply mutations (auth required)
+  
+Authentication:
+  - Use Bearer token in Authorization header
+  - Or provide X-API-Key header
+  - Generate tokens with JWT secret`)
+  .action(async (options) => {
+    try {
+      const { runApiServer } = await import('../api-server.js');
+      
+      console.log(`🚀 Starting DCP API Server v2.0...`);
+      console.log(`📁 Registry: ${options.registry}`);
+      console.log(`🌐 Server: http://${options.host}:${options.port}`);
+      console.log(`📖 Docs: http://${options.host}:${options.port}/docs`);
+      
+      const server = await runApiServer({
+        port: parseInt(options.port),
+        host: options.host,
+        registryPath: options.registry,
+        jwtSecret: options.jwtSecret,
+        rateLimitMax: parseInt(options.rateLimit),
+        environment: options.env,
+        verbose: options.verbose
+      });
+      
+      console.log(`\n✅ DCP API Server running!`);
+      console.log(`🎯 API: ${server.apiUrl}`);
+      console.log(`📚 Docs: ${server.docsUrl}`);
+      console.log(`\n💡 Try: curl ${server.endpoints.health}`);
+      
+    } catch (error) {
+      console.error('❌ Failed to start API server:', error.message);
+      if (options.verbose) {
+        console.error(error.stack);
+      }
+      process.exit(1);
+    }
+  });
+
+// Companion process for local registry management
+program
+  .command('companion')
+  .description('Start DCP companion process for Figma plugin and VS Code integration')
+  .option('-p, --port <number>', 'companion port', '7415')
+  .addHelpText('after', `
+Examples:
+  $ dcp companion                                  # Start on localhost:7415
+  $ dcp companion --port 7420                     # Custom port
+
+What it does:
+  • Enables folder-picker for Figma plugin (no more manual URLs)
+  • Auto-discovery for VS Code extension
+  • Manages multiple registry APIs automatically
+  • Zero-config design system workflow
+
+Endpoints:
+  GET  /health                                     # Health check
+  GET  /registries                                 # List active registries
+  POST /discover  {"folder": "/path"}              # Analyze folder capabilities
+  POST /start     {"folder": "/path", "port": N}  # Start registry API
+  POST /stop      {"folder": "/path"}              # Stop registry API
+
+Usage with Figma:
+  1. Run: dcp companion
+  2. Open DCP Figma plugin
+  3. Click "Add Local Registry" → pick folder → done!
+
+Usage with VS Code:
+  1. Run: dcp companion  
+  2. Open VS Code in any project
+  3. Extension auto-discovers available registries`)
+  .action((options) => {
+    import('../commands/companion.js')
+      .then(({ default: CompanionServer }) => {
+        const server = new CompanionServer(parseInt(options.port));
+        return server.start();
+      })
+      .catch(error => {
+        console.error('❌ Failed to start companion server:', error.message);
+        process.exit(1);
+      });
   });
 
 program.parse();

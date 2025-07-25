@@ -34,7 +34,13 @@ export async function validateRegistry(registryPath, options = {}) {
   try {
     // Check if registry file exists
     if (!fsSync.existsSync(registryPath)) {
-      throw new Error(`Registry file not found at ${registryPath}`);
+      throw new Error([
+        `Registry file not found at ${registryPath}`,
+        '💡 To create a registry:',
+        '   dcp extract ./src --out ./registry',
+        'Or use an existing registry:',
+        '   dcp validate --registry /path/to/existing/registry'
+      ].join('\n'));
     }
 
     // Read registry

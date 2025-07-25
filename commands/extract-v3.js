@@ -21,7 +21,7 @@ import { ProjectIntelligenceScanner } from '../core/projectIntelligence.js';
 export async function runExtract(source, options = {}) {
   const {
     tokens: tokensPath,
-    out: outputDir = './dcp-output',
+    out: outputDir = path.join(source, 'registry'),
     glob: globPattern = '**/*.{tsx,jsx,ts,js}',
     adaptor: adaptorName,
     includeStories = false,
@@ -67,7 +67,30 @@ export async function runExtract(source, options = {}) {
   // Enhance registry with intelligence data
   result.registry.intelligence = intelligence;
   
-  // Write outputs
+  // Create subdirectories for individual components and tokens
+  const componentsDir = path.join(outputDir, 'components');
+  const tokensDir = path.join(outputDir, 'tokens');
+  
+  await fs.mkdir(componentsDir, { recursive: true });
+  await fs.mkdir(tokensDir, { recursive: true });
+  
+  // Write individual component files
+  if (result.registry.components && result.registry.components.length > 0) {
+    for (const component of result.registry.components) {
+      const componentPath = path.join(componentsDir, `${component.name}.dcp.json`);
+      await fs.writeFile(componentPath, JSON.stringify(component, null, 2));
+    }
+  }
+  
+  // Write individual token category files
+  if (result.registry.tokens && Object.keys(result.registry.tokens).length > 0) {
+    for (const [category, tokens] of Object.entries(result.registry.tokens)) {
+      const tokenPath = path.join(tokensDir, `${category}.json`);
+      await fs.writeFile(tokenPath, JSON.stringify(tokens, null, 2));
+    }
+  }
+  
+  // Write main registry files
   const registryPath = path.join(outputDir, 'registry.json');
   const schemaPath = path.join(outputDir, 'schemas.json');
   const metadataPath = path.join(outputDir, 'metadata.json');
@@ -81,6 +104,17 @@ export async function runExtract(source, options = {}) {
     console.log(chalk.green(`📁 Registry written to: ${registryPath}`));
     console.log(chalk.green(`📋 Schemas written to: ${schemaPath}`));
     console.log(chalk.green(`📊 Metadata written to: ${metadataPath}`));
+    
+    // Show subdirectory creation
+    const componentCount = result.registry.components?.length || 0;
+    const tokenCategories = Object.keys(result.registry.tokens || {}).length;
+    
+    if (componentCount > 0) {
+      console.log(chalk.green(`📦 ${componentCount} component files written to: ${componentsDir}`));
+    }
+    if (tokenCategories > 0) {
+      console.log(chalk.green(`🎨 ${tokenCategories} token category files written to: ${tokensDir}`));
+    }
     
     // Show adaptor usage stats
     if (result.stats.adaptorUsage) {

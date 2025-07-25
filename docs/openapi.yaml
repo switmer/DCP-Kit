@@ -1,0 +1,688 @@
+openapi: 3.0.1
+info:
+  title: DCP Platform API
+  version: 2.0.0
+  description: |
+    REST interface for querying, validating, mutating, and publishing
+    Design-Context-Protocol registries.
+    
+    **Features:**
+    - 🔍 **Query & Browse** - Explore components, tokens, and usage patterns
+    - ✅ **Validate & Lint** - Check code against design system contracts  
+    - 🧬 **Mutate & Preview** - AI-powered design system mutations with visual diffs
+    - 🏗️ **Generate & Build** - Create component libraries for any framework
+    - 📊 **Analytics & Insights** - Track usage, coverage, and drift
+    
+    **Authentication:**
+    All write endpoints require a Bearer JWT with the appropriate scope.
+    
+    **Rate Limits:**
+    - Public endpoints: 1000 requests per 15 minutes
+    - Authenticated endpoints: 5000 requests per 15 minutes
+    
+    **Configuration:**
+    The API server supports configuration via CLI options and environment variables:
+    ```bash
+    # Default configuration
+    dcp api --port 7401 --registry ./registry
+    
+    # Custom configuration
+    dcp api --registry /path/to/registry --jwt-secret mysecret --port 8080
+    
+    # Environment variables (production recommended)
+    DCP_JWT_SECRET=your-production-secret dcp api --port 7401
+    DCP_UNSAFE_CSS_EVAL=1 dcp api  # Enable CSS-in-JS evaluation (security risk)
+    ```
+    
+    **Environment Variables:**
+    - `DCP_JWT_SECRET`: JWT secret for authentication (overrides --jwt-secret)
+    - `DCP_UNSAFE_CSS_EVAL=1`: Enable CSS-in-JS evaluation (disabled by default for security)
+
+  contact:
+    name: DCP Support
+    url: https://dcp.dev/support
+    email: support@dcp.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.dcp.dev/v1
+    description: Production API
+  - url: https://staging.dcp.dev/v1
+    description: Staging API  
+  - url: http://localhost:7401/api/v1
+    description: Local Development
+
+tags:
+  - name: System
+    description: Health checks and system metadata
+  - name: Registry
+    description: Read-only registry data access
+  - name: Components
+    description: Component management and discovery
+  - name: Tokens
+    description: Design token access and formatting
+  - name: Query
+    description: Advanced querying capabilities
+  - name: Validation
+    description: Code validation and linting
+  - name: Mutations
+    description: Registry mutations and previews
+  - name: Admin
+    description: Upload, versioning, and access control
+
+paths:
+
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Check API server health and registry status
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [healthy, degraded, unhealthy] }
+                  version: { type: string, example: "2.0.0" }
+                  timestamp: { type: string, format: date-time }
+                  environment: { type: string, example: "production" }
+                  registry:
+                    type: object
+                    properties:
+                      path: { type: string }
+                      accessible: { type: boolean }
+                      loaded: { type: boolean }
+                      stats:
+                        type: object
+                        properties:
+                          components: { type: integer }
+                          tokenCategories: { type: integer }
+                          hasMetadata: { type: boolean }
+                          hasIntelligence: { type: boolean }
+                  uptime: { type: number }
+                  memory: { type: object }
+                  requestId: { type: string }
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /meta:
+    get:
+      tags: [System]
+      summary: OpenAPI specification
+      description: Get the complete OpenAPI specification for this API
+      responses:
+        '200':
+          description: OpenAPI specification
+          content:
+            application/json:
+              schema: { type: object }
+
+  /registry:
+    get:
+      tags: [Registry]
+      summary: Full registry manifest
+      description: Retrieve the complete design system registry including components and tokens
+      responses:
+        '200':
+          description: Complete registry data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  namespace: { type: string, example: "ui" }
+                  version: { type: string, example: "1.0.0" }
+                  components:
+                    type: array
+                    items: { $ref: '#/components/schemas/Component' }
+                  tokens: { type: object }
+                  metadata: { type: object }
+                  requestId: { type: string }
+
+  /registry/components:
+    get:
+      tags: [Components]
+      summary: Paginated component list
+      description: Get paginated list of components with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: search
+          description: Search components by name or description
+          schema: { type: string }
+        - in: query
+          name: category
+          description: Filter by component category
+          schema: { type: string }
+      responses:
+        '200':
+          description: Paginated component list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  components:
+                    type: array
+                    items: { $ref: '#/components/schemas/Component' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  filters: { type: object }
+                  requestId: { type: string }
+
+  /registry/components/{name}:
+    get:
+      tags: [Components]
+      summary: Component detail
+      description: Retrieve detailed information about a specific component
+      parameters:
+        - in: path
+          name: name
+          required: true
+          description: Component name
+          schema: { type: string }
+      responses:
+        '200':
+          description: Component details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Component' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /registry/tokens:
+    get:
+      tags: [Tokens]
+      summary: Paginated token list
+      description: Get paginated list of design tokens with optional formatting
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: category
+          description: Filter by token category (color, spacing, typography, etc.)
+          schema: { type: string }
+        - in: query
+          name: format
+          description: Output format
+          schema: { type: string, enum: [json, css], default: json }
+      responses:
+        '200':
+          description: Paginated token list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens: { type: object }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  format: { type: string }
+                  requestId: { type: string }
+
+  /registry/tokens/{category}:
+    get:
+      tags: [Tokens]
+      summary: Tokens by category
+      description: Get all tokens in a specific category
+      parameters:
+        - in: path
+          name: category
+          required: true
+          description: Token category
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: format
+          description: Output format
+          schema: { type: string, enum: [json, css], default: json }
+      responses:
+        '200':
+          description: Category tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category: { type: string }
+                  tokens: { type: object }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  format: { type: string }
+                  requestId: { type: string }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /query:
+    post:
+      tags: [Query]
+      summary: Run selector query
+      description: Execute advanced queries using DCP selector syntax
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selector:
+                  type: string
+                  description: DCP selector query
+                  example: "components[category=inputs][props.variant]"
+                options:
+                  type: object
+                  properties:
+                    includeMetadata: { type: boolean, default: false }
+                    format: { type: string, enum: [json, summary], default: json }
+              required: [selector]
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  selector: { type: string }
+                  options: { type: object }
+                  results: { type: object }
+                  count: { type: integer }
+                  requestId: { type: string }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /validate:
+    post:
+      tags: [Validation]
+      summary: Validate code
+      description: Validate code against design system contracts and best practices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Source code to validate
+                filePath:
+                  type: string
+                  description: File path for context (optional)
+                rules:
+                  type: array
+                  items: { type: string }
+                  description: Custom validation rules
+              required: [code]
+      responses:
+        '200':
+          description: Validation results
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationResult' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /validate/batch:
+    post:
+      tags: [Validation]
+      summary: Batch validate files
+      description: Validate multiple files at once
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      path: { type: string }
+                      code: { type: string }
+                    required: [path, code]
+              required: [files]
+      responses:
+        '200':
+          description: Batch validation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items: { $ref: '#/components/schemas/ValidationResult' }
+                  summary:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      valid: { type: integer }
+                      invalid: { type: integer }
+                  requestId: { type: string }
+
+  /analyze:
+    post:
+      tags: [Query]
+      summary: Analyze project
+      description: Perform comprehensive project analysis including intelligence and dependencies
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source: { type: string, default: "." }
+                includeUsage: { type: boolean, default: true }
+                includeDependencies: { type: boolean, default: true }
+      responses:
+        '200':
+          description: Analysis results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  source: { type: string }
+                  timestamp: { type: string, format: date-time }
+                  intelligence: { type: object }
+                  dependencies: { type: object }
+                  requestId: { type: string }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /analytics/usage:
+    get:
+      tags: [Query]
+      summary: Usage analytics
+      description: Get analytics about component and token usage patterns
+      responses:
+        '200':
+          description: Usage analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  components:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      categories: { type: object }
+                      complexity: { type: object }
+                  tokens:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      categories: { type: array }
+                      usage: { type: string }
+                  timestamp: { type: string, format: date-time }
+                  requestId: { type: string }
+
+  /preview:
+    post:
+      tags: [Mutations]
+      summary: Preview mutations
+      description: Preview the effects of JSON Patch mutations before applying them
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patches:
+                  type: array
+                  items: { $ref: '#/components/schemas/JsonPatch' }
+                options:
+                  type: object
+                  properties:
+                    generateDiff: { type: boolean, default: true }
+                    includeVisualPreview: { type: boolean, default: false }
+              required: [patches]
+      responses:
+        '200':
+          description: Mutation preview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid: { type: boolean }
+                  patches: { type: array }
+                  diff: { type: string }
+                  changes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path: { type: string }
+                        operation: { type: string }
+                        before: { type: object }
+                        after: { type: object }
+                  warnings: { type: array }
+                  requestId: { type: string }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /mutate:
+    post:
+      tags: [Mutations]
+      summary: Apply mutations
+      description: Apply JSON Patch mutations to the registry (requires contributor role)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                patches:
+                  type: array
+                  items: { $ref: '#/components/schemas/JsonPatch' }
+                message:
+                  type: string
+                  description: Commit message for the mutation
+                createUndo:
+                  type: boolean
+                  default: true
+                  description: Whether to create undo information
+              required: [patches]
+      responses:
+        '200':
+          description: Mutations applied successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  patchesApplied: { type: integer }
+                  changes: { type: array }
+                  undoId: { type: string }
+                  registryUpdated: { type: boolean }
+                  requestId: { type: string }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /upload:
+    post:
+      tags: [Admin]
+      summary: Upload registry
+      description: Upload new registry JSON or packs (requires admin role)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Registry JSON file or component pack
+      responses:
+        '201':
+          description: Registry uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  uploaded: { type: string }
+                  requestId: { type: string }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authenticated endpoints
+
+  parameters:
+    Page:
+      in: query
+      name: page
+      description: Page number (1-based)
+      schema: { type: integer, minimum: 1, default: 1 }
+    
+    Limit:
+      in: query
+      name: limit
+      description: Items per page
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  schemas:
+
+    JsonPatch:
+      type: object
+      required: [op, path]
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace, move, copy, test]
+        path:
+          type: string
+          description: JSON Pointer path
+        value:
+          description: Value for add/replace operations
+        from:
+          type: string
+          description: Source path for move/copy operations
+
+    Component:
+      type: object
+      properties:
+        name: { type: string, example: "Button" }
+        description: { type: string }
+        category: { type: string, example: "inputs" }
+        props:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              type: { type: string }
+              required: { type: boolean }
+              description: { type: string }
+              default: { type: string }
+        variants:
+          type: array
+          items: { type: string }
+        examples: { type: array }
+        metadata: { type: object }
+      required: [name]
+
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        totalPages: { type: integer }
+        hasNext: { type: boolean }
+        hasPrev: { type: boolean }
+
+    ValidationResult:
+      type: object
+      properties:
+        valid: { type: boolean }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              line: { type: integer }
+              column: { type: integer }
+              message: { type: string }
+              rule: { type: string }
+              severity: { type: string, enum: [error, warning, info] }
+        warnings: { type: array }
+        suggestions: { type: array }
+        metadata: { type: object }
+        requestId: { type: string }
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+        requestId: { type: string }
+        details: { type: object }
+      required: [error, message, requestId]
+
+  responses:
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+    ServiceUnavailable:
+      description: Service unavailable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

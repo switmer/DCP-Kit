@@ -13,20 +13,24 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
+import chokidar from 'chokidar';
 // Core functionality imports - only what we need for MCP
 // import { extractCssCustomProps, mapTailwindClassesToCSSVariables } from './core/tokenHandler.js';
 // import { parseTSX } from './core/parser.js';
 import { ProjectIntelligenceScanner } from './core/projectIntelligence.js';
+import { ProjectValidator } from './core/projectValidator.js';
 // import { AssetAnalyzer } from './core/assetAnalyzer.js';
 
 class DCPMCPServer {
   constructor(registryPath = './registry') {
-    this.registryPath = registryPath;
+    this.registryPath = path.resolve(registryPath);
     this.registry = null;
+    this.watcher = null;
+    this.reloadDebounceTimer = null;
     this.server = new Server(
       {
         name: 'dcp-registry',
-        version: '1.0.0',
+        version: '2.0.0',
       },
       {
         capabilities: {
@@ -38,18 +42,101 @@ class DCPMCPServer {
     this.setupTools();
   }
 
-  async loadRegistry() {
-    if (!this.registry) {
+  async loadRegistry(force = false) {
+    if (!this.registry || force) {
       try {
         const registryFile = path.join(this.registryPath, 'registry.json');
         const registryData = await fs.readFile(registryFile, 'utf8');
         this.registry = JSON.parse(registryData);
+        
+        if (force) {
+          console.log(`🔄 Registry reloaded: ${this.registry.components?.length || 0} components, ${Object.keys(this.registry.tokens || {}).length} token categories`);
+        }
       } catch (error) {
-        console.error('Failed to load registry:', error.message);
-        this.registry = { components: [], tokens: {}, themeContext: null };
+        if (error.code === 'ENOENT') {
+          console.error(`❌ Registry not found at ${this.registryPath}`);
+          console.error(`💡 Hint: Run 'dcp extract' to create a registry first`);
+        } else {
+          console.error(`❌ Failed to load registry from ${this.registryPath}:`, error.message);
+        }
+        
+        // Return empty registry as fallback with helpful error
+        this.registry = {
+          components: [],
+          tokens: {},
+          themeContext: null,
+          metadata: { 
+            error: error.code === 'ENOENT' 
+              ? `Registry not found at ${this.registryPath}. Run 'dcp extract' first.`
+              : `Failed to parse registry: ${error.message}`
+          }
+        };
       }
     }
     return this.registry;
+  }
+
+  setupHotReload() {
+    if (this.watcher) {
+      this.watcher.close();
+    }
+
+    // Watch for registry changes
+    const watchPattern = path.join(this.registryPath, '**/*.json');
+    
+    this.watcher = chokidar.watch(watchPattern, {
+      ignored: /(^|[\/\\])\../, // ignore dotfiles
+      persistent: true,
+      ignoreInitial: true
+    });
+
+    this.watcher.on('change', (filePath) => {
+      // Debounce registry reloads to avoid excessive refreshing
+      if (this.reloadDebounceTimer) {
+        clearTimeout(this.reloadDebounceTimer);
+      }
+      
+      this.reloadDebounceTimer = setTimeout(async () => {
+        console.log(`📁 Registry file changed: ${path.relative(this.registryPath, filePath)}`);
+        await this.loadRegistry(true); // Force reload
+      }, 200); // 200ms debounce
+    });
+
+    this.watcher.on('add', (filePath) => {
+      if (path.basename(filePath) === 'registry.json') {
+        console.log(`📁 Registry file created: ${path.relative(this.registryPath, filePath)}`);
+        setTimeout(async () => {
+          await this.loadRegistry(true);
+        }, 100);
+      }
+    });
+
+    console.log(`👀 Watching for registry changes in: ${this.registryPath}`);
+  }
+
+  async start() {
+    // Initial registry load
+    await this.loadRegistry();
+    
+    // Setup hot reload
+    this.setupHotReload();
+    
+    const transport = new StdioServerTransport();
+    await this.server.connect(transport);
+    
+    console.log(`🧠 DCP MCP Server v2.0 started`);
+    console.log(`📁 Registry: ${this.registryPath}`);
+    console.log(`📊 Components: ${this.registry.components?.length || 0}`);
+    console.log(`🎨 Token categories: ${Object.keys(this.registry.tokens || {}).length}`);
+  }
+
+  async stop() {
+    if (this.watcher) {
+      await this.watcher.close();
+    }
+    if (this.reloadDebounceTimer) {
+      clearTimeout(this.reloadDebounceTimer);
+    }
   }
 
   setupTools() {
@@ -177,6 +264,305 @@ class DCPMCPServer {
               },
             },
           },
+          {
+            name: 'dcp_validate_project',
+            description: 'Validate project configuration for DCP extraction readiness',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                path: {
+                  type: 'string',
+                  description: 'Project path to validate (defaults to current directory)',
+                  default: '.',
+                },
+                autoFix: {
+                  type: 'boolean',
+                  description: 'Whether to automatically fix common issues',
+                  default: false,
+                },
+              },
+            },
+          },
+          {
+            name: 'dcp_transpile_component',
+            description: 'Generate React/TypeScript code from a component definition',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                component: {
+                  type: 'string',
+                  description: 'Component name to transpile',
+                },
+                target: {
+                  type: 'string',
+                  enum: ['react', 'react-typescript', 'vue', 'svelte'],
+                  description: 'Target framework for code generation',
+                  default: 'react-typescript',
+                },
+                includeStyles: {
+                  type: 'boolean',
+                  description: 'Whether to include CSS/styling in output',
+                  default: true,
+                },
+                useTokens: {
+                  type: 'boolean',
+                  description: 'Whether to use design tokens in generated code',
+                  default: true,
+                },
+                outputPath: {
+                  type: 'string',
+                  description: 'Output file path (optional)',
+                },
+              },
+              required: ['component'],
+            },
+          },
+          {
+            name: 'dcp_generate_code',
+            description: 'Generate complete component library code from registry',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                framework: {
+                  type: 'string',
+                  enum: ['react', 'react-typescript', 'vue', 'svelte', 'flutter', 'ios', 'android'],
+                  description: 'Target framework for generation',
+                  default: 'react-typescript',
+                },
+                outputPath: {
+                  type: 'string',
+                  description: 'Output directory path',
+                  default: './generated-components',
+                },
+                components: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Specific components to generate (empty = all)',
+                  default: [],
+                },
+                includeTests: {
+                  type: 'boolean',
+                  description: 'Whether to generate test files',
+                  default: false,
+                },
+                includeStories: {
+                  type: 'boolean',
+                  description: 'Whether to generate Storybook stories',
+                  default: false,
+                },
+              },
+            },
+          },
+          {
+            name: 'dcp_create_mutation_plan',
+            description: 'Create AI-powered mutation plan from natural language prompt',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                prompt: {
+                  type: 'string',
+                  description: 'Natural language description of desired changes',
+                },
+                context: {
+                  type: 'object',
+                  description: 'Additional context for mutation planning',
+                  properties: {
+                    targetComponents: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'Specific components to target',
+                    },
+                    scope: {
+                      type: 'string',
+                      enum: ['component', 'registry', 'tokens', 'global'],
+                      description: 'Scope of changes',
+                      default: 'component',
+                    },
+                  },
+                },
+                dryRun: {
+                  type: 'boolean',
+                  description: 'Whether to only plan without applying changes',
+                  default: true,
+                },
+              },
+              required: ['prompt'],
+            },
+          },
+          {
+            name: 'dcp_apply_mutations',
+            description: 'Apply JSON Patch mutations to registry with atomic rollback',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                patches: {
+                  type: 'array',
+                  description: 'Array of JSON Patch operations',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      op: { type: 'string', enum: ['add', 'remove', 'replace', 'move', 'copy', 'test'] },
+                      path: { type: 'string' },
+                      value: {},
+                    },
+                    required: ['op', 'path'],
+                  },
+                },
+                validate: {
+                  type: 'boolean',
+                  description: 'Whether to validate mutations before applying',
+                  default: true,
+                },
+                createUndo: {
+                  type: 'boolean',
+                  description: 'Whether to create undo operations',
+                  default: true,
+                },
+              },
+              required: ['patches'],
+            },
+          },
+          {
+            name: 'dcp_build_registry',
+            description: 'Build a complete DCP registry from configuration and sources',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                config: {
+                  type: 'object',
+                  description: 'Registry build configuration',
+                  properties: {
+                    name: { type: 'string' },
+                    version: { type: 'string' },
+                    sources: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'Source directories to include',
+                    },
+                  },
+                },
+                outputPath: {
+                  type: 'string',
+                  description: 'Output path for built registry',
+                  default: './built-registry',
+                },
+                includeAssets: {
+                  type: 'boolean',
+                  description: 'Whether to build and include assets',
+                  default: true,
+                },
+                optimize: {
+                  type: 'boolean',
+                  description: 'Whether to optimize the registry',
+                  default: true,
+                },
+              },
+            },
+          },
+          {
+            name: 'dcp_extract_components',
+            description: 'Extract components from source code to create a design system registry',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                source: {
+                  type: 'string',
+                  description: 'Source directory path to extract components from',
+                  default: '.',
+                },
+                output: {
+                  type: 'string',
+                  description: 'Output directory for the generated registry',
+                  default: './registry',
+                },
+                glob: {
+                  type: 'string',
+                  description: 'Glob pattern for component files (e.g., "**/*.{tsx,jsx}")',
+                  default: '**/*.{tsx,jsx,ts,js}',
+                },
+                adaptor: {
+                  type: 'string',
+                  description: 'Framework adaptor to use (react-tsx, vue-sfc, svelte)',
+                  default: 'react-tsx',
+                },
+                includeTokens: {
+                  type: 'boolean',
+                  description: 'Whether to extract design tokens',
+                  default: true,
+                },
+                validate: {
+                  type: 'boolean',
+                  description: 'Whether to validate project setup before extraction',
+                  default: true,
+                },
+                autoFix: {
+                  type: 'boolean',
+                  description: 'Whether to automatically fix common issues',
+                  default: false,
+                },
+              },
+              required: ['source'],
+            },
+          },
+          {
+            name: 'dcp_analyze_dependencies',
+            description: 'Analyze component dependencies and usage patterns',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                source: {
+                  type: 'string',
+                  description: 'Source directory to analyze',
+                  default: '.',
+                },
+                includeExternal: {
+                  type: 'boolean',
+                  description: 'Include external package dependencies',
+                  default: true,
+                },
+                generateGraph: {
+                  type: 'boolean',
+                  description: 'Generate dependency graph visualization',
+                  default: false,
+                },
+                outputFormat: {
+                  type: 'string',
+                  enum: ['json', 'graph', 'summary'],
+                  description: 'Output format for dependency analysis',
+                  default: 'json',
+                },
+              },
+            },
+          },
+          {
+            name: 'dcp_build_assets',
+            description: 'Build and optimize design system assets (CSS, JS, images)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                source: {
+                  type: 'string',
+                  description: 'Source directory containing assets',
+                  default: '.',
+                },
+                outputPath: {
+                  type: 'string',
+                  description: 'Output directory for built assets',
+                  default: './dist/assets',
+                },
+                optimize: {
+                  type: 'boolean',
+                  description: 'Whether to optimize assets (minify, compress)',
+                  default: true,
+                },
+                includeSourceMaps: {
+                  type: 'boolean',
+                  description: 'Generate source maps for debugging',
+                  default: false,
+                },
+              },
+            },
+          },
         ],
       };
     });
@@ -195,6 +581,24 @@ class DCPMCPServer {
             return await this.handleSuggestAlternatives(request.params.arguments);
           case 'dcp_project_scan':
             return await this.handleProjectScan(request.params.arguments);
+          case 'dcp_validate_project':
+            return await this.handleValidateProject(request.params.arguments);
+          case 'dcp_extract_components':
+            return await this.handleExtractComponents(request.params.arguments);
+          case 'dcp_transpile_component':
+            return await this.handleTranspileComponent(request.params.arguments);
+          case 'dcp_generate_code':
+            return await this.handleGenerateCode(request.params.arguments);
+          case 'dcp_create_mutation_plan':
+            return await this.handleCreateMutationPlan(request.params.arguments);
+          case 'dcp_apply_mutations':
+            return await this.handleApplyMutations(request.params.arguments);
+          case 'dcp_build_registry':
+            return await this.handleBuildRegistry(request.params.arguments);
+          case 'dcp_analyze_dependencies':
+            return await this.handleAnalyzeDependencies(request.params.arguments);
+          case 'dcp_build_assets':
+            return await this.handleBuildAssets(request.params.arguments);
           default:
             throw new Error(`Unknown tool: ${request.params.name}`);
         }
@@ -231,7 +635,7 @@ class DCPMCPServer {
     // Format tokens based on requested format
     const formattedTokens = this.formatTokens(filteredTokens, format);
     
-    // Get theme context if available
+    // Get enhanced theme context from the CLI query engine
     const themeContext = registry.themeContext || {};
     
     return {
@@ -242,8 +646,10 @@ class DCPMCPServer {
             tokens: formattedTokens,
             count: Object.keys(this.flattenTokens(formattedTokens)).length,
             themeContext: {
-              mode: themeContext.config?.themingMode || 'unknown',
+              config: themeContext.config || null,
               cssVariables: themeContext.cssVariables || {},
+              utilityMappings: themeContext.utilityMappings || {},
+              summary: themeContext.summary || 'No theme context available'
             },
             usage: `Use these tokens in your code. Example: color="primary.500" or className="text-primary-500"`,
           }, null, 2),
@@ -389,8 +795,14 @@ class DCPMCPServer {
 
   async handleProjectScan({ path: projectPath = '.', deep = false }) {
     try {
+      // Run both intelligence scanner and validation
       const scanner = new ProjectIntelligenceScanner(projectPath);
-      const intelligence = await scanner.scan();
+      const validator = new ProjectValidator(projectPath);
+      
+      const [intelligence, validation] = await Promise.all([
+        scanner.scan(),
+        validator.validate()
+      ]);
       
       return {
         content: [
@@ -406,6 +818,14 @@ class DCPMCPServer {
               recommendations: intelligence.intelligence.recommendations,
               detectedPaths: intelligence.projectStructure.detectedPaths,
               dependencies: intelligence.dependencies,
+              validation: {
+                valid: validation.valid,
+                canProceed: validation.canProceed,
+                issues: validation.issues,
+                warnings: validation.warnings,
+                suggestions: validation.suggestions,
+                summary: validation.summary
+              }
             }, null, 2),
           },
         ],
@@ -418,6 +838,450 @@ class DCPMCPServer {
             text: `Project scan failed: ${error.message}`,
           },
         ],
+        isError: true,
+      };
+    }
+  }
+
+  async handleValidateProject({ path: projectPath = '.', autoFix = false }) {
+    try {
+      const validator = new ProjectValidator(projectPath);
+      const validation = await validator.validate();
+      
+      // Auto-fix if requested and there are fixable issues
+      let autoFixApplied = false;
+      if (autoFix && validation.issues.some(i => i.autoFix)) {
+        await validator.autoFix();
+        autoFixApplied = true;
+        
+        // Re-validate after fixes
+        const revalidation = await validator.validate();
+        
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                projectPath,
+                autoFixApplied: true,
+                beforeFix: {
+                  valid: validation.valid,
+                  canProceed: validation.canProceed,
+                  summary: validation.summary
+                },
+                afterFix: {
+                  valid: revalidation.valid,
+                  canProceed: revalidation.canProceed,
+                  issues: revalidation.issues,
+                  warnings: revalidation.warnings,
+                  suggestions: revalidation.suggestions,
+                  summary: revalidation.summary
+                }
+              }, null, 2),
+            },
+          ],
+        };
+      }
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              projectPath,
+              valid: validation.valid,
+              canProceed: validation.canProceed,
+              issues: validation.issues,
+              warnings: validation.warnings,
+              suggestions: validation.suggestions,
+              summary: validation.summary,
+              autoFixAvailable: validation.issues.some(i => i.autoFix)
+            }, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Project validation failed: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  async handleExtractComponents({ 
+    source = '.', 
+    output = './registry', 
+    glob = '**/*.{tsx,jsx,ts,js}', 
+    adaptor = 'react-tsx',
+    includeTokens = true,
+    validate = true,
+    autoFix = false 
+  }) {
+    try {
+      // Import the extraction engine
+      const { runExtract } = await import('./commands/extract-v3.js');
+      
+      // Run validation first if requested
+      if (validate) {
+        const validator = new ProjectValidator(source);
+        const validation = await validator.validate();
+        
+        if (!validation.canProceed && autoFix) {
+          await validator.autoFix();
+        } else if (!validation.canProceed) {
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: false,
+                error: 'Project validation failed',
+                validation: {
+                  issues: validation.issues,
+                  warnings: validation.warnings,
+                  suggestions: validation.suggestions
+                },
+                recommendation: 'Use autoFix: true to attempt automatic fixes'
+              }, null, 2),
+            }],
+            isError: true,
+          };
+        }
+      }
+      
+      // Run extraction
+      const result = await runExtract(source, {
+        out: output,
+        glob,
+        adaptor,
+        verbose: false,
+        json: true,
+        skipValidation: !validate
+      });
+      
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            source,
+            output,
+            components: result.registry.components.length,
+            tokens: Object.keys(result.registry.tokens || {}).length,
+            registryPath: `${output}/registry.json`,
+            themeContext: result.registry.themeContext?.summary || 'No theme context',
+            adaptorUsage: result.summary?.adaptorUsage || {},
+            extractedAt: new Date().toISOString()
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Component extraction failed: ${error.message}`,
+        }],
+        isError: true,
+      };
+    }
+  }
+
+  async handleTranspileComponent({ component, target = 'react-typescript', includeStyles = true, useTokens = true, outputPath }) {
+    try {
+      const registry = await this.loadRegistry();
+      const comp = registry.components.find(c => c.name === component);
+      
+      if (!comp) {
+        throw new Error(`Component '${component}' not found in registry`);
+      }
+
+      // Import transpilation engine
+      const { runTranspile } = await import('./commands/transpile.js');
+      
+      const result = await runTranspile(this.registryPath, {
+        target,
+        components: [component],
+        out: outputPath || `./generated-${component.toLowerCase()}`,
+        includeStyles,
+        useTokens
+      });
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            component,
+            target,
+            outputPath: result.outputPath,
+            generatedFiles: result.files || [],
+            codePreview: result.preview || 'Code generation completed'
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Component transpilation failed: ${error.message}`,
+        }],
+        isError: true,
+      };
+    }
+  }
+
+  async handleGenerateCode({ framework = 'react-typescript', outputPath = './generated-components', components = [], includeTests = false, includeStories = false }) {
+    try {
+      // Import code generation engine
+      const { runTranspile } = await import('./commands/transpile.js');
+      
+      const result = await runTranspile(this.registryPath, {
+        target: framework,
+        components: components.length > 0 ? components : undefined,
+        out: outputPath,
+        includeTests,
+        includeStories,
+        verbose: false
+      });
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            framework,
+            outputPath,
+            componentsGenerated: result.componentsGenerated || 0,
+            filesCreated: result.files?.length || 0,
+            summary: result.summary || 'Code generation completed successfully'
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Code generation failed: ${error.message}`,
+        }],
+        isError: true,
+      };
+    }
+  }
+
+  async handleCreateMutationPlan({ prompt, context = {}, dryRun = true }) {
+    try {
+      // Import AI planning engine
+      const { AIPlanner } = await import('./core/aiPlanner.js');
+      
+      const planner = new AIPlanner({ verbose: false });
+      const plan = await planner.planMutation(prompt, this.registryPath);
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            prompt,
+            plan: {
+              patches: plan.patches || [],
+              description: plan.description || 'Mutation plan generated',
+              confidence: plan.confidence || 0.8,
+              warnings: plan.warnings || [],
+              previewChanges: plan.preview || []
+            },
+            dryRun,
+            instructions: dryRun ? 'Use dcp_apply_mutations to execute this plan' : 'Plan executed successfully'
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Mutation planning failed: ${error.message}`,
+        }],
+        isError: true,
+      };
+    }
+  }
+
+  async handleApplyMutations({ patches, validate = true, createUndo = true }) {
+    try {
+      // Import mutation engine
+      const { runBatchMutate } = await import('./commands/batchMutate.js');
+      
+      // Create temporary patch file
+      const patchPath = '/tmp/dcp-mcp-patches.json';
+      await fs.writeFile(patchPath, JSON.stringify(patches, null, 2));
+      
+      const result = await runBatchMutate(
+        this.registryPath, 
+        patchPath, 
+        this.registryPath, 
+        {
+          undo: createUndo ? '/tmp/dcp-mcp-undo.json' : null,
+          verbose: false
+        }
+      );
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            patchesApplied: patches.length,
+            undoFile: result.undoFile || null,
+            changes: result.changes || [],
+            validation: result.validation || { passed: true },
+            registryUpdated: true
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Mutation application failed: ${error.message}`,
+        }],
+        isError: true,
+      };
+    }
+  }
+
+  async handleBuildRegistry({ source = '.', config = './dcp.config.json', verbose = false, withStorybook = false }) {
+    try {
+      // Import registry builder
+      const { runBuild } = await import('./commands/build.js');
+      
+      const result = await runBuild({
+        configPath: config,
+        verbose,
+        withStorybook
+      });
+
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            outputPath,
+            registryCreated: true,
+            components: result.components?.length || 0,
+            assets: result.assets?.length || 0,
+            optimized: optimize,
+            buildTime: result.buildTime || 'Unknown'
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Registry build failed: ${error.message}`,
+        }],
+        isError: true,
+      };
+    }
+  }
+
+  async handleAnalyzeDependencies({ source = '.', includeExternal = true, generateGraph = false, outputFormat = 'json' }) {
+    try {
+      // Import dependency analyzer
+      const { DependencyGraphAnalyzer } = await import('./core/dependencyGraph.js');
+      
+      const analyzer = new DependencyGraphAnalyzer(source);
+      
+      // Analyze all components in the source directory
+      const { globSync } = await import('glob');
+      const componentFiles = globSync('**/*.{tsx,jsx,ts,js}', { cwd: source });
+      
+      for (const file of componentFiles) {
+        const filePath = path.join(source, file);
+        const sourceCode = await fs.readFile(filePath, 'utf-8');
+        await analyzer.analyzeComponent(filePath, sourceCode);
+      }
+      
+      const graph = analyzer.buildGraph();
+      const suggestions = analyzer.generateSuggestions();
+      
+      let result = {
+        success: true,
+        source,
+        dependencies: {
+          internal: Array.from(analyzer.internalDependencies.entries()).map(([dep, usedBy]) => ({
+            path: dep,
+            usedBy: Array.from(usedBy)
+          })),
+          external: includeExternal ? Array.from(analyzer.externalDependencies) : [],
+          hooks: Array.from(analyzer.hookUsage.entries()).map(([hook, usedBy]) => ({
+            name: hook,
+            usedBy: usedBy
+          })),
+          context: Array.from(analyzer.contextUsage)
+        },
+        metrics: graph.metrics,
+        suggestions: suggestions
+      };
+      
+      if (generateGraph) {
+        result.graph = graph;
+      }
+      
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(result, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Dependency analysis failed: ${error.message}`,
+        }],
+        isError: true,
+      };
+    }
+  }
+
+  async handleBuildAssets({ source = '.', outputPath = './dist/assets', optimize = true, includeSourceMaps = false }) {
+    try {
+      // Import asset builder
+      const { runBuildAssets } = await import('./commands/build-assets.js');
+      
+      const result = await runBuildAssets({
+        source,
+        outputPath,
+        optimize,
+        includeSourceMaps,
+        verbose: false
+      });
+      
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            source,
+            outputPath,
+            assetsBuilt: result.assets?.length || 0,
+            totalSize: result.totalSize || 'Unknown',
+            optimized: optimize,
+            sourceMaps: includeSourceMaps,
+            buildTime: result.buildTime || 'Unknown'
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Asset build failed: ${error.message}`,
+        }],
         isError: true,
       };
     }

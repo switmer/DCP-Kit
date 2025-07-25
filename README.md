@@ -201,6 +201,53 @@ dcp validate registry.json
 dcp validate registry.json --strict
 ```
 
+## 🔌 Team Integrations
+
+DCP includes production-ready integrations for your entire design system workflow:
+
+### 🛡️ GitHub Action - CI Validation Gate
+Automatically validate PRs against your design system to prevent drift:
+
+```yaml
+# .github/workflows/dcp-validate.yml
+name: DCP Design System Validation
+on: [pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx dcp extract ./src --out ./registry
+      - run: npx dcp api --registry ./registry &
+      - run: |
+          # Validate changed files against registry
+          git diff --name-only HEAD~1 -- '*.tsx' | while read file; do
+            curl -X POST http://localhost:7401/api/v1/validate \
+              -d "{\"code\":\"$(cat $file)\", \"filePath\":\"$file\"}"
+          done
+```
+
+**Result:** Red/green PR status + inline error comments with fix suggestions
+
+### ⚡ VS Code Extension - Live Validation
+Real-time design system feedback directly in your editor:
+- 🔍 **Live validation** - Instant feedback on token/variant usage
+- 💡 **Smart autocomplete** - Design system aware suggestions  
+- 🎨 **Token preview** - Hover to see color/spacing values
+- 📚 **Component docs** - Inline documentation and examples
+
+### 🎨 Figma Plugin - Design-Code Sync
+Bridge the gap between design and development:
+- 📊 **Token validation** - Check designs against code registry
+- 🔄 **Two-way sync** - Keep Figma variables in sync with code tokens
+- ✅ **Frame validation** - Validate selected layers against component API
+- 📋 **Usage reports** - See which components are used where
+
+**📖 Learn More:**
+- [GitHub Action Setup Guide](./docs/github-action.md)
+- [VS Code Extension](./integrations/vscode-dcp/README.md)
+- [Figma Plugin](./integrations/figma-dcp/README.md)
+
 ## 🧬 What Makes It "CRISPR for Code"
 
 Like gene editing, DCP-Transformer enables precise, controlled changes to your code's DNA:

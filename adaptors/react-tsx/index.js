@@ -6,6 +6,7 @@ import fs from 'fs';
 import { resolveExport } from './moduleResolver.js';
 import { symbolTable, getCachedAst, setCachedAst } from '../../core/graphCache.js';
 import { ThemeAnalyzer } from '../../core/themeAnalyzer.js';
+import { parseTSX } from '../../core/parser.js';
 
 /**
  * React TSX Adaptor for DCP Transformer
@@ -67,6 +68,23 @@ export class ReactTSXAdaptor {
 
   async extractComponents(filePath, source, options = {}) {
     try {
+      // Try TypeScript-aware parsing first for .tsx/.ts files
+      const isTypeScript = filePath.endsWith('.tsx') || filePath.endsWith('.ts');
+      let tsxResult = null;
+      
+      if (isTypeScript) {
+        try {
+          tsxResult = await parseTSX(filePath);
+          if (this.verbose && tsxResult) {
+            console.log(`   ✅ TypeScript analysis successful: ${tsxResult.name}`);
+          }
+        } catch (error) {
+          if (this.verbose) {
+            console.log(`   ⚠️ TypeScript analysis failed, falling back to Babel: ${error.message}`);
+          }
+        }
+      }
+
       const ast = this.parseSource(source);
       const components = [];
       
@@ -131,15 +149,56 @@ export class ReactTSXAdaptor {
       // Deduplicate by name (prefer named exports over defaults)
       const deduplicated = this.deduplicateComponents(components);
       
+      // Enhance with TypeScript analysis if available
+      let enhanced = deduplicated;
+      if (tsxResult && enhanced.length > 0) {
+        enhanced = enhanced.map(component => {
+          // Match TypeScript data to Babel component by name
+          if (component.name === tsxResult.name || 
+              (enhanced.length === 1 && tsxResult.name)) {
+            
+            if (this.verbose) {
+              console.log(`   🔗 Merging TypeScript analysis for: ${component.name}`);
+            }
+            
+            return {
+              ...component,
+              // Enhance props with TypeScript analysis
+              props: this.mergeProps(component.props, tsxResult.props),
+              // Add TypeScript-extracted tokens
+              tokensUsed: {
+                ...component.tokensUsed,
+                ...tsxResult.tokensUsed
+              },
+              // Add variant style mappings
+              variantStyleMappings: tsxResult.variantStyleMappings,
+              // Enhanced styles information
+              styles: {
+                ...component.styles,
+                ...tsxResult.styles
+              },
+              // Mark as enhanced with TypeScript
+              metadata: {
+                ...component.metadata,
+                typescriptAnalysis: true,
+                enhancedAt: new Date().toISOString()
+              }
+            };
+          }
+          return component;
+        });
+      }
+
       // Enhance components with theme-aware context
       const themeEnhanced = await Promise.all(
-        deduplicated.map(component => 
+        enhanced.map(component => 
           this.themeAnalyzer.enhanceComponentWithTheme(component, source, filePath)
         )
       );
       
       if (this.verbose) {
-        console.log(`[ReactTSX] ${filePath}: Found ${themeEnhanced.length} components`);
+        const tsEnhanced = themeEnhanced.filter(c => c.metadata?.typescriptAnalysis).length;
+        console.log(`[ReactTSX] ${filePath}: Found ${themeEnhanced.length} components (${tsEnhanced} TypeScript-enhanced)`);
       }
       
       return themeEnhanced;
@@ -498,6 +557,46 @@ export class ReactTSXAdaptor {
     });
     
     return deduped;
+  }
+
+  /**
+   * Merge props from Babel parsing with TypeScript analysis
+   * TypeScript provides better type info, Babel provides structural info
+   */
+  mergeProps(babelProps = [], tsProps = {}) {
+    const merged = [];
+    const tsPropsMap = new Map(Object.entries(tsProps));
+    
+    // Start with Babel props (structural analysis)
+    babelProps.forEach(babelProp => {
+      const tsProp = tsPropsMap.get(babelProp.name);
+      
+      if (tsProp) {
+        // Merge Babel structure with TypeScript types
+        merged.push({
+          ...babelProp,
+          type: tsProp.type || babelProp.type, // Prefer TS type
+          description: tsProp.description || babelProp.description,
+          required: tsProp.required !== undefined ? tsProp.required : babelProp.required,
+          default: tsProp.default || babelProp.default,
+          source: tsProp.source || babelProp.source
+        });
+        tsPropsMap.delete(babelProp.name);
+      } else {
+        merged.push(babelProp);
+      }
+    });
+    
+    // Add remaining TypeScript-only props (from imports/interfaces)
+    tsPropsMap.forEach((tsProp, name) => {
+      merged.push({
+        name,
+        ...tsProp,
+        source: tsProp.source || 'typescript'
+      });
+    });
+    
+    return merged;
   }
 }
 

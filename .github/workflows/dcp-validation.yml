@@ -1,0 +1,134 @@
+name: DCP Design System Validation
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'components/**'
+      - '**/*.tsx'
+      - '**/*.jsx'
+
+jobs:
+  validate-design-system:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Extract DCP registry
+      run: |
+        npx dcp extract ./src --json > registry.json
+        echo "Registry extracted with $(jq '.components | length' registry.json) components"
+    
+    - name: Validate components against design system
+      run: |
+        # Get list of changed files
+        git diff --name-only origin/main...HEAD -- '*.tsx' '*.jsx' > changed-files.txt
+        
+        # Validate each changed file against DCP registry
+        while IFS= read -r file; do
+          if [ -f "$file" ]; then
+            echo "Validating $file..."
+            
+            # Use DCP API to validate the file
+            curl -X POST http://localhost:7401/api/v1/validate \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${{ secrets.DCP_API_TOKEN }}" \
+              -d "{
+                \"code\": \"$(cat "$file" | sed 's/"/\\"/g' | tr '\n' ' ')\",
+                \"filePath\": \"$file\"
+              }" \
+              --fail-with-body || {
+                echo "❌ Validation failed for $file"
+                exit 1
+              }
+          fi
+        done < changed-files.txt
+        
+    - name: Check for design system drift
+      run: |
+        # Compare with baseline registry
+        if [ -f "baseline-registry.json" ]; then
+          npx dcp diff baseline-registry.json registry.json --format github-comment > design-system-diff.md
+          
+          # Post diff as PR comment if there are changes
+          if [ -s design-system-diff.md ]; then
+            gh pr comment ${{ github.event.number }} --body-file design-system-diff.md
+          fi
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload registry artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: dcp-registry
+        path: registry.json
+        
+    - name: Validate with DCP API (Alternative approach)
+      run: |
+        # Start DCP API server for validation
+        npx dcp api --port 7401 --registry ./registry &
+        sleep 5
+        
+        # Validate all components in batch
+        find src -name "*.tsx" -o -name "*.jsx" | head -10 | while read file; do
+          echo "{\"path\": \"$file\", \"code\": \"$(cat "$file" | jq -Rs .)\"}"
+        done | jq -s '{files: .}' | \
+        curl -X POST http://localhost:7401/api/v1/validate/batch \
+          -H "Content-Type: application/json" \
+          -d @- \
+          --fail-with-body || {
+            echo "❌ Batch validation failed"
+            exit 1
+          }
+
+# Alternative workflow for teams using cloud DCP API
+validate-with-cloud-api:
+  runs-on: ubuntu-latest
+  if: false  # Disabled by default - enable when using cloud API
+  
+  steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
+    
+  - name: Validate against cloud DCP registry
+    run: |
+      # Get changed files
+      changed_files=$(git diff --name-only origin/main...HEAD -- '*.tsx' '*.jsx' | jq -R . | jq -s .)
+      
+      # Batch validate using cloud API
+      echo "$changed_files" | jq '{
+        files: [
+          .[] | {
+            path: .,
+            code: (. | @sh | "cat \(.)" | @sh)
+          }
+        ]
+      }' | \
+      curl -X POST https://api.dcp.dev/v1/validate/batch \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer ${{ secrets.DCP_API_TOKEN }}" \
+        -d @- \
+        --fail-with-body
+        
+  - name: Query design system compliance
+    run: |
+      # Check component usage patterns
+      curl -X POST https://api.dcp.dev/v1/query \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer ${{ secrets.DCP_API_TOKEN }}" \
+        -d '{
+          "selector": "components[category=inputs][variants*=primary]",
+          "options": {"format": "summary"}
+        }' | jq '.results'

@@ -1,0 +1,293 @@
+name: DCP Design System Validation
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'components/**'
+      - '**/*.tsx'
+      - '**/*.jsx'
+      - '**/*.ts'
+      - '**/*.js'
+
+jobs:
+  validate-design-system:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for diff
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Extract current DCP registry
+      run: |
+        echo "🔍 Extracting current design system registry..."
+        npx dcp extract ./src --out ./current-registry --json > extraction-result.json
+        
+        # Show extraction summary
+        echo "📊 Extraction completed:"
+        cat extraction-result.json | jq -r '.summary | "Components: \(.componentsFound), Tokens: \(.tokensFound)"'
+        
+    - name: Get changed files
+      id: changed-files
+      run: |
+        # Get list of changed TypeScript/JavaScript files
+        git diff --name-only origin/main...HEAD -- '*.tsx' '*.jsx' '*.ts' '*.js' > changed-files.txt
+        
+        echo "📝 Changed files:"
+        cat changed-files.txt
+        
+        # Check if any relevant files changed
+        if [ ! -s changed-files.txt ]; then
+          echo "skip_validation=true" >> $GITHUB_OUTPUT
+          echo "ℹ️  No component files changed, skipping validation"
+        else
+          echo "skip_validation=false" >> $GITHUB_OUTPUT
+          echo "changed_count=$(wc -l < changed-files.txt)" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Start DCP API server
+      if: steps.changed-files.outputs.skip_validation == 'false'
+      run: |
+        echo "🚀 Starting DCP API server for validation..."
+        npx dcp api --port 7401 --registry ./current-registry --verbose &
+        
+        # Wait for server to start
+        timeout 30 bash -c 'until curl -s http://localhost:7401/api/v1/health > /dev/null; do sleep 1; done'
+        
+        # Verify server health
+        curl -s http://localhost:7401/api/v1/health | jq '.status'
+        
+    - name: Validate changed files
+      if: steps.changed-files.outputs.skip_validation == 'false'
+      id: validation
+      run: |
+        echo "✅ Validating ${{ steps.changed-files.outputs.changed_count }} changed files..."
+        
+        validation_results="[]"
+        overall_valid=true
+        total_errors=0
+        
+        while IFS= read -r file; do
+          if [ -f "$file" ]; then
+            echo "🔍 Validating $file..."
+            
+            # Prepare file content for JSON (escape quotes and newlines)
+            file_content=$(cat "$file" | jq -Rs .)
+            
+            # Validate via DCP API
+            result=$(curl -s -X POST http://localhost:7401/api/v1/validate \
+              -H "Content-Type: application/json" \
+              -d "{\"code\": $file_content, \"filePath\": \"$file\"}" \
+              --fail-with-body)
+            
+            # Check if validation passed
+            is_valid=$(echo "$result" | jq -r '.valid')
+            error_count=$(echo "$result" | jq -r '.errors | length')
+            
+            if [ "$is_valid" = "false" ]; then
+              overall_valid=false
+              total_errors=$((total_errors + error_count))
+              
+              echo "❌ $file: $error_count errors found"
+              echo "$result" | jq -r '.errors[] | "  - Line \(.line): \(.message)"'
+            else
+              echo "✅ $file: Valid"
+            fi
+            
+            # Add to results array
+            file_result=$(echo "$result" | jq --arg file "$file" '. + {filePath: $file}')
+            validation_results=$(echo "$validation_results" | jq ". + [$file_result]")
+            
+          else
+            echo "⚠️  File $file was deleted, skipping validation"
+          fi
+        done < changed-files.txt
+        
+        # Store results
+        echo "$validation_results" > validation-results.json
+        echo "overall_valid=$overall_valid" >> $GITHUB_OUTPUT
+        echo "total_errors=$total_errors" >> $GITHUB_OUTPUT
+        
+        echo "📊 Validation Summary:"
+        echo "  Files validated: ${{ steps.changed-files.outputs.changed_count }}"
+        echo "  Overall result: $([ "$overall_valid" = "true" ] && echo "✅ PASSED" || echo "❌ FAILED")"
+        echo "  Total errors: $total_errors"
+        
+    - name: Generate validation report
+      if: steps.changed-files.outputs.skip_validation == 'false'
+      run: |
+        echo "📝 Generating detailed validation report..."
+        
+        cat > validation-report.md << 'EOF'
+        ## 🔍 DCP Design System Validation Report
+        
+        **Status:** ${{ steps.validation.outputs.overall_valid == 'true' && '✅ PASSED' || '❌ FAILED' }}
+        **Files Validated:** ${{ steps.changed-files.outputs.changed_count }}
+        **Total Errors:** ${{ steps.validation.outputs.total_errors }}
+        
+        ### Results by File
+        
+        EOF
+        
+        # Process each validation result
+        jq -r '.[] | 
+          "#### `" + .filePath + "`\n" +
+          (if .valid then 
+            "✅ **Valid** - No design system violations found\n" 
+          else 
+            "❌ **Invalid** - " + (.errors | length | tostring) + " error(s) found:\n" +
+            (.errors | map("- **Line " + (.line | tostring) + ":** " + .message) | join("\n")) + "\n"
+          end) + "\n"
+        ' validation-results.json >> validation-report.md
+        
+        if [ "${{ steps.validation.outputs.overall_valid }}" = "false" ]; then
+          cat >> validation-report.md << 'EOF'
+        
+        ### 🛠️ How to Fix
+        
+        1. **Review errors above** - Each error shows the specific line and issue
+        2. **Check design system docs** - Verify correct component usage and token names
+        3. **Use DCP locally** - Run `dcp extract ./src && dcp api` for interactive validation
+        4. **Update components** - Replace invalid tokens/variants with approved ones
+        
+        ### 💡 Common Fixes
+        
+        - **Invalid token:** Replace with valid design token from registry
+        - **Unknown variant:** Use approved component variants only  
+        - **Missing prop:** Add required component properties
+        - **Deprecated usage:** Update to current component API
+        
+        EOF
+        fi
+        
+        cat >> validation-report.md << 'EOF'
+        
+        ---
+        *Generated by [DCP Platform](https://github.com/stevewitmer/dcp-transformer) • [View Registry](http://localhost:7401/docs)*
+        EOF
+        
+    - name: Comment on PR
+      if: steps.changed-files.outputs.skip_validation == 'false'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read validation report
+          const report = fs.readFileSync('validation-report.md', 'utf8');
+          
+          // Find existing DCP comment
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const dcpComment = comments.data.find(comment => 
+            comment.body.includes('🔍 DCP Design System Validation Report')
+          );
+          
+          if (dcpComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: dcpComment.id,
+              body: report
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: report
+            });
+          }
+          
+    - name: Fail if validation errors
+      if: steps.changed-files.outputs.skip_validation == 'false' && steps.validation.outputs.overall_valid == 'false'
+      run: |
+        echo "❌ Design system validation failed with ${{ steps.validation.outputs.total_errors }} errors"
+        echo "📋 See PR comment for detailed error report"
+        echo "💡 Fix the errors above and push again to re-trigger validation"
+        exit 1
+        
+    - name: Upload validation artifacts
+      if: always() && steps.changed-files.outputs.skip_validation == 'false'
+      uses: actions/upload-artifact@v4
+      with:
+        name: dcp-validation-results
+        path: |
+          validation-results.json
+          validation-report.md
+          current-registry/
+        retention-days: 30
+        
+    # Alternative: Validate against cloud DCP API (for teams using hosted registries)
+  validate-with-cloud-api:
+    runs-on: ubuntu-latest
+    if: false  # Enable this job and disable the above job when using cloud DCP
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Get changed files and validate
+      env:
+        DCP_API_TOKEN: ${{ secrets.DCP_API_TOKEN }}
+        DCP_API_URL: ${{ vars.DCP_API_URL || 'https://api.dcp.dev/v1' }}
+      run: |
+        # Get changed files
+        git diff --name-only origin/main...HEAD -- '*.tsx' '*.jsx' '*.ts' '*.js' > changed-files.txt
+        
+        if [ ! -s changed-files.txt ]; then
+          echo "ℹ️  No component files changed, skipping validation"
+          exit 0
+        fi
+        
+        echo "📝 Validating $(wc -l < changed-files.txt) changed files against cloud DCP registry..."
+        
+        # Prepare batch validation payload
+        files_json="[]"
+        while IFS= read -r file; do
+          if [ -f "$file" ]; then
+            file_content=$(cat "$file" | jq -Rs .)
+            file_obj=$(jq -n --arg path "$file" --argjson code "$file_content" '{path: $path, code: $code}')
+            files_json=$(echo "$files_json" | jq ". + [$file_obj]")
+          fi
+        done < changed-files.txt
+        
+        # Batch validate using cloud API
+        batch_payload=$(echo "$files_json" | jq '{files: .}')
+        
+        validation_response=$(curl -s -X POST "$DCP_API_URL/validate/batch" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer $DCP_API_TOKEN" \
+          -d "$batch_payload" \
+          --fail-with-body)
+        
+        # Check results
+        total_errors=$(echo "$validation_response" | jq '[.results[] | select(.valid == false)] | length')
+        
+        if [ "$total_errors" -gt 0 ]; then
+          echo "❌ Validation failed with $total_errors file(s) containing errors"
+          echo "$validation_response" | jq -r '.results[] | select(.valid == false) | 
+            "File: " + .filePath + "\nErrors: " + (.errors | map("- Line " + (.line | tostring) + ": " + .message) | join("\n"))'
+          exit 1
+        else
+          echo "✅ All files passed design system validation"
+        fi
