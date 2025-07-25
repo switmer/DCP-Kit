@@ -108,7 +108,16 @@ class RegistryQueryExecutor {
   async loadRegistry() {
     if (!this.registry) {
       try {
-        const registryFile = path.join(this.registryPath, 'registry.json');
+        // Handle both directory path and direct file path
+        let registryFile;
+        if (this.registryPath.endsWith('.json')) {
+          // Direct file path
+          registryFile = this.registryPath;
+        } else {
+          // Directory path - append registry.json
+          registryFile = path.join(this.registryPath, 'registry.json');
+        }
+        
         const data = await fs.readFile(registryFile, 'utf8');
         this.registry = JSON.parse(data);
       } catch (error) {
