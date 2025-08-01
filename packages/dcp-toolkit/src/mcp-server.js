@@ -10,6 +10,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ListPromptsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -632,7 +634,7 @@ class DCPMCPServer {
     });
 
     // Add MCP resources handler
-    this.server.setRequestHandler({ method: 'resources/list' }, async () => {
+    this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
       await this.loadRegistry();
       const resources = [];
       
@@ -670,7 +672,7 @@ class DCPMCPServer {
     });
 
     // Add MCP prompts handler  
-    this.server.setRequestHandler({ method: 'prompts/list' }, async () => {
+    this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
       return {
         prompts: [
           {
