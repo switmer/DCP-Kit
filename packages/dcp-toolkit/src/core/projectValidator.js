@@ -513,9 +513,9 @@ export class ProjectValidator {
   async autoFix() {
     this.log(chalk.blue('\n🔧 Attempting to auto-fix issues...'));
     
-    for (const issue of this.issues.filter(i => i.autoFix)) {
-      if (issue.type === 'missing-shadcn-config') {
-        await this.createShadcnConfig(issue.fixData);
+    for (const suggestion of this.suggestions.filter(s => s.autoFix)) {
+      if (suggestion.type === 'enhance-with-shadcn') {
+        await this.createShadcnConfig(suggestion.fixData);
       }
     }
   }
