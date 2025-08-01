@@ -44,7 +44,7 @@ export class ProjectValidator {
     await this.validateTailwindSetup();
     await this.validateComponentStructure();
     
-    return this.generateReport();
+    return await this.generateReport();
   }
 
   async validateProjectRoot() {
@@ -130,22 +130,25 @@ export class ProjectValidator {
       } catch {}
     }
 
-    // Determine theme system type and provide appropriate guidance
-    if (!hasShadcnConfig && !foundCssVariables) {
+    // 🎯 Discovery-focused approach: What can we extract?
+    if (hasShadcnConfig) {
+      this.log(chalk.green('   🎯 Can extract with ShadCN adaptor (optimal setup)'));
+    } else if (foundCssVariables) {
+      this.log(chalk.yellow('   🎯 Can extract CSS variables directly (good setup)'));
       this.suggestions.push({
-        type: 'setup-theme-system',
+        type: 'enhance-with-shadcn',
         severity: 'info',
-        message: 'No theme configuration detected',
-        suggestion: 'Consider setting up ShadCN/UI for better token extraction: npx shadcn-ui@latest init'
-      });
-    } else if (foundCssVariables && !hasShadcnConfig) {
-      this.issues.push({
-        type: 'missing-shadcn-config',
-        severity: 'error',
-        message: 'CSS variables found but missing components.json configuration',
-        suggestion: 'Create components.json configuration file for optimal token extraction',
+        message: 'CSS variables detected - extraction possible',
+        suggestion: 'Optional: Add components.json for enhanced ShadCN compatibility',
         autoFix: true,
         fixData: { cssLocations: cssLocations.filter(loc => this.fileExists(path.join(this.projectPath, loc))) }
+      });
+    } else {
+      this.suggestions.push({
+        type: 'setup-styling-system',
+        severity: 'info',
+        message: 'No theme system detected',
+        suggestion: 'DCP can still extract components. For design tokens, consider adding CSS variables or ShadCN/UI'
       });
     }
   }
@@ -231,12 +234,14 @@ export class ProjectValidator {
     }
 
     if (!foundTailwindConfig) {
-      this.warnings.push({
-        type: 'missing-tailwind-config',
-        severity: 'warning',
-        message: 'No Tailwind configuration found',
-        suggestion: 'Install and configure Tailwind CSS for better utility class detection'
+      this.suggestions.push({
+        type: 'optional-tailwind-config',
+        severity: 'info',
+        message: 'No Tailwind configuration detected',
+        suggestion: 'Optional: Add Tailwind CSS for enhanced utility class detection'
       });
+    } else {
+      this.log(chalk.green('   🎯 Can extract Tailwind utility classes'));
     }
   }
 
@@ -339,12 +344,21 @@ export class ProjectValidator {
     }
   }
 
-  generateReport() {
+  async generateReport() {
+    // 🎯 Discovery phase: What can we actually extract?
+    const extractionCapabilities = await this.assessExtractionCapabilities();
+    
     const hasErrors = this.issues.filter(i => i.severity === 'error').length > 0;
     const hasWarnings = this.warnings.length > 0;
     
     this.log('\n' + chalk.blue('📋 Project Validation Report'));
     this.log('='.repeat(50));
+    
+    // Show extraction capabilities first
+    this.log(chalk.green('\n🎯 Extraction Capabilities:'));
+    for (const capability of extractionCapabilities) {
+      this.log(chalk.green(`   ✅ ${capability}`));
+    }
 
     // Show errors
     const errors = this.issues.filter(i => i.severity === 'error');
@@ -386,18 +400,111 @@ export class ProjectValidator {
       this.log(chalk.red('\n❌ Project has errors that should be resolved for optimal extraction.'));
     }
 
+    // 🎯 DCP should proceed if we can extract ANYTHING
+    const canExtract = extractionCapabilities.length > 0;
+    
     return {
       valid: !hasErrors,
-      canProceed: !hasErrors,
+      canProceed: canExtract, // ✅ Based on extraction capabilities, not configuration!
+      extractionCapabilities,
       issues: this.issues,
       warnings: this.warnings,
       suggestions: this.suggestions,
       summary: {
         errors: errors.length,
         warnings: this.warnings.length,
-        suggestions: this.suggestions.length
+        suggestions: this.suggestions.length,
+        canExtract: extractionCapabilities.length
       }
     };
+  }
+
+  /**
+   * 🎯 Discovery-focused: What can we actually extract from this project?
+   */
+  async assessExtractionCapabilities() {
+    const capabilities = [];
+    
+    try {
+      // Check for React/TSX components
+      const reactFiles = await this.glob('**/*.{tsx,jsx}', { ignore: ['node_modules/**', '.next/**', 'dist/**'] });
+      if (reactFiles.length > 0) {
+        capabilities.push(`React components (${reactFiles.length} files)`);
+      }
+      
+      // Check for Vue components  
+      const vueFiles = await this.glob('**/*.vue', { ignore: ['node_modules/**', 'dist/**'] });
+      if (vueFiles.length > 0) {
+        capabilities.push(`Vue components (${vueFiles.length} files)`);
+      }
+      
+      // Check for Svelte components
+      const svelteFiles = await this.glob('**/*.svelte', { ignore: ['node_modules/**', 'dist/**'] });
+      if (svelteFiles.length > 0) {
+        capabilities.push(`Svelte components (${svelteFiles.length} files)`);
+      }
+      
+      // Check for CSS files with potential design tokens
+      const cssFiles = await this.glob('**/*.{css,scss,sass}', { ignore: ['node_modules/**', 'dist/**'] });
+      if (cssFiles.length > 0) {
+        capabilities.push(`Stylesheets (${cssFiles.length} files)`);
+      }
+      
+      // Check for design tokens specifically
+      const hasCustomProperties = await this.checkForCssVariables(cssFiles);
+      if (hasCustomProperties) {
+        capabilities.push('CSS custom properties (design tokens)');
+      }
+      
+      // Check for Tailwind classes in components
+      if (reactFiles.length > 0 || vueFiles.length > 0) {
+        const hasTailwindClasses = await this.checkForTailwindClasses([...reactFiles, ...vueFiles]);
+        if (hasTailwindClasses) {
+          capabilities.push('Tailwind utility classes');
+        }
+      }
+      
+      // Check for Storybook stories
+      const storyFiles = await this.glob('**/*.stories.{js,ts,jsx,tsx}', { ignore: ['node_modules/**'] });
+      if (storyFiles.length > 0) {
+        capabilities.push(`Storybook stories (${storyFiles.length} files)`);
+      }
+      
+    } catch (error) {
+      this.log(chalk.yellow(`   ⚠️  Could not assess all capabilities: ${error.message}`));
+    }
+    
+    return capabilities;
+  }
+
+  async glob(pattern, options = {}) {
+    const { glob } = await import('glob');
+    return glob(pattern, { cwd: this.projectPath, ...options });
+  }
+
+  async checkForCssVariables(cssFiles) {
+    for (const file of cssFiles.slice(0, 10)) { // Check first 10 files
+      try {
+        const content = await fs.readFile(path.join(this.projectPath, file), 'utf-8');
+        if (content.includes('--') && (content.includes('var(') || content.includes('hsl('))) {
+          return true;
+        }
+      } catch {}
+    }
+    return false;
+  }
+
+  async checkForTailwindClasses(componentFiles) {
+    const tailwindPatterns = /class.*=.*"[^"]*(?:bg-|text-|p-|m-|flex|grid|w-|h-)/;
+    for (const file of componentFiles.slice(0, 10)) { // Check first 10 files
+      try {
+        const content = await fs.readFile(path.join(this.projectPath, file), 'utf-8');
+        if (tailwindPatterns.test(content)) {
+          return true;
+        }
+      } catch {}
+    }
+    return false;
   }
 
   /**
