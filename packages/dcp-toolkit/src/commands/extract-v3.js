@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
 import { glob } from 'glob';
 import chalk from 'chalk';
@@ -18,11 +19,64 @@ import { ProjectIntelligenceScanner } from '../core/projectIntelligence.js';
  * - AI-ready metadata generation
  */
 
+/**
+ * Get optimized glob pattern based on project structure
+ * Supports monorepos, custom layouts, and legacy codebases
+ */
+async function getOptimizedGlob(sourceDir, userGlob) {
+  // If user provided a specific glob, use it
+  if (userGlob && userGlob !== '**/*.{tsx,jsx,ts,js}') {
+    return userGlob;
+  }
+  
+  // Common source directory candidates (order matters - most specific first)
+  const candidates = [
+    'src',           // Most React/Vue/Angular projects
+    'app',           // Next.js 13+ app directory, some Rails apps
+    'components',    // Component libraries, Storybook projects
+    'packages',      // Monorepos (will scan all packages)
+    'lib',           // Library code, some Node.js projects
+    'ui',            // UI component libraries
+    'frontend',      // Full-stack projects
+    'client',        // Client-server architectures
+    'web',           // Some monorepos
+    'apps',          // Some monorepos (plural)
+  ];
+  
+  // Look for the first existing candidate directory
+  for (const candidate of candidates) {
+    try {
+      const candidatePath = path.join(sourceDir, candidate);
+      if (fsSync.existsSync(candidatePath)) {
+        // Check if it contains actual component files (not just config)
+        const testGlob = `${candidate}/**/*.{tsx,jsx,ts,js}`;
+        const sampleFiles = await glob(testGlob, { 
+          cwd: sourceDir, 
+          ignore: ['**/node_modules/**', '**/*.d.ts', '**/*.config.*'],
+          nodir: true 
+        });
+        const limitedSample = sampleFiles.slice(0, 5); // Just check first 5 files
+        
+        if (sampleFiles.length > 0) {
+          console.log(`🎯 Using directory: ${candidate}/ (found ${sampleFiles.length}+ component files)`);
+          return testGlob;
+        }
+      }
+    } catch (e) {
+      // Continue to next candidate
+    }
+  }
+  
+  // No specific directory found - scan root but with aggressive filtering
+  console.log('⚠️  No standard source directory found, scanning project root with aggressive filtering');
+  return '**/*.{tsx,jsx,ts,js}';
+}
+
 export async function runExtract(source, options = {}) {
   const {
     tokens: tokensPath,
     out: outputDir = path.join(source, 'registry'),
-    glob: globPattern = '**/*.{tsx,jsx,ts,js}',
+    glob: userGlob = '**/*.{tsx,jsx,ts,js}',
     adaptor: adaptorName,
     includeStories = false,
     llmEnrich = false,
@@ -31,6 +85,9 @@ export async function runExtract(source, options = {}) {
     flattenTokens = false,
     verbose = false
   } = options;
+  
+  // Get optimized glob pattern based on project structure
+  const globPattern = await getOptimizedGlob(source, userGlob);
 
   // Only show console output if not in JSON mode
   if (!json) {
@@ -225,7 +282,27 @@ class MultiFrameworkExtractor {
     const componentFiles = await glob(globPattern, {
       cwd: this.sourceDir,
       absolute: true,
-      ignore: this.includeStories ? [] : ['**/*.stories.*', '**/*.story.*', '**/__tests__/**']
+      ignore: [
+        // Always ignore these directories
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.next/**',
+        '**/coverage/**',
+        '**/.nyc_output/**',
+        '**/tmp/**',
+        '**/temp/**',
+        
+        // Ignore specific file types that aren't components
+        '**/*.d.ts',        // TypeScript definitions
+        '**/*.test.*',      // Test files
+        '**/*.spec.*',      // Spec files
+        '**/*.config.*',    // Config files
+        '**/.*',            // Hidden files
+        
+        // Conditionally ignore stories and tests
+        ...(this.includeStories ? [] : ['**/*.stories.*', '**/*.story.*', '**/__tests__/**'])
+      ]
     });
     
     if (this.verbose) {
@@ -237,17 +314,41 @@ class MultiFrameworkExtractor {
       await this.loadTokens();
     }
     
-    // Extract components using appropriate adaptors
-    for (const filePath of componentFiles) {
-      try {
-        await this.extractFromFile(filePath);
-        this.stats.filesProcessed++;
-      } catch (error) {
-        this.stats.filesSkipped++;
-        if (this.verbose) {
-          console.warn(chalk.yellow(`⚠️  Failed to process ${filePath}: ${error.message}`));
+    // Extract components using appropriate adaptors (with parallel processing)
+    const batchSize = 10; // Process 10 files at a time to avoid overwhelming the system
+    const fileBatches = [];
+    
+    for (let i = 0; i < componentFiles.length; i += batchSize) {
+      fileBatches.push(componentFiles.slice(i, i + batchSize));
+    }
+    
+    if (this.verbose) {
+      console.log(chalk.gray(`Processing ${componentFiles.length} files in ${fileBatches.length} batches of ${batchSize}`));
+    }
+    
+    for (const batch of fileBatches) {
+      await Promise.all(batch.map(async (filePath) => {
+        try {
+          await this.extractFromFile(filePath);
+          this.stats.filesProcessed++;
+        } catch (error) {
+          this.stats.filesSkipped++;
+          if (this.verbose) {
+            console.warn(chalk.yellow(`⚠️  Failed to process ${filePath}: ${error.message}`));
+          }
         }
+      }));
+      
+      // Show progress for large extractions
+      if (!this.json && fileBatches.length > 10) {
+        const processed = Math.min(this.stats.filesProcessed + this.stats.filesSkipped, componentFiles.length);
+        const progress = ((processed / componentFiles.length) * 100).toFixed(1);
+        process.stdout.write(`\r🔄 Progress: ${progress}% (${processed}/${componentFiles.length})`);
       }
+    }
+    
+    if (!this.json && fileBatches.length > 10) {
+      process.stdout.write('\n'); // New line after progress indicator
     }
     
     this.stats.totalComponents = this.components.length;

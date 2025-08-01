@@ -12,6 +12,7 @@ import {
   ListToolsRequestSchema,
   ListResourcesRequestSchema,
   ListPromptsRequestSchema,
+  ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -70,14 +71,14 @@ class DCPMCPServer {
         this.registry = JSON.parse(registryData);
         
         if (force) {
-          console.log(`🔄 Registry reloaded: ${this.registry.components?.length || 0} components, ${Object.keys(this.registry.tokens || {}).length} token categories`);
+          console.error(`Registry reloaded: ${this.registry.components?.length || 0} components, ${Object.keys(this.registry.tokens || {}).length} token categories`);
         }
       } catch (error) {
         if (error.code === 'ENOENT') {
-          console.error(`❌ Registry not found at ${this.registryPath}`);
-          console.error(`💡 Hint: Run 'dcp extract' to create a registry first`);
+          console.error(`Registry not found at ${this.registryPath}`);
+          console.error(`Hint: Run 'dcp extract' to create a registry first`);
         } else {
-          console.error(`❌ Failed to load registry from ${this.registryPath}:`, error.message);
+          console.error(`Failed to load registry from ${this.registryPath}:`, error.message);
         }
         
         // Return empty registry as fallback with helpful error
@@ -116,22 +117,22 @@ class DCPMCPServer {
         clearTimeout(this.reloadDebounceTimer);
       }
       
-      this.reloadDebounceTimer = setTimeout(async () => {
-        console.log(`📁 Registry file changed: ${path.relative(this.registryPath, filePath)}`);
-        await this.loadRegistry(true); // Force reload
-      }, 200); // 200ms debounce
+              this.reloadDebounceTimer = setTimeout(async () => {
+          console.error(`Registry file changed: ${path.relative(this.registryPath, filePath)}`);
+          await this.loadRegistry(true); // Force reload
+        }, 200); // 200ms debounce
     });
 
     this.watcher.on('add', (filePath) => {
       if (path.basename(filePath) === 'registry.json') {
-        console.log(`📁 Registry file created: ${path.relative(this.registryPath, filePath)}`);
+        console.error(`Registry file created: ${path.relative(this.registryPath, filePath)}`);
         setTimeout(async () => {
           await this.loadRegistry(true);
         }, 100);
       }
     });
 
-    console.log(`👀 Watching for registry changes in: ${this.registryPath}`);
+    console.error(`Watching for registry changes in: ${this.registryPath}`);
   }
 
   async start() {
@@ -144,10 +145,10 @@ class DCPMCPServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     
-    console.log(`🧠 DCP MCP Server v2.0 started`);
-    console.log(`📁 Registry: ${this.registryPath}`);
-    console.log(`📊 Components: ${this.registry.components?.length || 0}`);
-    console.log(`🎨 Token categories: ${Object.keys(this.registry.tokens || {}).length}`);
+    console.error(`DCP MCP Server v2.0 started`);
+    console.error(`Registry: ${this.registryPath}`);
+    console.error(`Components: ${this.registry.components?.length || 0}`);
+    console.error(`Token categories: ${Object.keys(this.registry.tokens || {}).length}`);
   }
 
   async stop() {
@@ -673,6 +674,68 @@ class DCPMCPServer {
       return { resources };
     });
 
+    // Add resource reader handler
+    this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+      const uri = request.params.uri;
+      
+      try {
+        if (uri === 'registry://components') {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify(this.registry, null, 2),
+              },
+            ],
+          };
+        } else if (uri.startsWith('registry://component/')) {
+          const componentName = uri.replace('registry://component/', '');
+          const component = this.registry?.components?.find(c => c.name === componentName);
+          
+          if (!component) {
+            throw new Error(`Component not found: ${componentName}`);
+          }
+          
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify(component, null, 2),
+              },
+            ],
+          };
+        } else if (uri === 'registry://tokens') {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify(this.registry?.tokens || {}, null, 2),
+              },
+            ],
+          };
+        } else {
+          throw new Error(`Unknown resource: ${uri}`);
+        }
+      } catch (error) {
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: 'application/json',
+              text: JSON.stringify({
+                error: true,
+                message: error.message,
+                uri
+              }, null, 2),
+            },
+          ],
+        };
+      }
+    });
+
     // Add MCP prompts handler  
     this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
       return {
@@ -882,7 +945,7 @@ ${response.examples.map((ex, i) => `${i + 1}. ${ex.name}: ${ex.code}`).join('\n'
           type: 'text',
           text: `Code Validation Results:
 
-Status: ${isValid ? '✅ VALID' : '❌ INVALID'}
+Status: ${isValid ? 'VALID' : 'INVALID'}
 Component: ${component || 'Not specified'}
 Violations: ${violations.length}
 
@@ -894,7 +957,7 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.issue}
    Alternatives: ${s.alternatives.join(', ')}`).join('\n')}` : ''}
 
 Summary: ${isValid ? 
-  'Code follows design system constraints ✅' : 
+  'Code follows design system constraints' : 
   `Found ${violations.length} design system violations`}`,
         },
       ],
@@ -951,23 +1014,23 @@ Total: ${suggestions.length} suggestions found`,
             type: 'text',
             text: `Project Scan Results:
 
-📁 Path: ${projectPath}
-🎯 Framework: ${intelligence.projectStructure.conventions.framework}
-📊 Confidence: ${intelligence.intelligence.confidence}%
-🚀 Readiness: ${intelligence.intelligence.readiness}
+Path: ${projectPath}
+Framework: ${intelligence.projectStructure.conventions.framework}
+Confidence: ${intelligence.intelligence.confidence}%
+Readiness: ${intelligence.intelligence.readiness}
 
-${validation.canProceed ? '✅ CAN PROCEED' : '❌ NEEDS SETUP'}
+${validation.canProceed ? 'CAN PROCEED' : 'NEEDS SETUP'}
 
-${validation.extractionCapabilities?.length > 0 ? `🎯 Extraction Capabilities:
-${validation.extractionCapabilities.map(cap => `   ✅ ${cap}`).join('\n')}` : ''}
+${validation.extractionCapabilities?.length > 0 ? `Extraction Capabilities:
+${validation.extractionCapabilities.map(cap => `   - ${cap}`).join('\n')}` : ''}
 
-${intelligence.setupInstructions?.length > 0 ? `📋 Setup Instructions:
+${intelligence.setupInstructions?.length > 0 ? `Setup Instructions:
 ${intelligence.setupInstructions.map(instr => `   • ${instr}`).join('\n')}` : ''}
 
-${intelligence.intelligence.recommendations?.length > 0 ? `💡 Recommendations:
+${intelligence.intelligence.recommendations?.length > 0 ? `Recommendations:
 ${intelligence.intelligence.recommendations.map(rec => `   • ${rec}`).join('\n')}` : ''}
 
-📊 Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} warnings, ${validation.summary.suggestions} suggestions`,
+Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} warnings, ${validation.summary.suggestions} suggestions`,
           },
         ],
       };
@@ -1706,8 +1769,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const registryPath = process.argv[2] || './registry';
   const server = new DCPMCPServer(registryPath);
   
-  console.error('🧠 DCP MCP Server starting...');
-  console.error(`📁 Registry path: ${registryPath}`);
+  console.error('DCP MCP Server starting...');
+  console.error(`Registry path: ${registryPath}`);
   
   server.start().catch((error) => {
     console.error('Failed to start MCP server:', error);
