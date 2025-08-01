@@ -630,6 +630,100 @@ class DCPMCPServer {
         };
       }
     });
+
+    // Add MCP resources handler
+    this.server.setRequestHandler({ method: 'resources/list' }, async () => {
+      await this.loadRegistry();
+      const resources = [];
+      
+      // Add registry as a resource
+      resources.push({
+        uri: `registry://components`,
+        name: 'Design System Components',
+        description: 'Complete component registry with props, variants, and design tokens',
+        mimeType: 'application/json'
+      });
+
+      // Add individual components as resources
+      if (this.registry?.components) {
+        for (const component of this.registry.components) {
+          resources.push({
+            uri: `registry://component/${component.name}`,
+            name: `${component.name} Component`,
+            description: component.description || `${component.name} component definition`,
+            mimeType: 'application/json'
+          });
+        }
+      }
+
+      // Add tokens as a resource
+      if (this.registry?.tokens) {
+        resources.push({
+          uri: `registry://tokens`,
+          name: 'Design Tokens',
+          description: 'Complete design token system with semantic and primitive tokens',
+          mimeType: 'application/json'
+        });
+      }
+
+      return { resources };
+    });
+
+    // Add MCP prompts handler  
+    this.server.setRequestHandler({ method: 'prompts/list' }, async () => {
+      return {
+        prompts: [
+          {
+            name: 'validate-component-usage',
+            description: 'Validate if component usage follows design system standards',
+            arguments: [
+              {
+                name: 'code',
+                description: 'JSX/TSX code to validate',
+                required: true
+              },
+              {
+                name: 'component',
+                description: 'Component name being used',
+                required: false
+              }
+            ]
+          },
+          {
+            name: 'suggest-component-alternatives',
+            description: 'Suggest valid alternatives for design system violations',
+            arguments: [
+              {
+                name: 'current',
+                description: 'Current token, prop, or variant being used',
+                required: true
+              },
+              {
+                name: 'type',
+                description: 'Type of suggestion needed (token, prop, variant)',
+                required: true
+              }
+            ]
+          },
+          {
+            name: 'generate-component-example',
+            description: 'Generate usage examples for a component',
+            arguments: [
+              {
+                name: 'component',
+                description: 'Component name to generate examples for',
+                required: true
+              },
+              {
+                name: 'variant',
+                description: 'Specific variant to show',
+                required: false
+              }
+            ]
+          }
+        ]
+      };
+    });
   }
 
   async handleQueryTokens({ filter = '*', category, format = 'css' }) {
