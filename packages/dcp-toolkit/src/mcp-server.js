@@ -921,14 +921,14 @@ Summary: ${isValid ?
       content: [
         {
           type: 'text',
-          text: JSON.stringify({
-            type,
-            current,
-            suggestions: suggestions.slice(0, 5), // Top 5 suggestions
-            message: suggestions.length > 0 ? 
-              `Found ${suggestions.length} alternatives for "${current}"` :
-              `No alternatives found for "${current}"`,
-          }, null, 2),
+          text: `Alternatives for "${current}" (${type}):
+
+${suggestions.length > 0 ? 
+  suggestions.slice(0, 5).map((alt, i) => `${i + 1}. ${alt}`).join('\n') :
+  'No alternatives found'
+}
+
+Total: ${suggestions.length} suggestions found`,
         },
       ],
     };
@@ -949,25 +949,25 @@ Summary: ${isValid ?
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              projectPath,
-              framework: intelligence.projectStructure.conventions.framework,
-              confidence: intelligence.intelligence.confidence,
-              readiness: intelligence.intelligence.readiness,
-              setupInstructions: intelligence.setupInstructions,
-              integrationChecklist: intelligence.integrationChecklist,
-              recommendations: intelligence.intelligence.recommendations,
-              detectedPaths: intelligence.projectStructure.detectedPaths,
-              dependencies: intelligence.dependencies,
-              validation: {
-                valid: validation.valid,
-                canProceed: validation.canProceed,
-                issues: validation.issues,
-                warnings: validation.warnings,
-                suggestions: validation.suggestions,
-                summary: validation.summary
-              }
-            }, null, 2),
+            text: `Project Scan Results:
+
+📁 Path: ${projectPath}
+🎯 Framework: ${intelligence.projectStructure.conventions.framework}
+📊 Confidence: ${intelligence.intelligence.confidence}%
+🚀 Readiness: ${intelligence.intelligence.readiness}
+
+${validation.canProceed ? '✅ CAN PROCEED' : '❌ NEEDS SETUP'}
+
+${validation.extractionCapabilities?.length > 0 ? `🎯 Extraction Capabilities:
+${validation.extractionCapabilities.map(cap => `   ✅ ${cap}`).join('\n')}` : ''}
+
+${intelligence.setupInstructions?.length > 0 ? `📋 Setup Instructions:
+${intelligence.setupInstructions.map(instr => `   • ${instr}`).join('\n')}` : ''}
+
+${intelligence.intelligence.recommendations?.length > 0 ? `💡 Recommendations:
+${intelligence.intelligence.recommendations.map(rec => `   • ${rec}`).join('\n')}` : ''}
+
+📊 Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} warnings, ${validation.summary.suggestions} suggestions`,
           },
         ],
       };
