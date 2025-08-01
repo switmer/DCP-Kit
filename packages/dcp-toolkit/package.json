@@ -1,9 +1,10 @@
 {
-  "name": "@dcp/toolkit",
-  "version": "2.0.0",
+  "name": "dcp-toolkit",
+  "version": "2.0.1",
   "description": "🛠 Design Context Protocol Toolkit - Extract, validate, and transform design systems automatically with CLI, API server, and integrations",
   "type": "module",
   "bin": {
+    "dcp-toolkit": "./bin/dcp.js",
     "dcp": "./bin/dcp.js",
     "dcp-transformer": "./bin/dcp.js",
     "dcp-transform": "./bin/dcp-transformer.js",
@@ -72,7 +73,7 @@
     "@babel/parser": "^7.26.0",
     "@babel/traverse": "^7.26.0",
     "@babel/types": "^7.26.0",
-    "@dcp/spec": "^1.0.0",
+    "dcp-spec": "^1.0.0",
     "@modelcontextprotocol/sdk": "^0.6.1",
     "@vitejs/plugin-react": "^4.2.0",
     "ajv": "^8.12.0",
