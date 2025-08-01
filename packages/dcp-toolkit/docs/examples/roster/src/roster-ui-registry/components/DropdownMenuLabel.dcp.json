@@ -1,0 +1,54 @@
+{
+  "name": "DropdownMenuLabel",
+  "description": "DropdownMenuLabel component",
+  "category": "components",
+  "props": {
+    "className": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "inset": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/DropdownMenu/index.tsx",
+    "componentType": "forwardRef",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:09:10.745Z"
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:09:11.427Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Test",
+  "description": "Test component",
+  "category": "components",
+  "props": {},
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "test-extract-src/Test.tsx",
+    "componentType": "function",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-27T20:04:01.091Z"
+  }
+}

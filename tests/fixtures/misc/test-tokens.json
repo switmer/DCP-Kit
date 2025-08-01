@@ -1,0 +1,19 @@
+{
+  "name": "token-test",
+  "version": "1.0.0",
+  "components": [
+    {
+      "name": "ThemedButton",
+      "tokens": {
+        "color.primary": "#007bff",
+        "spacing.md": "16px",
+        "typography.button": "inherit"
+      },
+      "styles": {
+        "default": "bg-primary-500 px-spacing-md font-typography-button",
+        "hover": "bg-primary-600"
+      },
+      "className": "shadow-elevation-high"
+    }
+  ]
+}

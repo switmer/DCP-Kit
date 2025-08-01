@@ -116,6 +116,20 @@ export async function runExtract(source, options = {}) {
       console.log(chalk.green(`🎨 ${tokenCategories} token category files written to: ${tokensDir}`));
     }
     
+    // Show performance metrics
+    const extractionTime = result.stats.extractionTime / 1000; // Convert to seconds
+    const componentsWithProps = result.registry.components.filter(c => c.props?.length > 0).length;
+    const successRate = componentCount > 0 ? (componentsWithProps / componentCount * 100).toFixed(1) : 0;
+    
+    console.log(chalk.blue('⚡ Performance Metrics:'));
+    console.log(chalk.gray(`   Files processed: ${result.stats.filesProcessed}`));
+    console.log(chalk.gray(`   Components found: ${componentCount}`));
+    console.log(chalk.gray(`   Components with props: ${componentsWithProps} (${successRate}%)`));
+    console.log(chalk.gray(`   Total time: ${extractionTime.toFixed(1)}s`));
+    if (componentCount > 0) {
+      console.log(chalk.gray(`   Average: ${(extractionTime / componentCount * 1000).toFixed(0)}ms per component`));
+    }
+    
     // Show adaptor usage stats
     if (result.stats.adaptorUsage) {
       console.log(chalk.gray('🔧 Adaptor Usage:'));
@@ -196,6 +210,8 @@ class MultiFrameworkExtractor {
   }
   
   async extract(globPattern) {
+    const startTime = performance.now();
+    
     // Extract theme context first
     const themeContext = await extractThemeContext(this.sourceDir, { verbose: this.verbose });
     
@@ -235,6 +251,11 @@ class MultiFrameworkExtractor {
     }
     
     this.stats.totalComponents = this.components.length;
+    
+    // Performance timing
+    const extractionTime = performance.now() - startTime;
+    this.stats.extractionTime = extractionTime;
+    this.stats.avgTimePerFile = componentFiles.length > 0 ? extractionTime / componentFiles.length : 0;
     
     // Enhance components with theme context
     const enhancedComponents = this.components.map(component => {
@@ -328,7 +349,7 @@ class MultiFrameworkExtractor {
     if (this.verbose && fileComponents.length > 0) {
       console.log(chalk.green(`   ✅ Found ${fileComponents.length} components`));
       fileComponents.forEach(comp => {
-        console.log(chalk.gray(`      - ${comp.name} (${comp.metadata.componentType})`));
+        console.log(chalk.gray(`      - ${comp.name} (${comp.extensions?.componentType || 'unknown'})`));
       });
     }
     

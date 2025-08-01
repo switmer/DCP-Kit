@@ -191,6 +191,182 @@ Examples:
   });
 
 program
+  .command('registry')
+  .description('Generate ShadCN-compatible registry from design system')
+  .addCommand(
+    program.createCommand('generate')
+      .description('Generate full registry from component directory')
+      .argument('<source>', 'source directory containing components')
+      .option('--format <format>', 'output format (shadcn, dcp)', 'shadcn')
+      .option('--name <name>', 'registry name', 'custom-ui')
+      .option('--homepage <url>', 'registry homepage URL')
+      .option('-o, --output <dir>', 'output directory', './registry')
+      .option('--verbose', 'verbose logging')
+      .addHelpText('after', `
+Examples:
+  $ dcp registry generate ./src/components/ui
+  $ dcp registry generate ./components --name "my-design-system" --output ./my-registry`)
+      .action(async (source, options, command) => {
+        try {
+          const { RegistryItemGenerator } = await import('../src/core/registryItemGenerator.js');
+          const { parseTSX } = await import('../src/core/parser.js');
+          const { glob } = await import('glob');
+          const fs = await import('fs/promises');
+          const path = await import('path');
+          const chalk = await import('chalk');
+          
+          console.log(chalk.default.blue(`🏗️  Generating ${options.format} registry from: ${source}`));
+          
+          const generator = new RegistryItemGenerator();
+          const registry = {
+            "$schema": "https://ui.shadcn.com/schema/registry.json",
+            "name": options.name,
+            "homepage": options.homepage || "",
+            "items": []
+          };
+
+          // Find all component files
+          const componentFiles = await glob.glob('**/*.{tsx,jsx}', { 
+            cwd: source, 
+            absolute: true 
+          });
+
+          if (options.verbose) {
+            console.log(chalk.default.gray(`Found ${componentFiles.length} component files`));
+          }
+
+          // Process each component file
+          let processedCount = 0;
+          for (const filePath of componentFiles) {
+            try {
+              // Skip test files, stories, etc.
+              const fileName = path.basename(filePath).toLowerCase();
+              if (fileName.includes('.test.') || fileName.includes('.spec.') || 
+                  fileName.includes('.stories.') || fileName === 'index.tsx' || fileName === 'index.jsx') {
+                if (options.verbose) {
+                  console.log(chalk.default.gray(`Skipping: ${fileName}`));
+                }
+                continue;
+              }
+
+              // Read source code
+              const sourceCode = await fs.readFile(filePath, 'utf-8');
+              
+              // Parse component with DCP parser
+              const dcpResult = await parseTSX(filePath, { verbose: options.verbose });
+              
+              if (!dcpResult) {
+                if (options.verbose) {
+                  console.log(chalk.default.gray(`No components found in: ${fileName}`));
+                }
+                continue;
+              }
+
+              // parseTSX returns a single component object, not an array
+              const dcpComponent = dcpResult;
+              
+              // Transform to ShadCN format
+              const registryItem = await generator.transformDCPToShadCN(dcpComponent, sourceCode, filePath);
+              
+              if (registryItem) {
+                registry.items.push(registryItem);
+                processedCount++;
+                
+                if (options.verbose) {
+                  console.log(chalk.default.green(`✓ Processed: ${registryItem.name}`));
+                }
+              }
+              
+            } catch (error) {
+              console.warn(chalk.default.yellow(`⚠️  Failed to process ${path.basename(filePath)}: ${error.message}`));
+              
+              if (options.verbose) {
+                console.error(error.stack);
+              }
+            }
+          }
+          
+          // Ensure output directory exists
+          await fs.mkdir(options.output, { recursive: true });
+          
+          // Write registry.json
+          const registryPath = path.join(options.output, 'registry.json');
+          await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
+          
+          console.log(chalk.default.green(`✅ Registry generated: ${registryPath}`));
+          console.log(chalk.default.gray(`   Components: ${registry.items.length}`));
+          console.log(chalk.default.gray(`   Processed: ${processedCount}/${componentFiles.length} files`));
+          
+        } catch (error) {
+          console.error(chalk.default.red('❌ Registry generation failed:'), error.message);
+          if (options.verbose) {
+            console.error(error.stack);
+          }
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    program.createCommand('item')
+      .description('Generate single registry item from component file or DCP JSON')
+      .argument('<component>', 'component file path or DCP JSON file')
+      .option('--format <format>', 'output format (shadcn, dcp)', 'shadcn')
+      .option('-o, --output <file>', 'output file path')
+      .option('--verbose', 'verbose logging')
+      .addHelpText('after', `
+Examples:
+  $ dcp registry item ./src/components/Button.tsx
+  $ dcp registry item ./registry/Button.dcp.json --output button-registry.json`)
+      .action(async (component, options) => {
+        try {
+          const { RegistryItemGenerator } = await import('../src/core/registryItemGenerator.js');
+          const { parseTSX } = await import('../src/core/parser.js');
+          const fs = await import('fs/promises');
+          const chalk = await import('chalk');
+          
+          console.log(chalk.default.blue(`🔧 Generating registry item for: ${component}`));
+          
+          const generator = new RegistryItemGenerator();
+          let registryItem;
+          
+          // Check if input is a DCP JSON file
+          if (component.endsWith('.dcp.json')) {
+            // Load DCP JSON and transform
+            const dcpData = JSON.parse(await fs.readFile(component, 'utf-8'));
+            registryItem = await generator.transformDCPToShadCN(dcpData);
+          } else {
+            // Process component file
+            const sourceCode = await fs.readFile(component, 'utf-8');
+            const dcpResult = await parseTSX(component, { verbose: options.verbose });
+            
+            if (!dcpResult) {
+              throw new Error(`No components found in: ${component}`);
+            }
+
+            // parseTSX returns a single component object, not an array
+            const dcpComponent = dcpResult;
+            registryItem = await generator.transformDCPToShadCN(dcpComponent, sourceCode, component);
+          }
+          
+          if (options.output) {
+            await fs.writeFile(options.output, JSON.stringify(registryItem, null, 2));
+            console.log(chalk.default.green(`✅ Registry item written: ${options.output}`));
+          } else {
+            console.log(JSON.stringify(registryItem, null, 2));
+          }
+          
+        } catch (error) {
+          const chalk = await import('chalk');
+          console.error(chalk.default.red('❌ Registry item generation failed:'), error.message);
+          if (options.verbose) {
+            console.error(error.stack);
+          }
+          process.exit(1);
+        }
+      })
+  );
+
+program
   .command('build')
   .description('Build DCP registry from configuration')
   .option('-c, --config <path>', 'config file path', './dcp.config.json')
@@ -575,7 +751,7 @@ Examples:
   });
 
 program
-  .command('validate <registry>')
+  .command('validate-registry <registry>')
   .description('Validate registry structure against DCP schema')
   .option('--json', 'output machine-readable JSON')
   .option('--strict', 'enable strict validation mode')
@@ -595,9 +771,9 @@ program
   .option('--verify-integrity', 'verify registry checksums and signatures')
   .addHelpText('after', `
 Examples:
-  $ dcp validate registry.json --json
-  $ dcp validate registry.json --strict
-  $ dcp validate registry.json`)
+  $ dcp validate-registry registry.json --json
+  $ dcp validate-registry registry.json --strict
+  $ dcp validate-registry registry.json`)
   .action(async (registry, options) => {
     try {
       const { validateRegistry } = await import('../src/commands/validate.js');
@@ -606,21 +782,35 @@ Examples:
         console.log(`✅ Validating ${registry}...`);
       }
       
-      const result = await validateRegistry(registry);
+      const result = await validateRegistry(registry, options);
       
       if (options.json) {
         console.log(JSON.stringify({
-          success: true,
-          valid: result.isValid,
+          success: result.success,
+          valid: result.valid,
+          componentsValidated: result.componentsValidated,
           errors: result.errors || [],
+          warnings: result.warnings || [],
           registryPath: registry
         }, null, 2));
       } else {
         console.log(`📊 Validation complete`);
       }
+      
+      // Exit with non-zero code if validation failed
+      if (!result.success) {
+        process.exit(1);
+      }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.log(JSON.stringify({ 
+          success: false, 
+          valid: false,
+          componentsValidated: 0,
+          errors: [error.message],
+          warnings: [],
+          registryPath: registry
+        }, null, 2));
       } else {
         console.error('❌ Validation failed:', error.message);
       }

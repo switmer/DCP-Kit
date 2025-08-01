@@ -1,0 +1,10 @@
+{
+  "extractedAt": "2025-07-31T22:08:47.442Z",
+  "sourceDir": "components/ui",
+  "transformedFrom": "multi-framework",
+  "version": "3.0.0",
+  "adaptorRegistry": [
+    "react-tsx",
+    "shadcn-react-tsx"
+  ]
+}

@@ -21,6 +21,22 @@ import { ProjectIntelligenceScanner } from './core/projectIntelligence.js';
 import { ProjectValidator } from './core/projectValidator.js';
 // import { AssetAnalyzer } from './core/assetAnalyzer.js';
 
+// -------------------------------------------------------------------------------------------------
+// Prevent human-readable logs from corrupting the MCP JSON stream.
+// If the process is launched with `--stdio` (Claude / LLM tooling) or MCP_STDIO=true,
+// redirect all console.log output to stderr so stdout remains JSON-only.
+// -------------------------------------------------------------------------------------------------
+
+if (process.argv.includes('--stdio') || process.env.MCP_STDIO === 'true') {
+  const originalLog = console.log;
+  console.log = (...args) => {
+    // Preserve timestamps/formatting if needed
+    console.error(...args);
+  };
+  // Optional: surface a hint once on stderr
+  console.error('[mcp-server] console.log redirected to stderr to keep stdout JSON-clean');
+}
+
 class DCPMCPServer {
   constructor(registryPath = './registry') {
     this.registryPath = path.resolve(registryPath);

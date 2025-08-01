@@ -1,0 +1,176 @@
+{
+  "name": "DepartmentTable",
+  "description": "DepartmentTable component",
+  "category": "components",
+  "props": {
+    "children": {
+      "type": "array",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "isHistorical": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "title": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "callTime": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "count": {
+      "type": "number",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "loading": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "checked": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "setChecked": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "sentCount": {
+      "type": "number",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "confirmedCount": {
+      "type": "number",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "pendingCount": {
+      "type": "number",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "checkedCount": {
+      "type": "number",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "onSend": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "sheetId": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "projectId": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "setRefreshKey": {
+      "type": "number",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "isEntity": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "entityId": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "isTalent": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "hasCallSheet": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "isPdfOutdated": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "customPrefix": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/Department/Table.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:09:13.162Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:09:13.608Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

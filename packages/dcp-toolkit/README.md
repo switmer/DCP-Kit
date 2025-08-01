@@ -1,6 +1,8 @@
-# @dcp/toolkit
+# 🎯 Design Context Protocol (DCP)
 
-Design Component Protocol (DCP) reference implementation toolkit containing CLI, API server, and development integrations.
+**The first generative UI infrastructure for design systems.**
+
+DCP automatically transforms any design system codebase into ShadCN-compatible registries with full theming intelligence, component composition analysis, and AI-ready metadata.
 
 ## Overview
 

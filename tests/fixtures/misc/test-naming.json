@@ -1,0 +1,18 @@
+{
+  "name": "naming-test",
+  "version": "1.0.0",
+  "components": [
+    {
+      "name": "button",
+      "type": "component"
+    },
+    {
+      "name": "InputField",
+      "type": "component"
+    },
+    {
+      "name": "my-card",
+      "type": "component"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "ProgressBar",
+  "description": "ProgressBar component",
+  "category": "components",
+  "props": {},
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/ProgressBar/index.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:09:02.928Z"
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:09:02.929Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

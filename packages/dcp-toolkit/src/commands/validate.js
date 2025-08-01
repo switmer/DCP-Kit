@@ -67,11 +67,15 @@ export async function validateRegistry(registryPath, options = {}) {
       for (let i = 0; i < registry.components.length; i++) {
         const component = registry.components[i];
         
-        if (options.checkExamples) {
-          await validateComponentExamples(component, results);
+        // Always validate examples for basic consistency
+        await validateComponentExamples(component, results);
+        
+        if (options.checkExamples || options.strict) {
+          // Additional example validations
+          await validateAdvancedExamples(component, results);
         }
         
-        if (options.checkTokens) {
+        if (options.checkTokens || options.strictTokens) {
           await validateTokenUsage(component, results, options.strictTokens);
         }
         
@@ -142,6 +146,45 @@ async function validateBasicSchema(registry, results, options) {
   // Validate components array
   if (registry.components && !Array.isArray(registry.components)) {
     results.errors.push('Components must be an array');
+  }
+  
+  // Validate component structure
+  if (registry.components && Array.isArray(registry.components)) {
+    registry.components.forEach((component, index) => {
+      validateComponentStructure(component, results, index);
+    });
+  }
+}
+
+/**
+ * Validate individual component structure
+ */
+function validateComponentStructure(component, results, index) {
+  const componentId = component.name || `component[${index}]`;
+  
+  // Validate props structure
+  if (component.props) {
+    if (typeof component.props !== 'object' || Array.isArray(component.props)) {
+      results.errors.push(`Component ${componentId}: props must be an object`);
+    } else {
+      Object.entries(component.props).forEach(([propName, propDef]) => {
+        // Validate prop definition has required type field
+        if (!propDef.type) {
+          results.errors.push(`Component ${componentId}: prop '${propName}' is missing required 'type' field`);
+        } else {
+          // Validate type is a valid DCP type
+          const validTypes = ['string', 'number', 'boolean', 'object', 'array', 'function', 'element', 'node'];
+          if (!validTypes.includes(propDef.type)) {
+            results.errors.push(`Component ${componentId}: prop '${propName}' has invalid type '${propDef.type}'. Valid types: ${validTypes.join(', ')}`);
+          }
+          
+          // Validate values field only for string types
+          if (propDef.values && propDef.type !== 'string') {
+            results.errors.push(`Component ${componentId}: prop '${propName}' cannot have 'values' field unless type is 'string'`);
+          }
+        }
+      });
+    }
   }
 }
 
@@ -217,6 +260,31 @@ async function validateComponentExamples(component, results) {
       }
     }
   });
+}
+
+/**
+ * Advanced example validation (runs only with --check-examples)
+ */
+async function validateAdvancedExamples(component, results) {
+  if (!component.examples) return;
+  
+  // Check for unused variants (variants defined but not used in examples)
+  if (component.variants) {
+    const usedVariants = new Set();
+    
+    component.examples.forEach(example => {
+      const variantMatch = example.match(/variant=["'](\w+)["']/);
+      if (variantMatch) {
+        usedVariants.add(variantMatch[1]);
+      }
+    });
+    
+    Object.keys(component.variants).forEach(variant => {
+      if (!usedVariants.has(variant)) {
+        results.warnings.push(`unused variant '${variant}' in ${component.name}`);
+      }
+    });
+  }
 }
 
 /**

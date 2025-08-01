@@ -1,0 +1,92 @@
+{
+  "name": "Calendar",
+  "description": "Calendar component",
+  "category": "components",
+  "props": {
+    "positioning": {
+      "type": "enum",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "field": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "form": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "values": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "type": {
+      "type": "enum",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "classNames": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "setShowDatePicker": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "setRangeDatesCallback": {
+      "type": "enum",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/Calendar/index.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:09:16.397Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:09:16.818Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

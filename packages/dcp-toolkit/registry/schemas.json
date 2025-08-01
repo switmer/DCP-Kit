@@ -1,10 +1,235 @@
 {
-  "Component": {
+  "SimpleButton": {
     "type": "object",
     "properties": {
       "name": {
         "type": "string",
-        "const": "Component"
+        "const": "SimpleButton"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ]
+  },
+  "ProblematicComponent": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "ProblematicComponent"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ]
+  },
+  "NoPropsInterface": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "NoPropsInterface"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ]
+  },
+  "ClassComponent": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "ClassComponent"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ]
+  },
+  "ComplexCard": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "ComplexCard"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ]
+  },
+  "Button": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "Button"
       },
       "props": {
         "type": "array",

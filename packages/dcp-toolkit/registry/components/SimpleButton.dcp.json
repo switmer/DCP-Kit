@@ -1,21 +1,18 @@
 {
   "name": "SimpleButton",
-  "type": "component",
+  "description": "SimpleButton component",
   "category": "actions",
-  "description": "",
-  "filePath": "tests/unit/fixtures/simple-button.js",
-  "props": [],
+  "props": {},
   "variants": {},
   "composition": {
-    "subComponents": [],
-    "slots": []
+    "slots": [],
+    "subComponents": []
   },
   "examples": [],
-  "slots": [],
-  "metadata": {
+  "extensions": {
+    "filePath": "tests/unit/fixtures/simple-button.js",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-07-25T03:23:27.988Z"
-  },
-  "themeContext": null
+    "extractedAt": "2025-07-26T04:21:39.817Z"
+  }
 }

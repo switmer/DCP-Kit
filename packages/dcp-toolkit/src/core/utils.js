@@ -63,3 +63,35 @@ export const flatten = (obj, prefix = '', out = {}) => {
   });
   return out;
 };
+
+/**
+ * Convert string to kebab-case
+ */
+export function kebabCase(str) {
+  if (!str) return '';
+  
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2') // Insert dash between lowercase and uppercase
+    .replace(/[\s_]+/g, '-') // Replace spaces and underscores with dashes
+    .toLowerCase() // Convert to lowercase
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing dashes
+}
+
+/**
+ * Convert string to camelCase
+ */
+export function camelCase(str) {
+  if (!str) return '';
+  
+  return str
+    .replace(/[-_\s]+(.)?/g, (_, c) => c ? c.toUpperCase() : '') // Remove separators and capitalize next letter
+    .replace(/^[A-Z]/, c => c.toLowerCase()); // Ensure first letter is lowercase
+}
+
+/**
+ * Convert string to PascalCase
+ */
+export function pascalCase(str) {
+  const camelCased = camelCase(str);
+  return camelCased.charAt(0).toUpperCase() + camelCased.slice(1);
+}

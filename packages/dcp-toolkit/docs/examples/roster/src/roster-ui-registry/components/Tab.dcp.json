@@ -1,0 +1,86 @@
+{
+  "name": "Tab",
+  "description": "Tab component",
+  "category": "components",
+  "props": {
+    "options": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "selected": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "setSelected": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "defaultWidth": {
+      "type": "number",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "className": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "selectedBackgroundColor": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "selectedHeight": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/Tab/index.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:08:59.002Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:08:59.569Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

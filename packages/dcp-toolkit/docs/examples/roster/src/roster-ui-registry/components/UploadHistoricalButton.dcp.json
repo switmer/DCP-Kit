@@ -1,0 +1,56 @@
+{
+  "name": "UploadHistoricalButton",
+  "description": "UploadHistoricalButton component",
+  "category": "actions",
+  "props": {
+    "setShowUploadModal": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "variantStyle": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/UploadHistorical/index.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:08:53.734Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:08:54.210Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

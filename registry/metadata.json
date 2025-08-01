@@ -1,0 +1,40 @@
+{
+  "$schema": "https://dcp.dev/schemas/metadata.schema.json",
+  "registry": {
+    "name": "dcp-registry",
+    "version": "1.0.0",
+    "description": "Canonical DCP registry for design system components",
+    "url": "https://registry.dcp.dev",
+    "lastUpdated": "2025-08-01T23:55:00.000Z"
+  },
+  "stats": {
+    "totalComponents": 5,
+    "totalBlocks": 0,
+    "totalThemes": 0,
+    "totalTokens": 0,
+    "categories": {
+      "ui": 5,
+      "blocks": 0,
+      "layouts": 0
+    }
+  },
+  "schema": {
+    "version": "1.0.0",
+    "url": "https://dcp.dev/schemas/registry.schema.json"
+  },
+  "compatibility": {
+    "shadcn": "0.8.0",
+    "storybook": "8.0.0",
+    "figma": "1.0.0"
+  },
+  "extractedBy": {
+    "tool": "@dcp/toolkit",
+    "version": "2.0.0",
+    "timestamp": "2025-08-01T23:55:00.000Z",
+    "sourceDir": "test-extract-src",
+    "adaptorRegistry": [
+      "react-tsx",
+      "shadcn-react-tsx"
+    ]
+  }
+}

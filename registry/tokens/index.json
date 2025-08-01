@@ -1,0 +1,87 @@
+{
+  "$schema": "https://dcp.dev/schemas/tokens.schema.json",
+  "name": "dcp-tokens",
+  "version": "1.0.0",
+  "description": "Design tokens for DCP registry components",
+  "tokens": {
+    "colors": {
+      "background": {
+        "primary": {
+          "value": "hsl(0 0% 100%)",
+          "type": "color",
+          "description": "Primary background color"
+        },
+        "secondary": {
+          "value": "hsl(210 40% 98%)",
+          "type": "color",
+          "description": "Secondary background color"
+        }
+      },
+      "foreground": {
+        "primary": {
+          "value": "hsl(222.2 84% 4.9%)",
+          "type": "color",
+          "description": "Primary text color"
+        },
+        "secondary": {
+          "value": "hsl(215.4 16.3% 46.9%)",
+          "type": "color",
+          "description": "Secondary text color"
+        }
+      }
+    },
+    "spacing": {
+      "xs": {
+        "value": "0.25rem",
+        "type": "dimension",
+        "description": "Extra small spacing"
+      },
+      "sm": {
+        "value": "0.5rem", 
+        "type": "dimension",
+        "description": "Small spacing"
+      },
+      "md": {
+        "value": "1rem",
+        "type": "dimension", 
+        "description": "Medium spacing"
+      },
+      "lg": {
+        "value": "1.5rem",
+        "type": "dimension",
+        "description": "Large spacing"
+      }
+    },
+    "typography": {
+      "fontFamily": {
+        "sans": {
+          "value": "ui-sans-serif, system-ui, sans-serif",
+          "type": "fontFamily",
+          "description": "Default sans-serif font family"
+        }
+      },
+      "fontSize": {
+        "sm": {
+          "value": "0.875rem",
+          "type": "dimension",
+          "description": "Small font size"
+        },
+        "base": {
+          "value": "1rem",
+          "type": "dimension",
+          "description": "Base font size"
+        },
+        "lg": {
+          "value": "1.125rem",
+          "type": "dimension",
+          "description": "Large font size"
+        }
+      }
+    }
+  },
+  "meta": {
+    "extractedAt": "2025-08-01T23:55:00.000Z",
+    "source": "dcp-registry",
+    "format": "dtcg"
+  }
+}

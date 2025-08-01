@@ -1,21 +1,18 @@
 {
   "name": "ClassComponent",
-  "type": "component",
+  "description": "ClassComponent component",
   "category": "components",
-  "description": "",
-  "filePath": "tests/unit/fixtures/problematic-component.js",
-  "props": [],
+  "props": {},
   "variants": {},
   "composition": {
-    "subComponents": [],
-    "slots": []
+    "slots": [],
+    "subComponents": []
   },
   "examples": [],
-  "slots": [],
-  "metadata": {
+  "extensions": {
+    "filePath": "tests/unit/fixtures/problematic-component.js",
     "componentType": "function",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-07-25T03:23:28.198Z"
-  },
-  "themeContext": null
+    "extractedAt": "2025-07-26T04:21:41.072Z"
+  }
 }

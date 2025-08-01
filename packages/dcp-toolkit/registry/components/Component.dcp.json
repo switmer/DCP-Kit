@@ -1,21 +1,18 @@
 {
   "name": "Component",
-  "type": "component",
+  "description": "Component component",
   "category": "components",
-  "description": "",
-  "filePath": "tests/unit/temp-security-trust/file-types/Component.tsx",
-  "props": [],
+  "props": {},
   "variants": {},
   "composition": {
-    "subComponents": [],
-    "slots": []
+    "slots": [],
+    "subComponents": []
   },
   "examples": [],
-  "slots": [],
-  "metadata": {
+  "extensions": {
+    "filePath": "tests/unit/temp-security-trust/file-types/Component.tsx",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-07-25T03:23:30.603Z"
-  },
-  "themeContext": null
+    "extractedAt": "2025-07-26T04:21:34.883Z"
+  }
 }

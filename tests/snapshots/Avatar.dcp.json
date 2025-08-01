@@ -1,0 +1,65 @@
+{
+  "name": "Avatar",
+  "type": "component",
+  "category": "components",
+  "description": "",
+  "filePath": "baseweb/src/avatar/avatar.tsx",
+  "props": [
+    {
+      "name": "initials",
+      "type": "string",
+      "description": "Bypasses initial generation from provided name with this value.",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "description": "Defines an alternative text description of the image.",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "overrides",
+      "type": "import(\"/Users/stevewitmer/local_AI_Projects/DCP-Transformer/baseweb/src/avatar/types\").AvatarOverrides",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "description": "Defines the width/height of the image. Accepts labels from theme.sizing, or passes value to height/width.",
+      "required": true,
+      "source": "ts-morph",
+      "styleMapping": {
+        "type": "variant-styles",
+        "values": [],
+        "mappings": {},
+        "themeAware": false
+      }
+    },
+    {
+      "name": "src",
+      "type": "string",
+      "description": "Image to display.",
+      "required": true,
+      "source": "ts-morph"
+    }
+  ],
+  "variants": {},
+  "composition": {
+    "subComponents": [],
+    "slots": []
+  },
+  "examples": [],
+  "slots": [],
+  "metadata": {
+    "componentType": "function",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-26T03:17:30.199Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": null
+}

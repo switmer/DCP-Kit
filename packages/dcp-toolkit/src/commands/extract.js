@@ -136,4 +136,7 @@ async function extractStorybook() {
   }
 }
 
-extractStorybook(); 
+// Only run Storybook extraction if storybook-json option is provided
+if (options.storybookJson) {
+  extractStorybook();
+} 

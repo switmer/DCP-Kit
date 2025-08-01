@@ -1,28 +1,415 @@
 {
-  "name": "file-types",
+  "name": "fixtures",
   "version": "1.0.0",
-  "description": "DCP registry extracted from /Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/file-types",
+  "description": "DCP registry extracted from /Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures",
   "components": [
     {
-      "name": "Component",
-      "type": "component",
-      "category": "components",
-      "description": "",
-      "filePath": "tests/unit/temp-security-trust/file-types/Component.tsx",
-      "props": [],
+      "name": "SimpleButton",
+      "description": "SimpleButton component",
+      "category": "actions",
+      "props": {
+        "variant": {
+          "type": "enum",
+          "description": "Button variant",
+          "required": true,
+          "source": "auto"
+        },
+        "children": {
+          "type": "object",
+          "description": "Button content",
+          "required": true,
+          "source": "auto"
+        },
+        "onClick": {
+          "type": "object",
+          "description": "Click handler",
+          "required": true,
+          "source": "auto"
+        }
+      },
       "variants": {},
       "composition": {
-        "subComponents": [],
-        "slots": []
+        "slots": [],
+        "subComponents": []
       },
       "examples": [],
-      "slots": [],
-      "metadata": {
+      "extensions": {
+        "filePath": "tests/unit/fixtures/simple-button.tsx",
         "componentType": "arrow",
         "adaptor": "react-tsx",
-        "extractedAt": "2025-07-25T03:23:30.603Z"
+        "extractedAt": "2025-07-26T04:21:36.637Z",
+        "tsMorphAnalysis": true,
+        "typescriptAnalysis": true
+      }
+    },
+    {
+      "name": "SimpleButton",
+      "description": "SimpleButton component",
+      "category": "actions",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
       },
-      "themeContext": null
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/simple-button.js",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:39.817Z"
+      }
+    },
+    {
+      "name": "ProblematicComponent",
+      "description": "ProblematicComponent component",
+      "category": "components",
+      "props": {
+        "__index": {
+          "type": "object",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        },
+        "id": {
+          "type": "string",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        },
+        "variant": {
+          "type": "string",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        },
+        "onComplexEvent": {
+          "type": "string",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        },
+        "data": {
+          "type": "string",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        },
+        "computed": {
+          "type": "string",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        }
+      },
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/problematic-component.tsx",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:39.827Z",
+        "tsMorphAnalysis": true,
+        "typescriptAnalysis": true
+      }
+    },
+    {
+      "name": "NoPropsInterface",
+      "description": "NoPropsInterface component",
+      "category": "components",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/problematic-component.tsx",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:39.828Z"
+      }
+    },
+    {
+      "name": "ProblematicComponent",
+      "description": "ProblematicComponent component",
+      "category": "components",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/problematic-component.js",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:41.070Z"
+      }
+    },
+    {
+      "name": "ClassComponent",
+      "description": "ClassComponent component",
+      "category": "components",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/problematic-component.js",
+        "componentType": "function",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:41.072Z"
+      }
+    },
+    {
+      "name": "NoPropsInterface",
+      "description": "NoPropsInterface component",
+      "category": "components",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/problematic-component.js",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:41.074Z"
+      }
+    },
+    {
+      "name": "ComplexCard",
+      "description": "ComplexCard component",
+      "category": "layout",
+      "props": {
+        "variant": {
+          "type": "enum",
+          "description": "Card variant with multiple options",
+          "required": true,
+          "source": "auto"
+        },
+        "size": {
+          "type": "enum",
+          "description": "Card size",
+          "required": true,
+          "source": "auto"
+        },
+        "interactive": {
+          "type": "boolean",
+          "description": "Whether card is interactive",
+          "required": true,
+          "source": "auto"
+        },
+        "className": {
+          "type": "string",
+          "description": "Custom styling",
+          "required": true,
+          "source": "auto"
+        },
+        "children": {
+          "type": "object",
+          "description": "Card content",
+          "required": true,
+          "source": "auto"
+        },
+        "header": {
+          "type": "object",
+          "description": "Optional header slot",
+          "required": true,
+          "source": "auto"
+        },
+        "footer": {
+          "type": "object",
+          "description": "Optional footer slot",
+          "required": true,
+          "source": "auto"
+        },
+        "actions": {
+          "type": "string",
+          "description": "Optional actions",
+          "required": true,
+          "source": "auto"
+        },
+        "loading": {
+          "type": "boolean",
+          "description": "Loading state",
+          "required": true,
+          "source": "auto"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Disabled state",
+          "required": true,
+          "source": "auto"
+        },
+        "onClick": {
+          "type": "object",
+          "description": "Click handler for interactive cards",
+          "required": true,
+          "source": "auto"
+        },
+        "data-testid": {
+          "type": "string",
+          "description": "Additional data attributes",
+          "required": true,
+          "source": "auto"
+        }
+      },
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/complex-card.tsx",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:41.087Z",
+        "tsMorphAnalysis": true,
+        "typescriptAnalysis": true
+      }
+    },
+    {
+      "name": "ComplexCard",
+      "description": "ComplexCard component",
+      "category": "layout",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/complex-card.js",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:42.197Z"
+      }
+    },
+    {
+      "name": "Button",
+      "description": "Button component",
+      "category": "actions",
+      "props": {
+        "asChild": {
+          "type": "boolean",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        }
+      },
+      "variants": {
+        "variant": [
+          "default",
+          "destructive",
+          "outline",
+          "secondary",
+          "ghost",
+          "link"
+        ],
+        "size": [
+          "default",
+          "sm",
+          "lg",
+          "icon"
+        ]
+      },
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/shadcn/button.tsx",
+        "componentType": "forwardRef",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:42.224Z",
+        "tsMorphAnalysis": true,
+        "typescriptAnalysis": true
+      }
+    },
+    {
+      "name": "Button",
+      "description": "Button component",
+      "category": "actions",
+      "props": {
+        "variant": {
+          "type": "enum",
+          "description": "Button variation style",
+          "required": true,
+          "source": "auto"
+        },
+        "size": {
+          "type": "enum",
+          "description": "Button size",
+          "required": true,
+          "source": "auto"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the button is disabled",
+          "required": true,
+          "source": "auto"
+        },
+        "children": {
+          "type": "object",
+          "description": "Button contents",
+          "required": true,
+          "source": "auto"
+        },
+        "onClick": {
+          "type": "object",
+          "description": "Optional click handler",
+          "required": true,
+          "source": "auto"
+        }
+      },
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/src/components/Button.tsx",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:43.158Z",
+        "tsMorphAnalysis": true,
+        "typescriptAnalysis": true
+      }
+    },
+    {
+      "name": "Button",
+      "description": "Button component",
+      "category": "actions",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/fixtures/src/components/Button.js",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-07-26T04:21:43.720Z"
+      }
     }
   ],
   "tokens": {},
@@ -36,8 +423,8 @@
     "summary": "Theme Configuration: None detected\n- No theme configuration file found\n- No CSS variables extracted\n"
   },
   "metadata": {
-    "extractedAt": "2025-07-25T03:23:26.580Z",
-    "sourceDir": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/file-types",
+    "extractedAt": "2025-07-26T04:21:36.488Z",
+    "sourceDir": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures",
     "transformedFrom": "multi-framework",
     "version": "3.0.0",
     "adaptorRegistry": [
@@ -45,10 +432,20 @@
       "shadcn-react-tsx"
     ]
   },
-  "lastModified": "2025-07-25T03:23:32.238Z",
+  "lastModified": "2025-07-26T04:21:43.721Z",
   "intelligence": {
     "projectStructure": {
-      "detectedPaths": {},
+      "detectedPaths": {
+        "components": {
+          "path": "src/components",
+          "count": 3,
+          "structure": [
+            "src/components",
+            "src/components/Button.tsx",
+            "src/components/Button.js"
+          ]
+        }
+      },
       "aliases": [],
       "conventions": {
         "framework": "unknown",
@@ -57,19 +454,17 @@
         "bundler": "unknown",
         "features": []
       },
-      "recommendations": [
-        "Consider adding tsconfig.json with path aliases for cleaner imports"
-      ]
+      "recommendations": []
     },
     "environment": {
       "configFiles": {
-        "package.json": {
+        "tsconfig.json": {
           "exists": true,
-          "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/file-types/package.json"
+          "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tsconfig.json"
         }
       },
       "missingFiles": [
-        "tsconfig.json",
+        "package.json",
         "tailwind.config.js",
         "tailwind.config.ts",
         "components.json",
@@ -84,40 +479,11 @@
     "dependencies": {
       "required": [],
       "missing": [
-        "react"
+        "package.json"
       ],
       "versions": {},
       "graph": {},
-      "suggestions": [
-        {
-          "package": "typescript",
-          "reason": "For better type safety"
-        },
-        {
-          "package": "tailwindcss",
-          "reason": "For utility-first styling"
-        },
-        {
-          "package": "@radix-ui/react-slot",
-          "reason": "For flexible component composition"
-        },
-        {
-          "package": "class-variance-authority",
-          "reason": "For variant-driven components"
-        },
-        {
-          "package": "clsx",
-          "reason": "For conditional className composition"
-        },
-        {
-          "package": "lucide-react",
-          "reason": "For consistent iconography"
-        },
-        {
-          "package": "framer-motion",
-          "reason": "For smooth animations"
-        }
-      ]
+      "suggestions": []
     },
     "assets": {
       "imageProps": [],
@@ -131,19 +497,19 @@
       ]
     },
     "setupInstructions": [
-      "Install missing dependencies: npm install react",
+      "Install missing dependencies: npm install package.json",
       "Initialize ShadCN: npx shadcn-ui@latest init"
     ],
     "integrationChecklist": [
-      "❌ Create components directory structure",
+      "✅ Components directory structure detected",
       "❌ Install React",
-      "✅ Package.json is present",
+      "❌ Initialize package.json",
       "⚠️ Verify all image assets are provided",
       "⚠️ Test responsive behavior across breakpoints",
       "⚠️ Validate accessibility requirements"
     ],
     "intelligence": {
-      "confidence": 20,
+      "confidence": 10,
       "readiness": "needs-setup",
       "complexity": "high",
       "recommendations": [

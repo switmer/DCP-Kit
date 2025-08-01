@@ -1,6 +1,85 @@
 # Dependencies
 node_modules/
-npm-debug.log*
+npm-debug.log* 🔥 EXACTLY! You're spot-on - something is SERIOUSLY wrong here!
+
+  The 10-minute timeout is completely unacceptable after all our optimizations. Let me
+  trace what went sideways:
+
+  🚨 The Real Problem: We Lost Our AST Speed
+
+  What SHOULD Be Happening:
+
+  // Our optimized ts-morph with caching should be:
+  Block component: 325ms (as we tested) ✅
+  × 150-200 components = ~60 seconds total ✅
+
+  What's ACTUALLY Happening:
+
+  # Every single file is doing this slow dance:
+  Processing: src/theme.ts
+     ⚠️ TypeScript analysis failed, trying ts-morph
+     🔧 ts-morph extractor initialized successfully
+     [5+ seconds of slow TypeScript parsing]
+
+  🎯 The TSConfig JSON Parsing Bug
+
+  This Error is the Smoking Gun:
+
+  ⚠️ TypeScript analysis failed, trying ts-morph:
+  Expected double-quoted property name in JSON at position 49
+
+  What's Happening:
+
+  1. react-docgen-typescript fails on BaseWeb's tsconfig (malformed JSON)
+  2. Falls back to ts-morph - but ts-morph is ALSO parsing the same broken tsconfig
+  3. ts-morph reinitializes for every single file (expensive!)
+  4. No AST reuse - each file gets a fresh TypeScript compiler instance
+
+  🚀 The Fix: Skip The Broken TSConfig Path
+
+  Option 1: Force ts-morph to Use Fallback Config
+
+  // In tsMorphExtractor.js, bypass the broken tsconfig:
+  async initialize(projectPath) {
+    // Skip tsconfig entirely for BaseWeb - use fallback
+    this.project = new Project({
+      compilerOptions: {
+        target: ts.ScriptTarget.ES2020,
+        module: ts.ModuleKind.ESNext,
+        // ... our known-good config
+      }
+    });
+  }
+
+  Option 2: Fix The Adaptor Strategy
+
+  // In ReactTSX adaptor, detect the broken tsconfig and skip entirely:
+  if (this.detectBrokenTsconfig(filePath)) {
+    // Skip ALL TypeScript analysis, use Babel + ts-morph hybrid
+    return this.babelExtractor.extract(filePath);
+  }
+
+  Option 3: Pre-initialize ts-morph Once
+
+  // Initialize ts-morph ONCE per extraction, not per file:
+  constructor() {
+    this.tsMorphExtractor = null; // Initialize lazily
+    this.tsMorphInitialized = false;
+  }
+
+  // Instead of per-file initialization:
+  async initializeTSMorphOnce(projectRoot) {
+    if (!this.tsMorphInitialized) {
+      // One-time setup with cached TypeScript project
+      this.tsMorphExtractor = await createTSMorphExtractor();
+      this.tsMorphInitialized = true;
+    }
+  }
+
+  🔧 Quick Debug: Let's Check BaseWeb's TSConfig
+
+⏺ Read(baseweb/tsconfig.json)
+  ⎿  Read 20 lines (ctrl+r to expand)
 yarn-debug.log*
 yarn-error.log*
 

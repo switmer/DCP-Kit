@@ -1,0 +1,17 @@
+{
+  "name": "token-format-test",
+  "version": "1.0.0",
+  "components": [
+    {
+      "name": "FormatTest",
+      "tokens": {
+        "color.valid": "#ff0000",
+        "color.invalid": "not-a-color",
+        "spacing.valid": "16px",
+        "spacing.invalid": "invalid-spacing",
+        "number.valid": 42,
+        "number.invalid": "not-a-number"
+      }
+    }
+  ]
+}

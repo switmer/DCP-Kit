@@ -7,6 +7,7 @@ import { resolveExport } from './moduleResolver.js';
 import { symbolTable, getCachedAst, setCachedAst } from '../../core/graphCache.js';
 import { ThemeAnalyzer } from '../../core/themeAnalyzer.js';
 import { parseTSX } from '../../core/parser.js';
+import { createTSMorphExtractor } from '../../extractors/tsMorphExtractor.js';
 
 /**
  * React TSX Adaptor for DCP Transformer
@@ -39,6 +40,10 @@ export class ReactTSXAdaptor {
     // Initialize theme analyzer
     this.themeAnalyzer = new ThemeAnalyzer({ verbose: this.verbose });
     
+    // Initialize ts-morph extractor (lazy)
+    this.tsMorphExtractor = null;
+    this.tsMorphInitialized = false;
+    
     // Barrel resolution context
     this.resolverContext = {
       visitedFiles: new Set(),
@@ -48,6 +53,67 @@ export class ReactTSXAdaptor {
       traceBarrels: this.traceBarrels,
       verbose: this.verbose
     };
+  }
+
+  /**
+   * Initialize ts-morph extractor lazily - ONCE per project
+   */
+  async initializeTSMorph(projectPath) {
+    if (this.tsMorphInitialized) {
+      return this.tsMorphExtractor !== null;
+    }
+
+    try {
+      this.tsMorphExtractor = createTSMorphExtractor({
+        fallbackToUnknown: true,
+        includeInheritedProps: true,
+        maxDepth: 10
+      });
+
+      // Find project root (not per-file path)
+      const projectRoot = this.findProjectRoot(projectPath);
+      const success = await this.tsMorphExtractor.initialize(projectRoot);
+      this.tsMorphInitialized = true;
+
+      if (this.verbose && success) {
+        console.log(`   🔧 ts-morph extractor initialized successfully (once per project)`);
+      } else if (this.verbose) {
+        console.log(`   ⚠️ ts-morph extractor initialized with fallback config`);
+      }
+
+      return success;
+    } catch (error) {
+      if (this.verbose) {
+        console.log(`   ❌ ts-morph extractor initialization failed: ${error.message}`);
+      }
+      this.tsMorphExtractor = null;
+      this.tsMorphInitialized = true;
+      return false;
+    }
+  }
+
+  /**
+   * Find project root (where package.json or tsconfig.json lives)
+   */
+  findProjectRoot(startPath) {
+    let currentPath = startPath;
+    while (currentPath && currentPath !== '/') {
+      const packageJsonPath = path.join(currentPath, 'package.json');
+      const tsconfigPath = path.join(currentPath, 'tsconfig.json');
+      
+      try {
+        if (require('fs').existsSync(packageJsonPath) || require('fs').existsSync(tsconfigPath)) {
+          return currentPath;
+        }
+      } catch (error) {
+        // Continue searching up the tree
+      }
+      
+      currentPath = path.dirname(currentPath);
+    }
+    
+    // Fallback to startPath if no project root found
+    return startPath;
   }
 
   canProcess(filePath, source) {
@@ -68,19 +134,24 @@ export class ReactTSXAdaptor {
 
   async extractComponents(filePath, source, options = {}) {
     try {
-      // Try TypeScript-aware parsing first for .tsx/.ts files
+      // TEMPORARY: Skip react-docgen-typescript entirely - it fails on BaseWeb's malformed tsconfig
+      // Go straight to ts-morph for TypeScript files (much faster)
       const isTypeScript = filePath.endsWith('.tsx') || filePath.endsWith('.ts');
       let tsxResult = null;
       
       if (isTypeScript) {
-        try {
-          tsxResult = await parseTSX(filePath);
-          if (this.verbose && tsxResult) {
-            console.log(`   ✅ TypeScript analysis successful: ${tsxResult.name}`);
-          }
-        } catch (error) {
-          if (this.verbose) {
-            console.log(`   ⚠️ TypeScript analysis failed, falling back to Babel: ${error.message}`);
+        if (this.verbose) {
+          console.log(`   🚀 Using ts-morph directly (skipping react-docgen-typescript)`);
+        }
+        
+        if (!this.tsMorphInitialized) {
+          try {
+            await this.initializeTSMorph(path.dirname(filePath));
+            // We'll use ts-morph during component processing
+          } catch (tsMorphError) {
+            if (this.verbose) {
+              console.log(`   ⚠️ ts-morph initialization failed: ${tsMorphError.message}`);
+            }
           }
         }
       }
@@ -151,6 +222,8 @@ export class ReactTSXAdaptor {
       
       // Enhance with TypeScript analysis if available
       let enhanced = deduplicated;
+      
+      // Primary: react-docgen-typescript enhancement  
       if (tsxResult && enhanced.length > 0) {
         enhanced = enhanced.map(component => {
           // Match TypeScript data to Babel component by name
@@ -188,6 +261,65 @@ export class ReactTSXAdaptor {
           return component;
         });
       }
+      
+      // Secondary: ts-morph enhancement for components without TypeScript props
+      if (this.tsMorphExtractor && enhanced.length > 0) {
+        enhanced = await Promise.all(enhanced.map(async (component) => {
+          // Skip if component already has rich TypeScript props (not just Babel unknowns)
+          if (component.props && component.props.length > 0 && 
+              component.props.some(p => p.source !== 'babel' && p.type !== 'unknown')) {
+            return component;
+          }
+          
+          try {
+            if (this.verbose) {
+              console.log(`   🔍 Attempting ts-morph enhancement for: ${component.name}`);
+            }
+            
+            const tsMorphResult = await this.tsMorphExtractor.extractComponentProps(
+              filePath, 
+              component.name
+            );
+            
+            if (this.verbose) {
+              console.log(`   📊 ts-morph result: success=${tsMorphResult.success}, props=${tsMorphResult.props?.length || 0}, error=${tsMorphResult.error || 'none'}`);
+            }
+            
+            if (tsMorphResult.success && tsMorphResult.props.length > 0) {
+              if (this.verbose) {
+                console.log(`   🔧 ts-morph enhanced: ${component.name} (${tsMorphResult.props.length} props)`);
+              }
+              
+              // Transform ts-morph props to DCP format
+              const dcpProps = {};
+              tsMorphResult.props.forEach(prop => {
+                dcpProps[prop.name] = {
+                  type: this.mapTypeToDCPEnum(prop.type),
+                  description: prop.description || '',
+                  required: prop.required !== false,
+                  source: this.mapSourceToDCPEnum(prop.source)
+                };
+              });
+
+              return {
+                ...component,
+                props: dcpProps,
+                extensions: {
+                  ...component.extensions,
+                  tsMorphAnalysis: true,
+                  typescriptAnalysis: true
+                }
+              };
+            }
+          } catch (error) {
+            if (this.verbose) {
+              console.log(`   ⚠️ ts-morph failed for ${component.name}: ${error.message}`);
+            }
+          }
+          
+          return component;
+        }));
+      }
 
       // Enhance components with theme-aware context
       const themeEnhanced = await Promise.all(
@@ -199,6 +331,13 @@ export class ReactTSXAdaptor {
       if (this.verbose) {
         const tsEnhanced = themeEnhanced.filter(c => c.metadata?.typescriptAnalysis).length;
         console.log(`[ReactTSX] ${filePath}: Found ${themeEnhanced.length} components (${tsEnhanced} TypeScript-enhanced)`);
+        
+        // Show ts-morph performance metrics if available
+        if (this.tsMorphExtractor && this.tsMorphExtractor.cacheStats.totalQueries > 0) {
+          const stats = this.tsMorphExtractor.cacheStats;
+          const hitRate = ((stats.typeCacheHits + stats.symbolCacheHits + stats.intersectionCacheHits) / stats.totalQueries * 100).toFixed(1);
+          console.log(`   📊 ts-morph: ${stats.totalQueries} queries, ${hitRate}% cache hit rate, ${stats.reactDomSkips} DOM skips`);
+        }
       }
       
       return themeEnhanced;
@@ -237,14 +376,20 @@ export class ReactTSXAdaptor {
       return false;
     }
     
+    // Unwrap TypeScript type casting first (e.g., React.forwardRef(...) as ForwardRefComponent)
+    let init = node.init;
+    if (t.isTSAsExpression(init)) {
+      init = init.expression;
+    }
+    
     // Standard arrow/function expressions
-    if (t.isArrowFunctionExpression(node.init) || t.isFunctionExpression(node.init)) {
+    if (t.isArrowFunctionExpression(init) || t.isFunctionExpression(init)) {
       return true;
     }
     
     // HOC patterns (forwardRef, memo, etc.)
-    if (this.unwrapHOCs && t.isCallExpression(node.init)) {
-      const unwrapped = this.unwrapHOC(node.init);
+    if (this.unwrapHOCs && t.isCallExpression(init)) {
+      const unwrapped = this.unwrapHOC(init);
       return t.isArrowFunctionExpression(unwrapped) || t.isFunctionExpression(unwrapped);
     }
     
@@ -294,8 +439,14 @@ export class ReactTSXAdaptor {
     const name = node.id?.name;
     if (!name || !this.isReactComponentName(name)) return null;
 
-    const funcNode = this.unwrapHOCs ? this.unwrapHOC(node.init) : node.init;
-    const componentType = node.init !== funcNode ? 'forwardRef' : 'arrow';
+    // Unwrap TypeScript type casting first
+    let init = node.init;
+    if (t.isTSAsExpression(init)) {
+      init = init.expression;
+    }
+
+    const funcNode = this.unwrapHOCs ? this.unwrapHOC(init) : init;
+    const componentType = init !== funcNode ? 'forwardRef' : (t.isCallExpression(init) ? 'forwardRef' : 'arrow');
 
     return this.createComponentDescriptor({
       name,
@@ -364,23 +515,86 @@ export class ReactTSXAdaptor {
   }
 
   createComponentDescriptor({ name, filePath, source, node, componentType, props, variants }) {
+    // Transform props from array to object format for DCP compliance
+    const propsObject = {};
+    if (props && Array.isArray(props)) {
+      props.forEach(prop => {
+        propsObject[prop.name] = {
+          type: this.mapTypeToDCPEnum(prop.type),
+          description: prop.description || '',
+          required: prop.required !== false,
+          source: this.mapSourceToDCPEnum(prop.source)
+        };
+        
+        // Add options array if we can infer enum values
+        if (prop.options && Array.isArray(prop.options)) {
+          propsObject[prop.name].options = prop.options;
+        }
+      });
+    }
+
+    // DCP-compliant component format
     return {
       name,
-      type: 'component',
+      description: this.extractDescription(node, source) || `${name} component`,
       category: this.inferCategory(name),
-      description: this.extractDescription(node, source),
-      filePath: path.relative(process.cwd(), filePath),
-      props: props || [],
+      props: propsObject,
       variants: variants || {},
-      composition: { subComponents: [], slots: [] },
+      composition: {
+        slots: [],
+        subComponents: []
+      },
       examples: [],
-      slots: [],
-      metadata: {
+      // Optional extensions for metadata we want to preserve
+      extensions: {
+        filePath: path.relative(process.cwd(), filePath),
         componentType,
         adaptor: 'react-tsx',
         extractedAt: new Date().toISOString()
       }
     };
+  }
+
+  /**
+   * Map TypeScript types to DCP schema enum values
+   */
+  mapTypeToDCPEnum(tsType) {
+    if (!tsType || tsType === 'unknown') return 'object';
+    
+    const typeStr = tsType.toString().toLowerCase();
+    
+    if (typeStr.includes('string') || typeStr.includes('String')) return 'string';
+    if (typeStr.includes('number') || typeStr.includes('Number')) return 'number';
+    if (typeStr.includes('boolean') || typeStr.includes('Boolean')) return 'boolean';
+    if (typeStr.includes('[]') || typeStr.includes('Array')) return 'array';
+    if (typeStr.includes('|') && !typeStr.includes('undefined')) return 'enum';
+    
+    // Default to object for complex types (React.ReactNode, custom interfaces, etc.)
+    return 'object';
+  }
+
+  /**
+   * Map source attribution to DCP schema enum values
+   */
+  mapSourceToDCPEnum(source) {
+    if (!source) return 'auto';
+    
+    // Map our internal sources to DCP enum values
+    switch (source) {
+      case 'ts-morph':
+      case 'react-tsx':
+      case 'typescript':
+      case 'babel':
+        return 'auto';
+      case 'llm':
+      case 'ai':
+        return 'llm';
+      case 'manual':
+      case 'user':
+        return 'manual';
+      default:
+        return 'auto';
+    }
   }
 
   inferComponentName(filePath) {
@@ -514,9 +728,9 @@ export class ReactTSXAdaptor {
     
     // Mark as barrel re-export for deduplication logic
     if (!descriptor.canonical) {
-      component.metadata.source = 'barrel';
+      component.extensions.source = 'barrel';
       if (descriptor.alias) {
-        component.metadata.alias = descriptor.alias;
+        component.extensions.alias = descriptor.alias;
       }
     }
     
@@ -534,8 +748,8 @@ export class ReactTSXAdaptor {
         deduped.push(component);
       } else {
         // Prefer direct components over barrel re-exports
-        const isExistingBarrel = existing.metadata?.source === 'barrel';
-        const isCurrentBarrel = component.metadata?.source === 'barrel';
+        const isExistingBarrel = existing.extensions?.source === 'barrel';
+        const isCurrentBarrel = component.extensions?.source === 'barrel';
         
         if (isExistingBarrel && !isCurrentBarrel) {
           const index = deduped.findIndex(c => c.name === component.name);
@@ -545,8 +759,8 @@ export class ReactTSXAdaptor {
           }
         }
         // Also prefer named exports over default exports
-        else if (existing.metadata.componentType.includes('default') && 
-            !component.metadata.componentType.includes('default')) {
+        else if (existing.extensions?.componentType?.includes('default') && 
+            !component.extensions?.componentType?.includes('default')) {
           const index = deduped.findIndex(c => c.name === component.name);
           if (index >= 0) {
             deduped[index] = component;

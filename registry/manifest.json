@@ -1,0 +1,19 @@
+{
+  "$schema": "https://dcp.dev/schemas/manifest.schema.json",
+  "name": "dcp-registry",
+  "version": "1.0.0",
+  "description": "Canonical DCP registry for design system components",
+  "structure": {
+    "components/ui/": "Individual UI components (buttons, inputs, etc.)",
+    "components/blocks/": "Compound components and layouts", 
+    "themes/": "Design tokens and theme definitions",
+    "tokens/": "Raw token files and color palettes"
+  },
+  "schema": "https://dcp.dev/schemas/registry.schema.json",
+  "lastUpdated": "1725179200000",
+  "stats": {
+    "totalComponents": 5,
+    "totalThemes": 0,
+    "totalTokens": 0
+  }
+}

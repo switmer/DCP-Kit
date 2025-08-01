@@ -1,7 +1,7 @@
 {
   "name": "@dcp/toolkit",
   "version": "2.0.0",
-  "description": "Design Component Protocol - Reference implementation toolkit with CLI, API server, and integrations",
+  "description": "🛠 Design Context Protocol Toolkit - Extract, validate, and transform design systems automatically with CLI, API server, and integrations",
   "type": "module",
   "bin": {
     "dcp": "./bin/dcp.js",
@@ -33,34 +33,46 @@
   },
   "keywords": [
     "dcp",
-    "design-component-protocol",
+    "design-context-protocol",
     "cli",
-    "toolkit",
-    "implementation",
+    "design-systems",
+    "component-extraction",
+    "shadcn",
+    "storybook",
+    "figma",
     "react",
+    "vue",
+    "angular",
     "typescript",
     "design-tokens",
+    "registry",
     "ai-agent",
     "llm",
-    "mutation",
-    "json-patch"
+    "component-library",
+    "ast-parsing",
+    "json-patch",
+    "mutation-testing"
   ],
   "author": "Steve Witmer",
   "license": "MIT",
+  "homepage": "https://github.com/stevewitmer/dcp-transformer#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/stevewitmer/dcp-transformer.git",
     "directory": "packages/dcp-toolkit"
   },
+  "bugs": {
+    "url": "https://github.com/stevewitmer/dcp-transformer/issues"
+  },
   "engines": {
     "node": ">=16.0.0"
   },
   "dependencies": {
-    "@dcp/spec": "file:../dcp-spec",
     "@babel/core": "^7.26.0",
     "@babel/parser": "^7.26.0",
     "@babel/traverse": "^7.26.0",
     "@babel/types": "^7.26.0",
+    "@dcp/spec": "^1.0.0",
     "@modelcontextprotocol/sdk": "^0.6.1",
     "@vitejs/plugin-react": "^4.2.0",
     "ajv": "^8.12.0",
@@ -69,6 +81,7 @@
     "chokidar": "^3.6.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "colord": "^2.9.3",
     "commander": "^11.0.0",
     "cors": "^2.8.5",
     "diff": "^7.0.0",

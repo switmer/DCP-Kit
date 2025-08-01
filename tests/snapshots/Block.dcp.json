@@ -1,0 +1,518 @@
+{
+  "name": "Block",
+  "type": "component",
+  "category": "components",
+  "description": "",
+  "filePath": "baseweb/src/block/block.tsx",
+  "props": [
+    {
+      "name": "forwardedRef",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "children",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "as",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": "div"
+    },
+    {
+      "name": "overrides",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "color",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null,
+      "styleMapping": {
+        "type": "variant-styles",
+        "values": [],
+        "mappings": {},
+        "themeAware": false
+      }
+    },
+    {
+      "name": "backgroundAttachment",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "backgroundClip",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "backgroundColor",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "backgroundImage",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "backgroundOrigin",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "backgroundPosition",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "backgroundRepeat",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "backgroundSize",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "font",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "alignContent",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "alignItems",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "alignSelf",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "flexDirection",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "display",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "flex",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "grid",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridArea",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridAutoColumns",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridAutoFlow",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridAutoRows",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridColumn",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridColumnEnd",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridColumnGap",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridColumnStart",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridGap",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridRow",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridRowEnd",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridRowGap",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridRowStart",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridTemplate",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridTemplateAreas",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridTemplateColumns",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "gridTemplateRows",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "justifyContent",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "justifyItems",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "justifySelf",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "order",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "position",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "width",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "minWidth",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "maxWidth",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "height",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "minHeight",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "maxHeight",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "overflow",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "margin",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "marginTop",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "marginRight",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "marginBottom",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "marginLeft",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "padding",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "paddingTop",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "paddingRight",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "paddingBottom",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "paddingLeft",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "placeContent",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "placeItems",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "placeSelf",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "flexWrap",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "left",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "top",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "right",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "bottom",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "textOverflow",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    },
+    {
+      "name": "whiteSpace",
+      "type": "unknown",
+      "required": true,
+      "description": "",
+      "default": null
+    }
+  ],
+  "variants": {},
+  "composition": {
+    "subComponents": [],
+    "slots": []
+  },
+  "examples": [],
+  "slots": [],
+  "metadata": {
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-26T03:20:30.148Z"
+  },
+  "themeContext": null
+}

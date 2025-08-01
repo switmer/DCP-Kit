@@ -37,10 +37,14 @@
   ],
   "author": "Steve Witmer",
   "license": "MIT",
+  "homepage": "https://github.com/stevewitmer/dcp-transformer#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/stevewitmer/dcp-transformer.git",
     "directory": "packages/dcp-spec"
+  },
+  "bugs": {
+    "url": "https://github.com/stevewitmer/dcp-transformer/issues"
   },
   "dependencies": {
     "ajv": "^8.12.0",

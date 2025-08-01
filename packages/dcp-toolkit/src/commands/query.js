@@ -120,11 +120,35 @@ class RegistryQueryExecutor {
         
         const data = await fs.readFile(registryFile, 'utf8');
         this.registry = JSON.parse(data);
+        
+        // Check if this is a monorepo root registry
+        if (this.registry.type === 'monorepo-root' && this.registry.packages) {
+          this.isMonorepo = true;
+        }
       } catch (error) {
         throw new Error(`Failed to load registry: ${error.message}`);
       }
     }
     return this.registry;
+  }
+
+  async loadPackageRegistry(packagePath, relativePath) {
+    try {
+      // Get the base directory - either from registry file path or directory
+      let baseDir;
+      if (this.registryPath.endsWith('.json')) {
+        baseDir = path.dirname(this.registryPath);
+      } else {
+        baseDir = this.registryPath;
+      }
+      
+      const fullPath = path.resolve(baseDir, relativePath);
+      const data = await fs.readFile(fullPath, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.warn(`Warning: Could not load package registry for ${packagePath}: ${error.message}`);
+      return null;
+    }
   }
 
   async executeQuery(query) {
@@ -134,7 +158,7 @@ class RegistryQueryExecutor {
       case 'tokens':
         return this.queryTokens(registry, query);
       case 'components':
-        return this.queryComponents(registry, query);
+        return await this.queryComponents(registry, query);
       case 'themes':
         return this.queryThemes(registry, query);
       default:
@@ -167,8 +191,28 @@ class RegistryQueryExecutor {
     };
   }
 
-  queryComponents(registry, query) {
-    let components = registry.components || [];
+  async queryComponents(registry, query) {
+    let components = [];
+
+    // Handle monorepo registries with federated queries
+    if (this.isMonorepo && registry.packages) {
+      // Query all package registries
+      for (const [packageName, packageInfo] of Object.entries(registry.packages)) {
+        const packageRegistry = await this.loadPackageRegistry(packageName, packageInfo.registry);
+        if (packageRegistry && packageRegistry.components) {
+          // Add package context to each component
+          const packageComponents = packageRegistry.components.map(comp => ({
+            ...comp,
+            package: packageName,
+            packageVersion: packageInfo.version
+          }));
+          components.push(...packageComponents);
+        }
+      }
+    } else {
+      // Single registry
+      components = registry.components || [];
+    }
 
     // Apply WHERE filters
     if (query.filters.length > 0) {
@@ -539,3 +583,39 @@ export const exampleQueries = [
 ];
 
 export { QueryParser, RegistryQueryExecutor, OutputFormatter };
+
+// CLI Handler
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const args = process.argv.slice(2);
+  
+  // Parse arguments
+  const options = {};
+  let selector = 'components';  // default
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--registry') {
+      options.registry = args[++i];
+    } else if (arg === '--component') {
+      selector = `components where name = "${args[++i]}"`;
+    } else if (arg === '--format') {
+      options.format = args[++i];
+    } else if (arg === '--verbose') {
+      options.verbose = true;
+    } else if (!arg.startsWith('--')) {
+      selector = arg;
+    }
+  }
+  
+  if (!options.registry) {
+    console.error('Error: --registry path is required');
+    process.exit(1);
+  }
+  
+  // Execute query
+  runQuery(selector, { registryPath: options.registry, ...options })
+    .catch(error => {
+      console.error('Query failed:', error.message);
+      process.exit(1);
+    });
+}

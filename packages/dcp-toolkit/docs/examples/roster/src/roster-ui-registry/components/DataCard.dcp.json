@@ -1,0 +1,80 @@
+{
+  "name": "DataCard",
+  "description": "DataCard component",
+  "category": "layout",
+  "props": {
+    "name": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "email": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "phone": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "position": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "note": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "data-id": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/DataCard/index.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:09:14.116Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:09:14.592Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

@@ -48,7 +48,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(validPath, JSON.stringify(validRegistry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${validPath}" --json`
+        `node "${cliPath}" validate-registry "${validPath}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -85,7 +85,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
         await fs.writeFile(registryPath, JSON.stringify(testCase.registry, null, 2));
         
         try {
-          await execAsync(`node "${cliPath}" validate "${registryPath}" --json`);
+          await execAsync(`node "${cliPath}" validate-registry "${registryPath}" --json`);
           expect(true).toBe(false); // Should not reach here
         } catch (error) {
           const output = error.stdout || error.stderr || '';
@@ -129,7 +129,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(validPath, JSON.stringify(registryWithValidComponent, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${validPath}" --json`
+        `node "${cliPath}" validate-registry "${validPath}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -170,7 +170,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
         await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
         
         try {
-          await execAsync(`node "${cliPath}" validate "${registryPath}" --json`);
+          await execAsync(`node "${cliPath}" validate-registry "${registryPath}" --json`);
           expect(true).toBe(false); // Should not reach here
         } catch (error) {
           const output = error.stdout || error.stderr || '';
@@ -202,7 +202,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(validPath, JSON.stringify(registryWithPeerDeps, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${validPath}" --json`
+        `node "${cliPath}" validate-registry "${validPath}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -241,7 +241,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       
       try {
         const { stdout } = await execAsync(
-          `node "${cliPath}" validate "${registryPath}" --json`
+          `node "${cliPath}" validate-registry "${registryPath}" --json`
         );
         
         const result = JSON.parse(stdout.trim());
@@ -285,7 +285,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${registryPath}" --strict --json`
+        `node "${cliPath}" validate-registry "${registryPath}" --strict --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -322,7 +322,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       
       try {
         const { stdout } = await execAsync(
-          `node "${cliPath}" validate "${registryPath}" --json`
+          `node "${cliPath}" validate-registry "${registryPath}" --json`
         );
         
         const result = JSON.parse(stdout.trim());
@@ -365,7 +365,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${registryPath}" --check-tokens --json`
+        `node "${cliPath}" validate-registry "${registryPath}" --check-tokens --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -405,7 +405,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${registryPath}" --check-tokens --json`
+        `node "${cliPath}" validate-registry "${registryPath}" --check-tokens --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -439,7 +439,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${registryPath}" --strict-tokens --json`
+        `node "${cliPath}" validate-registry "${registryPath}" --strict-tokens --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -495,7 +495,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       
       // Extract to get baseline metadata
       const { stdout: extractOutput } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --out "${testDir}/extracted.json" --json`
+        `node "${cliPath}" extract "${componentDir}" --out "${testDir}/extracted.json" --json --skip-validation`
       );
       
       const extractResult = JSON.parse(extractOutput.trim());
@@ -549,7 +549,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       
       // Validate against source
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${manualPath}" --check-source "${componentDir}" --json`
+        `node "${cliPath}" validate-registry "${manualPath}" --check-source "${componentDir}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -584,7 +584,7 @@ describe('📦 Schema Validation & Metadata Integrity', () => {
       await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" validate "${registryPath}" --check-naming --json`
+        `node "${cliPath}" validate-registry "${registryPath}" --check-naming --json`
       );
       
       const result = JSON.parse(stdout.trim());

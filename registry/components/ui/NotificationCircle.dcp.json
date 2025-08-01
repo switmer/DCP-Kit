@@ -1,0 +1,86 @@
+{
+  "name": "NotificationCircle",
+  "type": "component",
+  "category": "components",
+  "description": "",
+  "filePath": "baseweb/src/badge/notification-circle.tsx",
+  "props": [
+    {
+      "name": "content",
+      "type": "React.ReactNode",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "color",
+      "type": "import(\"/Users/stevewitmer/local_AI_Projects/DCP-Transformer/baseweb/src/badge/types\").Color",
+      "description": "",
+      "required": true,
+      "source": "ts-morph",
+      "styleMapping": {
+        "type": "variant-styles",
+        "values": [],
+        "mappings": {},
+        "themeAware": false
+      }
+    },
+    {
+      "name": "placement",
+      "type": "import(\"/Users/stevewitmer/local_AI_Projects/DCP-Transformer/baseweb/src/badge/types\").Placement",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "hidden",
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "horizontalOffset",
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "verticalOffset",
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "overrides",
+      "type": "import(\"/Users/stevewitmer/local_AI_Projects/DCP-Transformer/baseweb/src/badge/types\").BadgeOverrides",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    },
+    {
+      "name": "children",
+      "type": "React.ReactNode",
+      "description": "",
+      "required": true,
+      "source": "ts-morph"
+    }
+  ],
+  "variants": {},
+  "composition": {
+    "subComponents": [],
+    "slots": []
+  },
+  "examples": [],
+  "slots": [],
+  "metadata": {
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-26T03:09:47.653Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": null
+}

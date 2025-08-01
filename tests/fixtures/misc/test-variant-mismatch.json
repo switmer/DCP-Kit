@@ -1,0 +1,19 @@
+{
+  "name": "variant-alignment-test",
+  "version": "1.0.0",
+  "components": [
+    {
+      "name": "Alert",
+      "variants": {
+        "info": { "className": "alert-info" },
+        "warning": { "className": "alert-warning" },
+        "error": { "className": "alert-error" }
+      },
+      "examples": [
+        "<Alert variant=\"info\" message=\"Information\" />",
+        "<Alert variant=\"success\" message=\"Success\" />",
+        "<Alert variant=\"error\" message=\"Error\" />"
+      ]
+    }
+  ]
+}

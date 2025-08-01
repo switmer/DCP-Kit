@@ -15,6 +15,7 @@
     "build:spec": "npm pack --workspace @dcp/spec",
     "serve": "npm run serve --workspace @dcp/toolkit",
     "extract": "npm run extract --workspace @dcp/toolkit",
+    "list:fluentui": "node scripts/list-fluentui-components.js",
     "docs:update-index": "sed -i '' \"s/Last Updated: .*/Last Updated: $(date '+%Y-%m-%d %H:%M:%S')/\" REPO_INDEX.md"
   },
   "keywords": [

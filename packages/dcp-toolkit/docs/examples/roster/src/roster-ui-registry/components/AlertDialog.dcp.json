@@ -1,0 +1,98 @@
+{
+  "name": "AlertDialog",
+  "description": "AlertDialog component",
+  "category": "overlays",
+  "props": {
+    "children": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "title": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "description": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "actionLabel": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "onCancel": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "onConfirm": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "isDelete": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "withPortal": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "asChild": {
+      "type": "boolean",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "components/ui/AlertDialog/index.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-07-31T22:09:18.863Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  },
+  "themeContext": {
+    "config": {
+      "cssVariables": true,
+      "baseColor": "neutral",
+      "css": "app/globals.css",
+      "prefix": "",
+      "themingMode": "css-variables",
+      "rsc": true,
+      "tsx": true,
+      "aliases": {
+        "components": "src/components",
+        "utils": "src/lib/utils",
+        "ui": "src/components/ui"
+      }
+    },
+    "variantMappings": {},
+    "utilityMappings": {},
+    "projectTheme": {
+      "extractedAt": "2025-07-31T22:09:19.539Z",
+      "themingMode": "css-variables",
+      "hasMultipleThemes": false
+    }
+  }
+}

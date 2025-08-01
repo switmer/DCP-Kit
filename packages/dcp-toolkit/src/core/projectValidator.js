@@ -10,15 +10,34 @@ import path from 'path';
 import chalk from 'chalk';
 
 export class ProjectValidator {
-  constructor(projectPath) {
+  constructor(projectPath, options = {}) {
     this.projectPath = path.resolve(projectPath);
+
+    // Determine whether validator should emit console logs.
+    // Priority order:
+    //   1. Explicit option { silent: boolean }
+    //   2. Presence of --json flag in the CLI args implies silent output
+    //      (we only want pure JSON to be written to stdout)
+    //   3. Default (show logs)
+    this.silent = typeof options.silent === 'boolean'
+      ? options.silent
+      : process.argv.includes('--json');
+
     this.issues = [];
     this.warnings = [];
     this.suggestions = [];
+
+    // Helper bound logger that respects silent mode
+    this.log = (...args) => {
+      if (!this.silent) {
+        // eslint-disable-next-line no-console
+        console.log(...args);
+      }
+    };
   }
 
   async validate() {
-    console.log(chalk.blue(`🔍 Validating project structure: ${this.projectPath}`));
+    this.log(chalk.blue(`🔍 Validating project structure: ${this.projectPath}`));
     
     await this.validateProjectRoot();
     await this.validateThemeConfiguration();
@@ -71,7 +90,7 @@ export class ProjectValidator {
       // Validate it's actually a ShadCN config, not a DCP output file
       if (config.style || config.tailwind || config.aliases) {
         hasShadcnConfig = true;
-        console.log(chalk.green('   ✅ Found ShadCN components.json configuration'));
+        this.log(chalk.green('   ✅ Found ShadCN components.json configuration'));
         
         // Validate the configuration structure
         await this.validateShadcnConfig(config);
@@ -105,7 +124,7 @@ export class ProjectValidator {
         const cssContent = await fs.readFile(cssPath, 'utf-8');
         if (cssContent.includes('--primary') || cssContent.includes(':root')) {
           foundCssVariables = true;
-          console.log(chalk.green(`   ✅ Found CSS variables in ${cssLocation}`));
+          this.log(chalk.green(`   ✅ Found CSS variables in ${cssLocation}`));
           break;
         }
       } catch {}
@@ -203,7 +222,7 @@ export class ProjectValidator {
       try {
         await fs.access(configPath);
         foundTailwindConfig = true;
-        console.log(chalk.green(`   ✅ Found Tailwind config: ${configFile}`));
+        this.log(chalk.green(`   ✅ Found Tailwind config: ${configFile}`));
         
         // Validate Tailwind config content
         await this.validateTailwindConfigContent(configPath);
@@ -275,7 +294,7 @@ export class ProjectValidator {
           if (files > 0) {
             foundComponents = true;
             componentCount += files;
-            console.log(chalk.green(`   ✅ Found ${files} component files in ${dir}/`));
+            this.log(chalk.green(`   ✅ Found ${files} component files in ${dir}/`));
           }
         }
       } catch {}
@@ -324,47 +343,47 @@ export class ProjectValidator {
     const hasErrors = this.issues.filter(i => i.severity === 'error').length > 0;
     const hasWarnings = this.warnings.length > 0;
     
-    console.log('\n' + chalk.blue('📋 Project Validation Report'));
-    console.log('='.repeat(50));
+    this.log('\n' + chalk.blue('📋 Project Validation Report'));
+    this.log('='.repeat(50));
 
     // Show errors
     const errors = this.issues.filter(i => i.severity === 'error');
     if (errors.length > 0) {
-      console.log(chalk.red(`\n❌ Errors (${errors.length}):`));
+      this.log(chalk.red(`\n❌ Errors (${errors.length}):`));
       for (const error of errors) {
-        console.log(chalk.red(`   • ${error.message}`));
-        console.log(chalk.gray(`     💡 ${error.suggestion}`));
+        this.log(chalk.red(`   • ${error.message}`));
+        this.log(chalk.gray(`     💡 ${error.suggestion}`));
         if (error.autoFix) {
-          console.log(chalk.yellow(`     🔧 Auto-fix available`));
+          this.log(chalk.yellow(`     🔧 Auto-fix available`));
         }
       }
     }
 
     // Show warnings
     if (this.warnings.length > 0) {
-      console.log(chalk.yellow(`\n⚠️  Warnings (${this.warnings.length}):`));
+      this.log(chalk.yellow(`\n⚠️  Warnings (${this.warnings.length}):`));
       for (const warning of this.warnings) {
-        console.log(chalk.yellow(`   • ${warning.message}`));
-        console.log(chalk.gray(`     💡 ${warning.suggestion}`));
+        this.log(chalk.yellow(`   • ${warning.message}`));
+        this.log(chalk.gray(`     💡 ${warning.suggestion}`));
       }
     }
 
     // Show suggestions
     if (this.suggestions.length > 0) {
-      console.log(chalk.cyan(`\n💡 Suggestions (${this.suggestions.length}):`));
+      this.log(chalk.cyan(`\n💡 Suggestions (${this.suggestions.length}):`));
       for (const suggestion of this.suggestions) {
-        console.log(chalk.cyan(`   • ${suggestion.message}`));
-        console.log(chalk.gray(`     💡 ${suggestion.suggestion}`));
+        this.log(chalk.cyan(`   • ${suggestion.message}`));
+        this.log(chalk.gray(`     💡 ${suggestion.suggestion}`));
       }
     }
 
     // Summary
     if (!hasErrors && !hasWarnings) {
-      console.log(chalk.green('\n✅ Project validation passed! Ready for DCP extraction.'));
+      this.log(chalk.green('\n✅ Project validation passed! Ready for DCP extraction.'));
     } else if (!hasErrors) {
-      console.log(chalk.yellow('\n⚠️  Project has warnings but can proceed with extraction.'));
+      this.log(chalk.yellow('\n⚠️  Project has warnings but can proceed with extraction.'));
     } else {
-      console.log(chalk.red('\n❌ Project has errors that should be resolved for optimal extraction.'));
+      this.log(chalk.red('\n❌ Project has errors that should be resolved for optimal extraction.'));
     }
 
     return {
@@ -385,7 +404,7 @@ export class ProjectValidator {
    * Auto-fix common issues
    */
   async autoFix() {
-    console.log(chalk.blue('\n🔧 Attempting to auto-fix issues...'));
+    this.log(chalk.blue('\n🔧 Attempting to auto-fix issues...'));
     
     for (const issue of this.issues.filter(i => i.autoFix)) {
       if (issue.type === 'missing-shadcn-config') {
@@ -445,12 +464,12 @@ export class ProjectValidator {
 
     try {
       await fs.writeFile(componentsJsonPath, JSON.stringify(shadcnConfig, null, 2));
-      console.log(chalk.green(`   ✅ Created components.json configuration`));
-      console.log(chalk.gray(`      Config: ${tailwindConfig}`));
-      console.log(chalk.gray(`      CSS: ${cssPath}`));
+      this.log(chalk.green(`   ✅ Created components.json configuration`));
+      this.log(chalk.gray(`      Config: ${tailwindConfig}`));
+      this.log(chalk.gray(`      CSS: ${cssPath}`));
       return true;
     } catch (error) {
-      console.log(chalk.red(`   ❌ Failed to create components.json: ${error.message}`));
+      this.log(chalk.red(`   ❌ Failed to create components.json: ${error.message}`));
       return false;
     }
   }

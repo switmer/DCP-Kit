@@ -1,0 +1,58 @@
+{
+  "$schema": "https://dcp.dev/schemas/registry.schema.json",
+  "name": "dashboard-01",
+  "type": "registry:block",
+  "title": "Dashboard",
+  "description": "Compound component using Card, Avatar, Badge, Button, Progress components in a responsive grid layout",
+  "files": [
+    {
+      "path": "blocks/dashboard-01/page.tsx",
+      "type": "registry:page",
+      "target": "app/dashboard/page.tsx"
+    },
+    {
+      "path": "blocks/dashboard-01/components/metrics-card.tsx",
+      "type": "registry:component"
+    },
+    {
+      "path": "blocks/dashboard-01/components/project-list.tsx", 
+      "type": "registry:component"
+    }
+  ],
+  "dependencies": [
+    "lucide-react"
+  ],
+  "registryDependencies": [
+    "card",
+    "avatar", 
+    "badge",
+    "button",
+    "progress",
+    "skeleton",
+    "alert"
+  ],
+  "meta": {
+    "confidence": 0.9,
+    "source": "ast-analysis",
+    "intent": "data-visualization:executive-dashboard",
+    "useCases": ["analytics", "project-management", "team-overview"],
+    "blockPatterns": {
+      "confidence": 0.9,
+      "patterns": [
+        {
+          "type": "composition",
+          "confidence": 0.8,
+          "components": ["Card", "Avatar", "Badge", "Button", "Progress", "Alert"],
+          "description": "Compound component using multiple UI primitives"
+        }
+      ],
+      "suggestedType": "registry:block"
+    },
+    "layoutHints": {
+      "columns": 4,
+      "responsive": true,
+      "hasHeader": true,
+      "hasSidebar": false
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "extractedAt": "2025-07-24T20:39:55.774Z",
-  "sourceDir": "roster",
+  "extractedAt": "2025-08-01T03:40:24.483Z",
+  "sourceDir": "src/components/ui/shadcn/switch.tsx",
   "transformedFrom": "multi-framework",
   "version": "3.0.0",
   "adaptorRegistry": [

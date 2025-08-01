@@ -1,0 +1,20 @@
+{
+  "name": "unused-variant-test",
+  "version": "1.0.0",
+  "components": [
+    {
+      "name": "Badge",
+      "variants": {
+        "primary": { "className": "badge-primary" },
+        "secondary": { "className": "badge-secondary" },
+        "danger": { "className": "badge-danger" },
+        "success": { "className": "badge-success" }
+      },
+      "examples": [
+        "<Badge variant=\"primary\" text=\"Primary\" />",
+        "<Badge variant=\"secondary\" text=\"Secondary\" />",
+        "<Badge variant=\"danger\" text=\"Danger\" />"
+      ]
+    }
+  ]
+}

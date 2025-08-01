@@ -1,0 +1,11 @@
+{
+  "name": "test-registry",
+  "version": "1.0.0", 
+  "description": "Test registry for schema validation",
+  "components": [],
+  "metadata": {
+    "author": "Test Author",
+    "tags": ["ui", "components"],
+    "license": "MIT"
+  }
+}

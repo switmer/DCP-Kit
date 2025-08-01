@@ -1,0 +1,10 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "components": [{
+    "name": "TestComponent",
+    "props": {
+      "variant": { "values": ["primary"] }
+    }
+  }]
+}

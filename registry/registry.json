@@ -1,0 +1,48 @@
+{
+  "$schema": "https://dcp.dev/schemas/registry-collection.schema.json",
+  "name": "dcp-registry",
+  "version": "1.0.0",
+  "description": "Canonical DCP registry for design system components",
+  "components": {
+    "ui": [
+      "avatar",
+      "badge", 
+      "hint-dot",
+      "notification-circle",
+      "test"
+    ],
+    "blocks": [],
+    "themes": []
+  },
+  "items": [
+    {
+      "$schema": "https://dcp.dev/schemas/registry.schema.json",
+      "name": "test",
+      "type": "registry:ui",
+      "title": "Test Component", 
+      "description": "Test component for registry validation",
+      "files": [
+        {
+          "path": "components/ui/test.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "dependencies": [],
+      "registryDependencies": []
+    }
+  ],
+  "tokens": {
+    "index": "/tokens/index.json"
+  },
+  "meta": {
+    "lastUpdated": "2025-08-01T23:55:00.000Z",
+    "extractedBy": {
+      "tool": "@dcp/toolkit",
+      "version": "2.0.0"
+    },
+    "compatibility": {
+      "shadcn": "0.8.0",
+      "storybook": "8.0.0"
+    }
+  }
+}

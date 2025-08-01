@@ -1,0 +1,55 @@
+{
+  "name": "@dcp/validator",
+  "version": "1.0.0",
+  "description": "CLI validator for Design Context Protocol registry items",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "dcp-validate": "dist/cli.js",
+    "dcp-validator": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist/",
+    "schemas/",
+    "README.md"
+  ],
+  "keywords": [
+    "dcp",
+    "design-system",
+    "registry",
+    "validator",
+    "json-schema",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/design-context-protocol/dcp-toolkit.git",
+    "directory": "packages/dcp-validator"
+  },
+  "bugs": {
+    "url": "https://github.com/design-context-protocol/dcp-toolkit/issues"
+  },
+  "homepage": "https://dcp.dev",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.3.0"
+  }
+}
