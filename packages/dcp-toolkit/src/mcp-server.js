@@ -584,6 +584,108 @@ class DCPMCPServer {
               },
             },
           },
+          {
+            name: 'dcp_build_packs',
+            description: 'Build static component packages for distribution and sharing',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                registry: {
+                  type: 'string',
+                  description: 'Path to registry file',
+                  default: 'registry/registry.json',
+                },
+                outputDir: {
+                  type: 'string',
+                  description: 'Output directory for component packs',
+                  default: './dist/packs',
+                },
+                baseUrl: {
+                  type: 'string',
+                  description: 'Base URL for hosted blobs',
+                  default: '',
+                },
+                namespace: {
+                  type: 'string',
+                  description: 'Component namespace/scope',
+                  default: 'ui',
+                },
+                version: {
+                  type: 'string',
+                  description: 'Package version',
+                  default: '1.0.0',
+                },
+              },
+            },
+          },
+          {
+            name: 'dcp_serve_registry',
+            description: 'Start development server for component registry testing',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                packsDir: {
+                  type: 'string',
+                  description: 'Directory containing component packs',
+                  default: './dist/packs',
+                },
+                port: {
+                  type: 'number',
+                  description: 'Server port',
+                  default: 7401,
+                },
+                host: {
+                  type: 'string',
+                  description: 'Server host',
+                  default: 'localhost',
+                },
+                baseUrl: {
+                  type: 'string',
+                  description: 'Base URL for hosted files',
+                  default: '',
+                },
+              },
+            },
+          },
+          {
+            name: 'dcp_add_component',
+            description: 'Install a component from a registry into a project',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                componentUrl: {
+                  type: 'string',
+                  description: 'Component URL or registry path',
+                },
+                targetDir: {
+                  type: 'string',
+                  description: 'Target directory for components',
+                  default: './components/ui',
+                },
+                packageJson: {
+                  type: 'string',
+                  description: 'Path to package.json',
+                  default: './package.json',
+                },
+                skipInstall: {
+                  type: 'boolean',
+                  description: 'Skip peer dependency installation',
+                  default: false,
+                },
+                force: {
+                  type: 'boolean',
+                  description: 'Overwrite existing components',
+                  default: false,
+                },
+                dryRun: {
+                  type: 'boolean',
+                  description: 'Preview installation without making changes',
+                  default: false,
+                },
+              },
+              required: ['componentUrl'],
+            },
+          },
         ],
       };
     });
@@ -620,6 +722,12 @@ class DCPMCPServer {
             return await this.handleAnalyzeDependencies(request.params.arguments);
           case 'dcp_build_assets':
             return await this.handleBuildAssets(request.params.arguments);
+          case 'dcp_build_packs':
+            return await this.handleBuildPacks(request.params.arguments);
+          case 'dcp_serve_registry':
+            return await this.handleServeRegistry(request.params.arguments);
+          case 'dcp_add_component':
+            return await this.handleAddComponent(request.params.arguments);
           default:
             throw new Error(`Unknown tool: ${request.params.name}`);
         }
@@ -1756,6 +1864,140 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
   getLineNumber(code, search) {
     const lines = code.substring(0, code.indexOf(search)).split('\n');
     return lines.length;
+  }
+
+  async handleBuildPacks({ registry = 'registry/registry.json', outputDir = './dist/packs', baseUrl = '', namespace = 'ui', version = '1.0.0' }) {
+    try {
+      // Import build packs command
+      const { runBuildPacks } = await import('./commands/build-packs.js');
+      
+      const result = await runBuildPacks(registry, {
+        out: outputDir,
+        baseUrl,
+        namespace,
+        version,
+        verbose: false,
+        json: true
+      });
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Build Packs Results:
+
+Success: ${result.success}
+Packs Built: ${result.packs}
+Output Directory: ${result.outputDir}
+Index URL: ${result.indexUrl}
+
+${result.errors > 0 ? `Errors: ${result.errors} components failed to build` : 'All components built successfully'}
+
+Summary: Built ${result.packs} component packs for distribution`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Build Packs Error: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  async handleServeRegistry({ packsDir = './dist/packs', port = 7401, host = 'localhost', baseUrl = '' }) {
+    try {
+      // Import serve registry command
+      const { runServeRegistry } = await import('./commands/serve-registry.js');
+      
+      const result = await runServeRegistry(packsDir, {
+        port,
+        host,
+        baseUrl,
+        verbose: false,
+        json: true
+      });
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Registry Server Started:
+
+Server URL: ${result.url}
+Packs Directory: ${result.packsDir}
+Components Available: ${result.componentsCount || 'Unknown'}
+
+The development server is now running and serving your component registry.
+You can browse components and test installations from this URL.
+
+Status: Server running successfully`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Serve Registry Error: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  async handleAddComponent({ componentUrl, targetDir = './components/ui', packageJson = './package.json', skipInstall = false, force = false, dryRun = false }) {
+    try {
+      // Import add component command
+      const { runDcpAdd } = await import('./commands/dcp-add.js');
+      
+      const result = await runDcpAdd(componentUrl, {
+        target: targetDir,
+        packageJson,
+        noInstall: skipInstall,
+        force,
+        dryRun,
+        verbose: false,
+        json: true
+      });
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Component Installation Results:
+
+${dryRun ? 'DRY RUN - Preview Only' : 'Installation Complete'}
+
+Component: ${result.component?.name || 'Unknown'}
+Target Directory: ${result.targetDir}
+Files: ${result.files}
+Dependencies: ${result.peerDepsInstalled ? 'Updated' : 'Skipped'}
+
+${result.dryRun ? 
+  'This was a preview - run without dry-run to install' : 
+  `Successfully installed ${result.component?.name} component`}`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Component Installation Error: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
   }
 
   async start() {
