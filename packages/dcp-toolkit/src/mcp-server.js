@@ -756,17 +756,21 @@ class DCPMCPServer {
       content: [
         {
           type: 'text',
-          text: JSON.stringify({
-            tokens: formattedTokens,
-            count: Object.keys(this.flattenTokens(formattedTokens)).length,
-            themeContext: {
-              config: themeContext.config || null,
-              cssVariables: themeContext.cssVariables || {},
-              utilityMappings: themeContext.utilityMappings || {},
-              summary: themeContext.summary || 'No theme context available'
-            },
-            usage: `Use these tokens in your code. Example: color="primary.500" or className="text-primary-500"`,
-          }, null, 2),
+          text: `Tokens Query Results:
+
+Found: ${Object.keys(this.flattenTokens(formattedTokens)).length} tokens
+Format: ${format}
+Category: ${category || 'all'}
+Filter: ${filter}
+
+${Object.keys(formattedTokens).length > 0 ? 
+  Object.entries(formattedTokens).map(([key, value]) => 
+    `${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`
+  ).join('\n') : 
+  'No tokens found matching the criteria'
+}
+
+Usage: Use these tokens in your code. Example: color="primary.500" or className="text-primary-500"`,
         },
       ],
     };
@@ -821,7 +825,22 @@ class DCPMCPServer {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(response, null, 2),
+          text: `Component: ${response.name}
+
+Description: ${response.description || 'No description available'}
+Category: ${response.category || 'unknown'}
+
+${response.requiredProps?.length > 0 ? `Required Props:
+${response.requiredProps.map(p => `  - ${p.name}: ${p.type} - ${p.description || 'No description'}`).join('\n')}` : ''}
+
+${response.optionalProps?.length > 0 ? `Optional Props:
+${response.optionalProps.map(p => `  - ${p.name}: ${p.type} - ${p.description || 'No description'}`).join('\n')}` : ''}
+
+${Object.keys(response.variants || {}).length > 0 ? `Variants:
+${Object.entries(response.variants).map(([key, values]) => `  - ${key}: ${Array.isArray(values) ? values.join(', ') : JSON.stringify(values)}`).join('\n')}` : ''}
+
+${response.examples?.length > 0 ? `Examples:
+${response.examples.map((ex, i) => `${i + 1}. ${ex.name}: ${ex.code}`).join('\n')}` : ''}`,
         },
       ],
     };
@@ -861,14 +880,22 @@ class DCPMCPServer {
       content: [
         {
           type: 'text',
-          text: JSON.stringify({
-            valid: isValid,
-            violations,
-            suggestions,
-            message: isValid ? 
-              'Code follows design system constraints ✅' : 
-              `Found ${violations.length} design system violations`,
-          }, null, 2),
+          text: `Code Validation Results:
+
+Status: ${isValid ? '✅ VALID' : '❌ INVALID'}
+Component: ${component || 'Not specified'}
+Violations: ${violations.length}
+
+${violations.length > 0 ? `Issues Found:
+${violations.map((v, i) => `${i + 1}. ${v.message} (Line ${v.line || 'unknown'})`).join('\n')}` : ''}
+
+${suggestions.length > 0 ? `Suggestions:
+${suggestions.map((s, i) => `${i + 1}. ${s.issue}
+   Alternatives: ${s.alternatives.join(', ')}`).join('\n')}` : ''}
+
+Summary: ${isValid ? 
+  'Code follows design system constraints ✅' : 
+  `Found ${violations.length} design system violations`}`,
         },
       ],
     };
