@@ -1,0 +1,23 @@
+{
+  "tokens": {
+    "exclude": [
+      "**/node_modules/**",
+      "**/backup-tokens.json"
+    ],
+    "include": [
+      "./custom-tokens/**/*.json"
+    ],
+    "forceType": {
+      "./demo/tailwind.config.js": "tailwind",
+      "./demo/mui-theme.js": "mui"
+    },
+    "boostConfidence": {
+      "./demo/mock-radix/**": 0.2
+    }
+  },
+  "extraction": {
+    "conflictStrategy": "semantic",
+    "maxFileSize": "5MB",
+    "timeout": 10000
+  }
+}

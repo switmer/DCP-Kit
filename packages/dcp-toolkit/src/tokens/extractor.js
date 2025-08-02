@@ -15,6 +15,9 @@ export class UniversalTokenExtractor {
       timeout: options.timeout || 5000
     });
     
+    this.logger = options.logger || null; // Accept external logger
+    this.verbose = options.verbose || false;
+    
     this.extractors = new Map([
       ['radix', this.extractRadixTokens.bind(this)],
       ['mui', this.extractMUITokens.bind(this)],
@@ -30,6 +33,8 @@ export class UniversalTokenExtractor {
    * Extract tokens from all detected sources
    */
   async extractAll(detectedSources) {
+    const startTime = performance.now();
+    
     const allTokens = {
       colors: {},
       spacing: {},
@@ -47,28 +52,82 @@ export class UniversalTokenExtractor {
     };
 
     for (const source of detectedSources) {
+      const extractionStart = performance.now();
+      
       try {
-        console.log(`📦 Extracting tokens from ${source.type}: ${source.path}`);
+        if (this.verbose) {
+          console.log(`📦 Extracting tokens from ${source.type}: ${source.path}`);
+        }
         
         const extractor = this.extractors.get(source.type);
         if (!extractor) {
-          console.warn(`⚠️  No extractor found for type: ${source.type}`);
+          const error = `No extractor found for type: ${source.type}`;
+          if (this.logger) {
+            this.logger.logExtractionResult(source, {
+              success: false,
+              error,
+              extractionTime: performance.now() - extractionStart
+            });
+          }
+          console.warn(`⚠️  ${error}`);
           continue;
         }
 
         const tokens = await extractor(source);
+        const extractionTime = performance.now() - extractionStart;
+        
         if (tokens) {
+          const tokenCount = this.countTokens(tokens);
+          const categories = Object.keys(tokens).filter(key => Object.keys(tokens[key]).length > 0);
+          
           this.mergeTokens(allTokens, tokens, source);
           allTokens.meta.sources.push({
             type: source.type,
             path: source.path,
             confidence: source.confidence,
-            extractedTokens: Object.keys(tokens).length
+            extractedTokens: tokenCount
           });
+
+          // Log successful extraction
+          if (this.logger) {
+            this.logger.logExtractionResult(source, {
+              success: true,
+              tokensFound: tokenCount,
+              categories,
+              extractionTime
+            });
+          }
+        } else {
+          // Log failed extraction
+          if (this.logger) {
+            this.logger.logExtractionResult(source, {
+              success: false,
+              tokensFound: 0,
+              error: 'No tokens extracted',
+              extractionTime
+            });
+          }
         }
       } catch (error) {
+        const extractionTime = performance.now() - extractionStart;
+        
+        // Log extraction error
+        if (this.logger) {
+          this.logger.logExtractionResult(source, {
+            success: false,
+            error: error.message,
+            extractionTime
+          });
+        }
+        
         console.error(`❌ Error extracting from ${source.path}:`, error.message);
       }
+    }
+
+    // Log overall extraction performance
+    if (this.logger) {
+      const totalTime = performance.now() - startTime;
+      this.logger.logPerformance('extraction', totalTime);
     }
 
     return allTokens;
@@ -669,6 +728,15 @@ export class UniversalTokenExtractor {
     }
     
     return tokens;
+  }
+
+  /**
+   * Count total tokens in a token object
+   */
+  countTokens(tokens) {
+    return Object.values(tokens).reduce((total, category) => {
+      return total + (typeof category === 'object' ? Object.keys(category).length : 0);
+    }, 0);
   }
 
   /**

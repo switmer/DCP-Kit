@@ -7,8 +7,8 @@ import { extractCssCustomProps } from '../core/tokenHandler.js';
 import { adaptorRegistry, createAdaptor, autoDetectAdaptor } from '../adaptors/registry.js';
 import { extractThemeContext, enhanceComponentWithThemeContext, generateThemeContextSummary } from '../core/themeExtractor.js';
 import { ProjectIntelligenceScanner } from '../core/projectIntelligence.js';
-import { TokenDetector } from '../core/tokenDetector.js';
-import { UniversalTokenExtractor } from '../core/universalTokenExtractor.js';
+import { TokenDetector } from '../tokens/detector.js';
+import { UniversalTokenExtractor } from '../tokens/extractor.js';
 
 /**
  * DCP Transformer V3 - Multi-Framework Component Extraction
@@ -507,8 +507,15 @@ class MultiFrameworkExtractor {
 
   async loadTokensWithAutoDetection() {
     try {
-      // Initialize token detector
-      const detector = new TokenDetector(this.sourceDir, { verbose: this.verbose });
+      // Initialize token detector with proper output directory
+      const outputDir = path.dirname(this.sourceDir) !== this.sourceDir ? 
+        path.join(this.sourceDir, 'registry') : 
+        './registry';
+        
+      const detector = new TokenDetector(this.sourceDir, { 
+        verbose: this.verbose,
+        outputDir: outputDir
+      });
       
       // Detect all token sources
       const detectedSources = await detector.detectAll();
@@ -520,8 +527,11 @@ class MultiFrameworkExtractor {
         return;
       }
 
-      // Initialize universal token extractor
-      const extractor = new UniversalTokenExtractor({ verbose: this.verbose });
+      // Initialize universal token extractor with logger
+      const extractor = new UniversalTokenExtractor({ 
+        verbose: this.verbose,
+        logger: detector.getLogger()
+      });
       
       // Extract tokens from all detected sources
       const extractedTokens = await extractor.extractAll(detectedSources);
@@ -529,13 +539,25 @@ class MultiFrameworkExtractor {
       // Convert to DCP format
       this.tokens = this.normalizeExtractedTokens(extractedTokens);
       
+      // Write detection log
+      try {
+        await detector.writeLog();
+        if (this.verbose) {
+          detector.printSummary();
+        }
+      } catch (error) {
+        if (this.verbose) {
+          console.warn(chalk.yellow(`⚠️  Failed to write detection log: ${error.message}`));
+        }
+      }
+      
       if (this.verbose) {
         const summary = detector.getSummary();
         console.log(chalk.green(`🎨 Auto-detected token sources:`));
-        for (const [type, sources] of Object.entries(summary)) {
-          console.log(chalk.gray(`  ${type}: ${sources.length} source(s)`));
-        }
-        console.log(chalk.green(`✅ Total tokens extracted: ${Object.keys(this.tokens).length}`));
+        Object.entries(summary.byType).forEach(([type, count]) => {
+          console.log(chalk.gray(`  ${type}: ${count} source(s)`));
+        });
+        console.log(chalk.green(`✅ Total tokens extracted: ${summary.totalTokens}`));
       }
     } catch (error) {
       if (this.verbose) {

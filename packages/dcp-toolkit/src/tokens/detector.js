@@ -5,19 +5,36 @@
 
 import fs from 'fs';
 import path from 'path';
+import { DetectionLogger } from './detectionLogger.js';
+import { OverrideManager } from './overrideManager.js';
 
 export class TokenDetector {
-  constructor(rootPath) {
+  constructor(rootPath, options = {}) {
     this.rootPath = rootPath;
     this.detectedSources = [];
+    this.verbose = options.verbose || false;
+    this.outputDir = options.outputDir || path.join(rootPath, 'registry');
+    
+    // Initialize logging and override systems
+    this.logger = new DetectionLogger(this.outputDir, { verbose: this.verbose });
+    this.overrideManager = new OverrideManager(rootPath, { verbose: this.verbose });
   }
 
   /**
    * Auto-detect all token sources in the project
    */
   async detectAll() {
+    const startTime = performance.now();
     this.detectedSources = [];
     
+    // Load override configuration
+    await this.overrideManager.loadConfig();
+    
+    if (this.verbose) {
+      console.log('🔍 Detecting token sources...');
+    }
+    
+    // Run all detection methods
     await Promise.all([
       this.detectRadixTokens(),
       this.detectMUITokens(),
@@ -27,6 +44,25 @@ export class TokenDetector {
       this.detectCustomTokens(),
       this.detectFigmaTokens()
     ]);
+
+    // Log detection performance
+    const detectionTime = performance.now() - startTime;
+    this.logger.logPerformance('detection', detectionTime);
+
+    // Apply overrides
+    const originalCount = this.detectedSources.length;
+    this.detectedSources = this.overrideManager.applyOverrides(this.detectedSources);
+    
+    // Log override results
+    if (this.detectedSources.length !== originalCount) {
+      const appliedRules = this.overrideManager.getAppliedRules();
+      this.logger.logOverrides(this.overrideManager.config, appliedRules);
+    }
+
+    // Log final results
+    if (this.verbose) {
+      console.log(`✅ Detected ${this.detectedSources.length} token sources`);
+    }
 
     return this.detectedSources;
   }
@@ -45,12 +81,14 @@ export class TokenDetector {
     for (const indicator of indicators) {
       const fullPath = path.join(this.rootPath, indicator);
       if (fs.existsSync(fullPath)) {
-        this.detectedSources.push({
+        const source = {
           type: 'radix',
           path: fullPath,
           confidence: 0.9,
           description: 'Radix UI theme tokens'
-        });
+        };
+        this.detectedSources.push(source);
+        this.logger.logDetectedSource(source);
         break;
       }
     }
@@ -282,32 +320,34 @@ export class TokenDetector {
    * Get detection summary
    */
   getSummary() {
-    const summary = {
-      totalSources: this.detectedSources.length,
-      byType: {},
-      highConfidence: this.detectedSources.filter(s => s.confidence >= 0.8),
-      recommendations: []
-    };
+    return this.logger.generateSummary();
+  }
 
-    // Group by type
-    this.detectedSources.forEach(source => {
-      if (!summary.byType[source.type]) {
-        summary.byType[source.type] = [];
-      }
-      summary.byType[source.type].push(source);
-    });
+  /**
+   * Get detection logger for external access
+   */
+  getLogger() {
+    return this.logger;
+  }
 
-    // Generate recommendations
-    if (summary.highConfidence.length > 0) {
-      summary.recommendations.push('High-confidence token sources detected - ready for extraction');
-    }
-    if (Object.keys(summary.byType).length > 1) {
-      summary.recommendations.push('Multiple token systems detected - DCP can consolidate them');
-    }
-    if (summary.totalSources === 0) {
-      summary.recommendations.push('No token sources detected - consider implementing a design token system');
-    }
+  /**
+   * Get override manager for external access  
+   */
+  getOverrideManager() {
+    return this.overrideManager;
+  }
 
-    return summary;
+  /**
+   * Write detection log to file
+   */
+  async writeLog() {
+    return await this.logger.writeLog();
+  }
+
+  /**
+   * Print detection summary to console
+   */
+  printSummary() {
+    this.logger.printSummary();
   }
 }
