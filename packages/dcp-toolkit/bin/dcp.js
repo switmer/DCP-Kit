@@ -34,6 +34,7 @@ program
   .description('Extract components from source directory')
   .option('-o, --out <dir>', 'output directory', './registry')
   .option('-t, --tokens <file>', 'design tokens file (JSON)')
+  .option('--auto-detect-tokens', 'automatically detect and extract tokens from all sources')
   .option('-g, --glob <pattern>', 'glob pattern for files (e.g., "**/*.{tsx,jsx}")')
   .option('-a, --adaptor <name>', 'force specific adaptor (react-tsx, vue-sfc, svelte)', 'react-tsx')
   .option('--flatten-tokens', 'extract CSS custom props as flat key-value pairs, skip Tailwind mapping')
@@ -52,6 +53,7 @@ program
 Examples:
   $ dcp extract ./src --json > registry.json
   $ dcp extract ./components --tokens design-tokens.json --out ./registry
+  $ dcp extract ./src --auto-detect-tokens --verbose  # Auto-detect all token sources
   $ dcp extract ./src --glob "**/*.tsx" --adaptor react-tsx --verbose
   $ dcp extract ./vue-components --adaptor vue-sfc --json
   $ dcp extract ./src --trace-barrels --max-depth 5  # Debug barrel resolution
@@ -442,6 +444,48 @@ Examples:
         console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Build failed:', error.message);
+      }
+      process.exit(1);
+    }
+  });
+
+program
+  .command('radix-tokens [source]')
+  .description('Extract Radix tokens and generate multi-framework outputs')
+  .option('-o, --out <dir>', 'Output directory', './dcp-tokens')
+  .option('-v, --verbose', 'Enable verbose output')
+  .option('-j, --json', 'Output JSON format')
+  .addHelpText('after', `
+Examples:
+  $ dcp radix-tokens
+  $ dcp radix-tokens ./node_modules/@radix-ui/themes --out ./tokens
+  $ dcp radix-tokens ./custom-radix --verbose --json`)
+  .action(async (source = './node_modules/@radix-ui/themes', options) => {
+    try {
+      const { runRadixTokens } = await import('../src/commands/radix-tokens.js');
+      
+      if (!options.json) {
+        console.log(`🎨 Extracting Radix tokens from ${source}...`);
+      }
+      
+      const result = await runRadixTokens(source, options);
+      
+      if (options.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        if (result.success) {
+          console.log(`✅ Extracted ${result.tokens} tokens`);
+          console.log(`📁 Generated ${result.outputs.length} formats: ${result.outputs.join(', ')}`);
+          console.log(`📂 Output: ${options.out || './dcp-tokens'}`);
+        } else {
+          console.error(`❌ Extraction failed: ${result.error}`);
+        }
+      }
+    } catch (error) {
+      if (options.json) {
+        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      } else {
+        console.error('❌ Radix tokens failed:', error.message);
       }
       process.exit(1);
     }

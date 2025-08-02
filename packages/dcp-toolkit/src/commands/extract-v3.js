@@ -7,6 +7,8 @@ import { extractCssCustomProps } from '../core/tokenHandler.js';
 import { adaptorRegistry, createAdaptor, autoDetectAdaptor } from '../adaptors/registry.js';
 import { extractThemeContext, enhanceComponentWithThemeContext, generateThemeContextSummary } from '../core/themeExtractor.js';
 import { ProjectIntelligenceScanner } from '../core/projectIntelligence.js';
+import { TokenDetector } from '../core/tokenDetector.js';
+import { UniversalTokenExtractor } from '../core/universalTokenExtractor.js';
 
 /**
  * DCP Transformer V3 - Multi-Framework Component Extraction
@@ -83,7 +85,8 @@ export async function runExtract(source, options = {}) {
     plan = false,
     json = false,
     flattenTokens = false,
-    verbose = false
+    verbose = false,
+    autoDetectTokens = false // NEW: Auto-detect tokens option
   } = options;
   
   // Get optimized glob pattern based on project structure
@@ -112,7 +115,8 @@ export async function runExtract(source, options = {}) {
     verbose: verbose && !json,
     barrels: options.barrels,
     maxDepth: options.maxDepth,
-    traceBarrels: options.traceBarrels
+    traceBarrels: options.traceBarrels,
+    autoDetectTokens
   });
   
   const result = await extractor.extract(globPattern);
@@ -247,6 +251,7 @@ class MultiFrameworkExtractor {
     this.barrels = options.barrels;
     this.maxDepth = options.maxDepth;
     this.traceBarrels = options.traceBarrels;
+    this.autoDetectTokens = options.autoDetectTokens; // NEW: Auto-detect tokens
     
     this.components = [];
     this.tokens = {};
@@ -309,8 +314,8 @@ class MultiFrameworkExtractor {
       console.log(chalk.gray(`Found ${componentFiles.length} files to process`));
     }
     
-    // Load design tokens if provided
-    if (this.tokensPath) {
+    // Load design tokens if provided or auto-detection is enabled
+    if (this.tokensPath || this.autoDetectTokens) {
       await this.loadTokens();
     }
     
@@ -460,28 +465,37 @@ class MultiFrameworkExtractor {
   
   async loadTokens() {
     try {
-      const tokensContent = await fs.readFile(this.tokensPath, 'utf-8');
-      
-      // Check if this looks like a CSS file and we're in flatten mode
-      if (this.flattenTokens || this.tokensPath.endsWith('.css')) {
-        // Extract CSS custom properties
-        this.tokens = extractCssCustomProps(tokensContent, this.flattenTokens);
+      // Check if we should auto-detect tokens
+      if (this.autoDetectTokens) {
+        await this.loadTokensWithAutoDetection();
+        return;
+      }
+
+      // Original manual token loading logic
+      if (this.tokensPath) {
+        const tokensContent = await fs.readFile(this.tokensPath, 'utf-8');
         
-        if (this.verbose) {
-          const tokenCount = this.flattenTokens ? 
-            Object.keys(this.tokens).length : 
-            Object.values(this.tokens).reduce((sum, cat) => sum + Object.keys(cat).length, 0);
-          console.log(chalk.gray(`Extracted ${tokenCount} CSS custom properties`));
-        }
-      } else {
-        // Parse as JSON
-        const rawTokens = JSON.parse(tokensContent);
-        
-        // Normalize tokens into DCP format
-        this.tokens = this.normalizeTokens(rawTokens);
-        
-        if (this.verbose) {
-          console.log(chalk.gray(`Loaded ${Object.keys(this.tokens).length} design tokens`));
+        // Check if this looks like a CSS file and we're in flatten mode
+        if (this.flattenTokens || this.tokensPath.endsWith('.css')) {
+          // Extract CSS custom properties
+          this.tokens = extractCssCustomProps(tokensContent, this.flattenTokens);
+          
+          if (this.verbose) {
+            const tokenCount = this.flattenTokens ? 
+              Object.keys(this.tokens).length : 
+              Object.values(this.tokens).reduce((sum, cat) => sum + Object.keys(cat).length, 0);
+            console.log(chalk.gray(`Extracted ${tokenCount} CSS custom properties`));
+          }
+        } else {
+          // Parse as JSON
+          const rawTokens = JSON.parse(tokensContent);
+          
+          // Normalize tokens into DCP format
+          this.tokens = this.normalizeTokens(rawTokens);
+          
+          if (this.verbose) {
+            console.log(chalk.gray(`Loaded ${Object.keys(this.tokens).length} design tokens`));
+          }
         }
       }
     } catch (error) {
@@ -489,6 +503,65 @@ class MultiFrameworkExtractor {
         console.warn(chalk.yellow(`⚠️  Failed to load tokens: ${error.message}`));
       }
     }
+  }
+
+  async loadTokensWithAutoDetection() {
+    try {
+      // Initialize token detector
+      const detector = new TokenDetector(this.sourceDir, { verbose: this.verbose });
+      
+      // Detect all token sources
+      const detectedSources = await detector.detectAll();
+      
+      if (detectedSources.length === 0) {
+        if (this.verbose) {
+          console.log(chalk.yellow('⚠️  No token sources detected'));
+        }
+        return;
+      }
+
+      // Initialize universal token extractor
+      const extractor = new UniversalTokenExtractor({ verbose: this.verbose });
+      
+      // Extract tokens from all detected sources
+      const extractedTokens = await extractor.extractAll(detectedSources);
+      
+      // Convert to DCP format
+      this.tokens = this.normalizeExtractedTokens(extractedTokens);
+      
+      if (this.verbose) {
+        const summary = detector.getSummary();
+        console.log(chalk.green(`🎨 Auto-detected token sources:`));
+        for (const [type, sources] of Object.entries(summary)) {
+          console.log(chalk.gray(`  ${type}: ${sources.length} source(s)`));
+        }
+        console.log(chalk.green(`✅ Total tokens extracted: ${Object.keys(this.tokens).length}`));
+      }
+    } catch (error) {
+      if (this.verbose) {
+        console.warn(chalk.yellow(`⚠️  Auto-detection failed: ${error.message}`));
+      }
+    }
+  }
+
+  normalizeExtractedTokens(extractedTokens) {
+    const normalized = {};
+    
+    // Group tokens by category
+    for (const [name, token] of Object.entries(extractedTokens)) {
+      const category = token.category || 'custom';
+      if (!normalized[category]) {
+        normalized[category] = {};
+      }
+      normalized[category][name] = {
+        value: token.value,
+        type: token.type,
+        description: token.description,
+        source: token.source
+      };
+    }
+    
+    return normalized;
   }
   
   normalizeTokens(rawTokens) {
