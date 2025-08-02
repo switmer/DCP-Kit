@@ -6,9 +6,15 @@
 import fs from 'fs';
 import path from 'path';
 import { globSync } from 'glob';
+import { ConfigEvaluator } from './configEvaluator.js';
 
 export class UniversalTokenExtractor {
-  constructor() {
+  constructor(options = {}) {
+    this.configEvaluator = new ConfigEvaluator({
+      verbose: options.verbose,
+      timeout: options.timeout || 5000
+    });
+    
     this.extractors = new Map([
       ['radix', this.extractRadixTokens.bind(this)],
       ['mui', this.extractMUITokens.bind(this)],
@@ -179,38 +185,55 @@ export class UniversalTokenExtractor {
           }
         };
         
-        tokens.spacing = {
-          xs: '4px',
-          sm: '8px',
-          md: '16px',
-          lg: '24px',
-          xl: '32px'
-        };
+        tokens.spacing = this.generateMUISpacing(8); // Default MUI spacing
       } else {
-        // Extract from custom theme file
-        const content = fs.readFileSync(source.path, 'utf8');
+        // Extract from custom theme file using ConfigEvaluator
+        const config = await this.configEvaluator.evaluateConfig(source.path);
         
-        // Parse theme object (basic extraction)
-        const themeMatch = content.match(/createTheme\s*\(\s*\{([\s\S]*?)\}\s*\)/);
-        if (themeMatch) {
-          const themeContent = themeMatch[1];
+        if (config) {
+          // Look for theme object or createTheme result
+          let theme = config;
+          if (typeof config === 'function') {
+            // If it's a factory function, we already tried to call it in evaluateConfig
+            console.warn('MUI theme factory functions not fully supported, using static extraction');
+            theme = {};
+          }
           
           // Extract palette colors
-          const paletteMatch = themeContent.match(/palette\s*:\s*\{([\s\S]*?)\}/);
-          if (paletteMatch) {
-            tokens.colors = this.parseMUIColors(paletteMatch[1]);
+          if (theme.palette) {
+            tokens.colors = this.normalizeMUIColors(theme.palette);
           }
           
           // Extract spacing
-          const spacingMatch = themeContent.match(/spacing\s*:\s*(\d+)/);
-          if (spacingMatch) {
-            const baseSpacing = parseInt(spacingMatch[1]);
-            tokens.spacing = this.generateMUISpacing(baseSpacing);
+          if (theme.spacing) {
+            if (typeof theme.spacing === 'number') {
+              tokens.spacing = this.generateMUISpacing(theme.spacing);
+            } else if (typeof theme.spacing === 'function') {
+              // MUI spacing function - generate common values
+              tokens.spacing = this.generateMUISpacing(8); // Default fallback
+            }
           }
+          
+          // Extract typography
+          if (theme.typography) {
+            tokens.typography = this.normalizeMUITypography(theme.typography);
+          }
+          
+          console.log(`✅ Extracted MUI theme: ${Object.keys(tokens.colors).length} colors, ${Object.keys(tokens.spacing).length} spacing values`);
+        } else {
+          console.warn('No MUI theme configuration found');
         }
       }
     } catch (error) {
       console.warn('Error extracting MUI tokens:', error.message);
+      
+      // Fallback to static parsing
+      try {
+        const staticTokens = await this.extractMUIStatic(source.path);
+        Object.assign(tokens, staticTokens);
+      } catch (fallbackError) {
+        console.warn('Static MUI extraction also failed:', fallbackError.message);
+      }
     }
 
     return tokens;
@@ -228,6 +251,68 @@ export class UniversalTokenExtractor {
     return colors;
   }
 
+  /**
+   * Normalize MUI colors from palette object
+   */
+  normalizeMUIColors(palette) {
+    const normalized = {};
+    
+    Object.entries(palette).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        // Simple color value
+        normalized[key] = value;
+      } else if (typeof value === 'object' && value !== null) {
+        // Color object with main, light, dark, contrastText, etc.
+        if (value.main) {
+          normalized[`${key}-main`] = value.main;
+        }
+        if (value.light) {
+          normalized[`${key}-light`] = value.light;
+        }
+        if (value.dark) {
+          normalized[`${key}-dark`] = value.dark;
+        }
+        if (value.contrastText) {
+          normalized[`${key}-contrast`] = value.contrastText;
+        }
+        
+        // Handle numerical scale (50, 100, 200, etc.)
+        Object.entries(value).forEach(([shade, color]) => {
+          if (/^\d+$/.test(shade)) {
+            normalized[`${key}-${shade}`] = color;
+          }
+        });
+      }
+    });
+    
+    return normalized;
+  }
+
+  /**
+   * Normalize MUI typography from typography object
+   */
+  normalizeMUITypography(typography) {
+    const normalized = {};
+    
+    Object.entries(typography).forEach(([key, value]) => {
+      if (typeof value === 'object' && value !== null) {
+        // Typography variant object
+        if (value.fontSize) normalized[`${key}-fontSize`] = value.fontSize;
+        if (value.fontWeight) normalized[`${key}-fontWeight`] = value.fontWeight;
+        if (value.lineHeight) normalized[`${key}-lineHeight`] = value.lineHeight;
+        if (value.letterSpacing) normalized[`${key}-letterSpacing`] = value.letterSpacing;
+      } else if (typeof value === 'string' || typeof value === 'number') {
+        // Simple value
+        normalized[key] = value;
+      }
+    });
+    
+    return normalized;
+  }
+
+  /**
+   * Generate MUI spacing scale
+   */
   generateMUISpacing(base = 8) {
     const spacing = {};
     for (let i = 1; i <= 10; i++) {
@@ -237,41 +322,121 @@ export class UniversalTokenExtractor {
   }
 
   /**
+   * Fallback static MUI extraction
+   */
+  async extractMUIStatic(configPath) {
+    const content = fs.readFileSync(configPath, 'utf8');
+    return this.configEvaluator.extractMUIStatic(content);
+  }
+
+  /**
    * Extract Tailwind tokens
    */
   async extractTailwindTokens(source) {
     const tokens = { colors: {}, spacing: {}, typography: {} };
 
     try {
-      let configContent = fs.readFileSync(source.path, 'utf8');
+      // Use ConfigEvaluator for proper JS/TS evaluation
+      const config = await this.configEvaluator.evaluateConfig(source.path);
       
-      // Remove comments and clean up
-      configContent = configContent.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
-      
-      // Extract theme configuration
-      const themeMatch = configContent.match(/theme\s*:\s*\{([\s\S]*?)\}/);
-      if (themeMatch) {
-        const themeContent = themeMatch[1];
+      if (config && config.theme) {
+        // Extract colors from theme.colors or theme.extend.colors
+        const colors = config.theme.extend?.colors || config.theme.colors || {};
+        tokens.colors = this.normalizeTailwindColors(colors);
         
-        // Extract colors
-        const colorsMatch = themeContent.match(/colors\s*:\s*\{([\s\S]*?)\}/);
-        if (colorsMatch) {
-          tokens.colors = this.parseTailwindColors(colorsMatch[1]);
-        }
+        // Extract spacing from theme.spacing or theme.extend.spacing
+        const spacing = config.theme.extend?.spacing || config.theme.spacing || {};
+        tokens.spacing = this.normalizeTailwindSpacing(spacing);
         
-        // Extract spacing
-        const spacingMatch = themeContent.match(/spacing\s*:\s*\{([\s\S]*?)\}/);
-        if (spacingMatch) {
-          tokens.spacing = this.parseTailwindSpacing(spacingMatch[1]);
-        }
+        // Extract typography from theme.fontSize or theme.extend.fontSize
+        const fontSize = config.theme.extend?.fontSize || config.theme.fontSize || {};
+        tokens.typography = this.normalizeTailwindTypography(fontSize);
+        
+        console.log(`✅ Extracted Tailwind config: ${Object.keys(tokens.colors).length} colors, ${Object.keys(tokens.spacing).length} spacing values`);
+      } else {
+        console.warn('No theme configuration found in Tailwind config');
       }
     } catch (error) {
       console.warn('Error extracting Tailwind tokens:', error.message);
+      
+      // Fallback to static parsing for broken configs
+      try {
+        const staticTokens = await this.extractTailwindStatic(source.path);
+        Object.assign(tokens, staticTokens);
+      } catch (fallbackError) {
+        console.warn('Static extraction also failed:', fallbackError.message);
+      }
     }
 
     return tokens;
   }
 
+  /**
+   * Normalize Tailwind colors from config object
+   */
+  normalizeTailwindColors(colors) {
+    const normalized = {};
+    
+    Object.entries(colors).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        // Simple color value
+        normalized[key] = value;
+      } else if (typeof value === 'object' && value !== null) {
+        // Color scale (e.g., blue: { 50: '#...', 100: '#...' })
+        Object.entries(value).forEach(([shade, color]) => {
+          normalized[`${key}-${shade}`] = color;
+        });
+      }
+    });
+    
+    return normalized;
+  }
+
+  /**
+   * Normalize Tailwind spacing from config object
+   */
+  normalizeTailwindSpacing(spacing) {
+    const normalized = {};
+    
+    Object.entries(spacing).forEach(([key, value]) => {
+      normalized[key] = value;
+    });
+    
+    return normalized;
+  }
+
+  /**
+   * Normalize Tailwind typography from config object
+   */
+  normalizeTailwindTypography(fontSize) {
+    const normalized = {};
+    
+    Object.entries(fontSize).forEach(([key, value]) => {
+      if (typeof value === 'string') {
+        normalized[key] = value;
+      } else if (Array.isArray(value)) {
+        // Tailwind fontSize can be [size, lineHeight] array
+        normalized[key] = {
+          fontSize: value[0],
+          lineHeight: value[1]
+        };
+      } else if (typeof value === 'object') {
+        normalized[key] = value;
+      }
+    });
+    
+    return normalized;
+  }
+
+  /**
+   * Fallback static Tailwind extraction
+   */
+  async extractTailwindStatic(configPath) {
+    const content = fs.readFileSync(configPath, 'utf8');
+    return this.configEvaluator.extractTailwindStatic(content);
+  }
+
+  // Legacy methods for backwards compatibility
   parseTailwindColors(colorsString) {
     const colors = {};
     const colorMatches = colorsString.match(/['"`]?(\w+)['"`]?\s*:\s*['"`]([^'"`]+)['"`]/g);
