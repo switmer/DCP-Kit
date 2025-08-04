@@ -1,0 +1,74 @@
+{
+  "primary-1": {
+    "value": "#eff6ff",
+    "type": "color",
+    "description": "MUI primary color - 1",
+    "source": "mui"
+  },
+  "primary-2": {
+    "value": "#dbeafe",
+    "type": "color",
+    "description": "MUI primary color - 2",
+    "source": "mui"
+  },
+  "primary-3": {
+    "value": "#bfdbfe",
+    "type": "color",
+    "description": "MUI primary color - 3",
+    "source": "mui"
+  },
+  "primary-4": {
+    "value": "#93c5fd",
+    "type": "color",
+    "description": "MUI primary color - 4",
+    "source": "mui"
+  },
+  "primary-5": {
+    "value": "#60a5fa",
+    "type": "color",
+    "description": "MUI primary color - 5",
+    "source": "mui"
+  },
+  "primary-6": {
+    "value": "#3b82f6",
+    "type": "color",
+    "description": "MUI primary color - 6",
+    "source": "mui"
+  },
+  "primary-7": {
+    "value": "#2563eb",
+    "type": "color",
+    "description": "MUI primary color - 7",
+    "source": "mui"
+  },
+  "primary-8": {
+    "value": "#1d4ed8",
+    "type": "color",
+    "description": "MUI primary color - 8",
+    "source": "mui"
+  },
+  "primary-9": {
+    "value": "#1e40af",
+    "type": "color",
+    "description": "MUI primary color - 9",
+    "source": "mui"
+  },
+  "primary-10": {
+    "value": "#1e3a8a",
+    "type": "color",
+    "description": "MUI primary color - 10",
+    "source": "mui"
+  },
+  "primary-11": {
+    "value": "#172554",
+    "type": "color",
+    "description": "MUI primary color - 11",
+    "source": "mui"
+  },
+  "primary-12": {
+    "value": "#0f172a",
+    "type": "color",
+    "description": "MUI primary color - 12",
+    "source": "mui"
+  }
+}

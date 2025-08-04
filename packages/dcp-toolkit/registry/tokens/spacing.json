@@ -1,0 +1,128 @@
+{
+  "spacing-0": {
+    "value": "0px",
+    "type": "spacing",
+    "description": "MUI spacing - 0",
+    "source": "mui"
+  },
+  "spacing-1": {
+    "value": "4px",
+    "type": "spacing",
+    "description": "MUI spacing - 1",
+    "source": "mui"
+  },
+  "spacing-2": {
+    "value": "8px",
+    "type": "spacing",
+    "description": "MUI spacing - 2",
+    "source": "mui"
+  },
+  "spacing-3": {
+    "value": "12px",
+    "type": "spacing",
+    "description": "MUI spacing - 3",
+    "source": "mui"
+  },
+  "spacing-4": {
+    "value": "16px",
+    "type": "spacing",
+    "description": "MUI spacing - 4",
+    "source": "mui"
+  },
+  "spacing-5": {
+    "value": "20px",
+    "type": "spacing",
+    "description": "MUI spacing - 5",
+    "source": "mui"
+  },
+  "spacing-6": {
+    "value": "24px",
+    "type": "spacing",
+    "description": "MUI spacing - 6",
+    "source": "mui"
+  },
+  "spacing-7": {
+    "value": "28px",
+    "type": "spacing",
+    "description": "MUI spacing - 7",
+    "source": "mui"
+  },
+  "spacing-8": {
+    "value": "32px",
+    "type": "spacing",
+    "description": "MUI spacing - 8",
+    "source": "mui"
+  },
+  "spacing-9": {
+    "value": "36px",
+    "type": "spacing",
+    "description": "MUI spacing - 9",
+    "source": "mui"
+  },
+  "spacing-10": {
+    "value": "40px",
+    "type": "spacing",
+    "description": "MUI spacing - 10",
+    "source": "mui"
+  },
+  "spacing-11": {
+    "value": "44px",
+    "type": "spacing",
+    "description": "MUI spacing - 11",
+    "source": "mui"
+  },
+  "spacing-12": {
+    "value": "48px",
+    "type": "spacing",
+    "description": "MUI spacing - 12",
+    "source": "mui"
+  },
+  "spacing-13": {
+    "value": "52px",
+    "type": "spacing",
+    "description": "MUI spacing - 13",
+    "source": "mui"
+  },
+  "spacing-14": {
+    "value": "56px",
+    "type": "spacing",
+    "description": "MUI spacing - 14",
+    "source": "mui"
+  },
+  "spacing-15": {
+    "value": "60px",
+    "type": "spacing",
+    "description": "MUI spacing - 15",
+    "source": "mui"
+  },
+  "spacing-16": {
+    "value": "64px",
+    "type": "spacing",
+    "description": "MUI spacing - 16",
+    "source": "mui"
+  },
+  "spacing-17": {
+    "value": "68px",
+    "type": "spacing",
+    "description": "MUI spacing - 17",
+    "source": "mui"
+  },
+  "spacing-18": {
+    "value": "72px",
+    "type": "spacing",
+    "description": "MUI spacing - 18",
+    "source": "mui"
+  },
+  "spacing-19": {
+    "value": "76px",
+    "type": "spacing",
+    "description": "MUI spacing - 19",
+    "source": "mui"
+  },
+  "spacing-20": {
+    "value": "80px",
+    "type": "spacing",
+    "description": "MUI spacing - 20",
+    "source": "mui"
+  }
+}

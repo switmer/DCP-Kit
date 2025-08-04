@@ -1,0 +1,112 @@
+{
+  "heading1": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "32px",
+      "fontWeight": "600",
+      "lineHeight": "1.2"
+    },
+    "type": "typography",
+    "description": "typography token - heading1",
+    "source": "radix"
+  },
+  "heading2": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "24px",
+      "fontWeight": "600",
+      "lineHeight": "1.3"
+    },
+    "type": "typography",
+    "description": "typography token - heading2",
+    "source": "radix"
+  },
+  "heading3": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "20px",
+      "fontWeight": "600",
+      "lineHeight": "1.4"
+    },
+    "type": "typography",
+    "description": "typography token - heading3",
+    "source": "radix"
+  },
+  "body": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "1.5"
+    },
+    "type": "typography",
+    "description": "typography token - body",
+    "source": "radix"
+  },
+  "caption": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "1.4"
+    },
+    "type": "typography",
+    "description": "typography token - caption",
+    "source": "radix"
+  },
+  "typography-heading1": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "32px",
+      "fontWeight": "600",
+      "lineHeight": "1.2"
+    },
+    "type": "typography",
+    "description": "MUI typography - heading1",
+    "source": "mui"
+  },
+  "typography-heading2": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "24px",
+      "fontWeight": "600",
+      "lineHeight": "1.3"
+    },
+    "type": "typography",
+    "description": "MUI typography - heading2",
+    "source": "mui"
+  },
+  "typography-heading3": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "20px",
+      "fontWeight": "600",
+      "lineHeight": "1.4"
+    },
+    "type": "typography",
+    "description": "MUI typography - heading3",
+    "source": "mui"
+  },
+  "typography-body": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "1.5"
+    },
+    "type": "typography",
+    "description": "MUI typography - body",
+    "source": "mui"
+  },
+  "typography-caption": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "1.4"
+    },
+    "type": "typography",
+    "description": "MUI typography - caption",
+    "source": "mui"
+  }
+}

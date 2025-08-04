@@ -1,0 +1,74 @@
+{
+  "green-1": {
+    "value": "#f0fdf4",
+    "type": "color",
+    "description": "green color scale - 1",
+    "source": "radix"
+  },
+  "green-2": {
+    "value": "#dcfce7",
+    "type": "color",
+    "description": "green color scale - 2",
+    "source": "radix"
+  },
+  "green-3": {
+    "value": "#bbf7d0",
+    "type": "color",
+    "description": "green color scale - 3",
+    "source": "radix"
+  },
+  "green-4": {
+    "value": "#86efac",
+    "type": "color",
+    "description": "green color scale - 4",
+    "source": "radix"
+  },
+  "green-5": {
+    "value": "#4ade80",
+    "type": "color",
+    "description": "green color scale - 5",
+    "source": "radix"
+  },
+  "green-6": {
+    "value": "#22c55e",
+    "type": "color",
+    "description": "green color scale - 6",
+    "source": "radix"
+  },
+  "green-7": {
+    "value": "#16a34a",
+    "type": "color",
+    "description": "green color scale - 7",
+    "source": "radix"
+  },
+  "green-8": {
+    "value": "#15803d",
+    "type": "color",
+    "description": "green color scale - 8",
+    "source": "radix"
+  },
+  "green-9": {
+    "value": "#166534",
+    "type": "color",
+    "description": "green color scale - 9",
+    "source": "radix"
+  },
+  "green-10": {
+    "value": "#14532d",
+    "type": "color",
+    "description": "green color scale - 10",
+    "source": "radix"
+  },
+  "green-11": {
+    "value": "#052e16",
+    "type": "color",
+    "description": "green color scale - 11",
+    "source": "radix"
+  },
+  "green-12": {
+    "value": "#022c22",
+    "type": "color",
+    "description": "green color scale - 12",
+    "source": "radix"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "slate-1": {
+    "value": "#fcfcfc",
+    "type": "color",
+    "description": "slate color scale - 1",
+    "source": "radix"
+  },
+  "slate-2": {
+    "value": "#f8f8f8",
+    "type": "color",
+    "description": "slate color scale - 2",
+    "source": "radix"
+  },
+  "slate-3": {
+    "value": "#f3f4f6",
+    "type": "color",
+    "description": "slate color scale - 3",
+    "source": "radix"
+  },
+  "slate-4": {
+    "value": "#e5e7eb",
+    "type": "color",
+    "description": "slate color scale - 4",
+    "source": "radix"
+  },
+  "slate-5": {
+    "value": "#d1d5db",
+    "type": "color",
+    "description": "slate color scale - 5",
+    "source": "radix"
+  },
+  "slate-6": {
+    "value": "#9ca3af",
+    "type": "color",
+    "description": "slate color scale - 6",
+    "source": "radix"
+  },
+  "slate-7": {
+    "value": "#6b7280",
+    "type": "color",
+    "description": "slate color scale - 7",
+    "source": "radix"
+  },
+  "slate-8": {
+    "value": "#4b5563",
+    "type": "color",
+    "description": "slate color scale - 8",
+    "source": "radix"
+  },
+  "slate-9": {
+    "value": "#374151",
+    "type": "color",
+    "description": "slate color scale - 9",
+    "source": "radix"
+  },
+  "slate-10": {
+    "value": "#1f2937",
+    "type": "color",
+    "description": "slate color scale - 10",
+    "source": "radix"
+  },
+  "slate-11": {
+    "value": "#111827",
+    "type": "color",
+    "description": "slate color scale - 11",
+    "source": "radix"
+  },
+  "slate-12": {
+    "value": "#030712",
+    "type": "color",
+    "description": "slate color scale - 12",
+    "source": "radix"
+  }
+}

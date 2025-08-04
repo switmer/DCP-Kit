@@ -1,0 +1,74 @@
+{
+  "blue-1": {
+    "value": "#eff6ff",
+    "type": "color",
+    "description": "blue color scale - 1",
+    "source": "radix"
+  },
+  "blue-2": {
+    "value": "#dbeafe",
+    "type": "color",
+    "description": "blue color scale - 2",
+    "source": "radix"
+  },
+  "blue-3": {
+    "value": "#bfdbfe",
+    "type": "color",
+    "description": "blue color scale - 3",
+    "source": "radix"
+  },
+  "blue-4": {
+    "value": "#93c5fd",
+    "type": "color",
+    "description": "blue color scale - 4",
+    "source": "radix"
+  },
+  "blue-5": {
+    "value": "#60a5fa",
+    "type": "color",
+    "description": "blue color scale - 5",
+    "source": "radix"
+  },
+  "blue-6": {
+    "value": "#3b82f6",
+    "type": "color",
+    "description": "blue color scale - 6",
+    "source": "radix"
+  },
+  "blue-7": {
+    "value": "#2563eb",
+    "type": "color",
+    "description": "blue color scale - 7",
+    "source": "radix"
+  },
+  "blue-8": {
+    "value": "#1d4ed8",
+    "type": "color",
+    "description": "blue color scale - 8",
+    "source": "radix"
+  },
+  "blue-9": {
+    "value": "#1e40af",
+    "type": "color",
+    "description": "blue color scale - 9",
+    "source": "radix"
+  },
+  "blue-10": {
+    "value": "#1e3a8a",
+    "type": "color",
+    "description": "blue color scale - 10",
+    "source": "radix"
+  },
+  "blue-11": {
+    "value": "#172554",
+    "type": "color",
+    "description": "blue color scale - 11",
+    "source": "radix"
+  },
+  "blue-12": {
+    "value": "#0f172a",
+    "type": "color",
+    "description": "blue color scale - 12",
+    "source": "radix"
+  }
+}

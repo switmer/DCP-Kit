@@ -190,6 +190,17 @@ class DCPApiServer {
     // Admin endpoints (require admin role)
     this.app.post('/api/v1/upload', this.authenticateToken.bind(this), this.requireRole('admin'), this.handleUpload.bind(this));
     this.app.post('/api/v1/build', this.authenticateToken.bind(this), this.requireRole('admin'), this.handleBuild.bind(this));
+    
+    // Distribution endpoints (require auth)
+    this.app.post('/api/v1/build-packs', this.authenticateToken.bind(this), this.handleBuildPacks.bind(this));
+    this.app.post('/api/v1/serve-registry', this.authenticateToken.bind(this), this.handleServeRegistry.bind(this));
+    this.app.post('/api/v1/add-component', this.authenticateToken.bind(this), this.handleAddComponent.bind(this));
+    
+    // Development endpoints (require auth)
+    this.app.post('/api/v1/watch', this.authenticateToken.bind(this), this.handleWatch.bind(this));
+    this.app.post('/api/v1/diff', this.authenticateToken.bind(this), this.handleDiff.bind(this));
+    this.app.post('/api/v1/export-tokens', this.authenticateToken.bind(this), this.handleExportTokens.bind(this));
+    this.app.post('/api/v1/import-tokens', this.authenticateToken.bind(this), this.handleImportTokens.bind(this));
 
     // Legacy registry serving (for backward compatibility)
     this.app.get('/r/:namespace/:component', this.handleLegacyComponent.bind(this));
@@ -769,19 +780,71 @@ class DCPApiServer {
   }
 
   async handleExtract(req, res) {
-    res.status(501).json({
-      error: 'Not Implemented',
-      message: 'Extract endpoint not yet implemented',
-      requestId: req.id
-    });
+    try {
+      const { source = '.', output = './registry', glob = '**/*.{tsx,jsx,ts,js}', adaptor = 'react-tsx', includeTokens = true, validate = true, autoFix = false } = req.body;
+      
+      // Import and run the extract command
+      const { runExtractV3 } = await import('./commands/extract-v3.js');
+      
+      const result = await runExtractV3(source, {
+        out: output,
+        glob,
+        adaptor,
+        includeTokens,
+        validate,
+        autoFix,
+        verbose: this.verbose
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Extraction Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
   }
 
   async handleTranspile(req, res) {
-    res.status(501).json({
-      error: 'Not Implemented',
-      message: 'Transpile endpoint not yet implemented',
-      requestId: req.id
-    });
+    try {
+      const { component, target = 'react-typescript', includeStyles = true, useTokens = true, outputPath } = req.body;
+      
+      if (!component) {
+        return res.status(400).json({
+          error: 'Missing Component',
+          message: 'component parameter is required',
+          requestId: req.id
+        });
+      }
+      
+      // Import and run the transpile command
+      const { runTranspile } = await import('./commands/transpile.js');
+      
+      const result = await runTranspile(component, {
+        target,
+        includeStyles,
+        useTokens,
+        out: outputPath,
+        verbose: this.verbose
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Transpile Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
   }
 
   async handleGenerate(req, res) {
@@ -801,11 +864,255 @@ class DCPApiServer {
   }
 
   async handleBuild(req, res) {
-    res.status(501).json({
-      error: 'Not Implemented',
-      message: 'Build endpoint not yet implemented',
-      requestId: req.id
-    });
+    try {
+      const { source = '.', config = './dcp.config.json', verbose = false, withStorybook = false } = req.body;
+      
+      // Import and run the build command
+      const { runBuild } = await import('./commands/build.js');
+      
+      const result = await runBuild(source, {
+        config,
+        verbose: verbose || this.verbose,
+        withStorybook
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Build Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
+  }
+
+  async handleBuildPacks(req, res) {
+    try {
+      const { registryPath = './registry', out = './dist/packs', baseUrl = '', namespace = 'ui', version = '1.0.0', verbose = false } = req.body;
+      
+      // Import and run the build-packs command
+      const { runBuildPacks } = await import('./commands/build-packs.js');
+      
+      const result = await runBuildPacks(registryPath, {
+        out,
+        baseUrl,
+        namespace,
+        version,
+        verbose: verbose || this.verbose
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Build Packs Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
+  }
+
+  async handleServeRegistry(req, res) {
+    try {
+      const { packsDir = './dist/packs', port = 7401, host = 'localhost', cors = true, secret = null, verbose = false, baseUrl = null } = req.body;
+      
+      // Import and run the serve-registry command
+      const { runServeRegistry } = await import('./commands/serve-registry.js');
+      
+      const result = await runServeRegistry(packsDir, {
+        port,
+        host,
+        cors,
+        secret,
+        verbose: verbose || this.verbose,
+        baseUrl
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Serve Registry Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
+  }
+
+  async handleAddComponent(req, res) {
+    try {
+      const { componentUrl, target = './components/ui', packageJson = './package.json', install = true, dryRun = false, force = false, verbose = false, token = null } = req.body;
+      
+      if (!componentUrl) {
+        return res.status(400).json({
+          error: 'Missing Component URL',
+          message: 'componentUrl parameter is required',
+          requestId: req.id
+        });
+      }
+      
+      // Import and run the dcp-add command
+      const { runDcpAdd } = await import('./commands/dcp-add.js');
+      
+      const result = await runDcpAdd(componentUrl, {
+        target,
+        packageJson,
+        install,
+        dryRun,
+        force,
+        verbose: verbose || this.verbose,
+        token
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Add Component Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
+  }
+
+  async handleWatch(req, res) {
+    try {
+      const { source = '.', output = './registry', glob = '**/*.{tsx,jsx,ts,js}', adaptor = 'react-tsx', includeTokens = true, validate = true, autoFix = false, verbose = false } = req.body;
+      
+      // Import and run the watch command
+      const { runWatch } = await import('./commands/watch.js');
+      
+      const result = await runWatch(source, {
+        out: output,
+        glob,
+        adaptor,
+        includeTokens,
+        validate,
+        autoFix,
+        verbose: verbose || this.verbose
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Watch Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
+  }
+
+  async handleDiff(req, res) {
+    try {
+      const { registry1, registry2, output = './diff.json', verbose = false } = req.body;
+      
+      if (!registry1 || !registry2) {
+        return res.status(400).json({
+          error: 'Missing Registry Paths',
+          message: 'Both registry1 and registry2 parameters are required',
+          requestId: req.id
+        });
+      }
+      
+      // Import and run the diff command
+      const { runDiff } = await import('./commands/diff.js');
+      
+      const result = await runDiff(registry1, registry2, {
+        out: output,
+        verbose: verbose || this.verbose
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Diff Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
+  }
+
+  async handleExportTokens(req, res) {
+    try {
+      const { registryPath = './registry', output = './tokens.json', format = 'dtcg', verbose = false } = req.body;
+      
+      // Import and run the export-tokens command
+      const { runExportTokens } = await import('./commands/export-tokens.js');
+      
+      const result = await runExportTokens(registryPath, {
+        out: output,
+        format,
+        verbose: verbose || this.verbose
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Export Tokens Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
+  }
+
+  async handleImportTokens(req, res) {
+    try {
+      const { tokensPath, registryPath = './registry', format = 'dtcg', verbose = false } = req.body;
+      
+      if (!tokensPath) {
+        return res.status(400).json({
+          error: 'Missing Tokens Path',
+          message: 'tokensPath parameter is required',
+          requestId: req.id
+        });
+      }
+      
+      // Import and run the import-tokens command
+      const { runImportTokens } = await import('./commands/import-tokens.js');
+      
+      const result = await runImportTokens(tokensPath, {
+        registry: registryPath,
+        format,
+        verbose: verbose || this.verbose
+      });
+      
+      res.json({
+        success: true,
+        result,
+        requestId: req.id
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Import Tokens Failed',
+        message: error.message,
+        requestId: req.id
+      });
+    }
   }
 
   async handleLegacyComponent(req, res) {
@@ -952,17 +1259,60 @@ class DCPApiServer {
 
 // CLI interface
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const port = process.argv[2] || 7401;
+  // Check for help flag
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log(`
+DCP API Server v2.0
+
+Usage: node api-server.js [port] [registry-path] [options]
+
+Arguments:
+  port           Port to run the server on (default: 7401)
+  registry-path  Path to the DCP registry (default: ./registry)
+
+Options:
+  --help, -h     Show this help message
+  --verbose, -v  Enable verbose logging
+
+Examples:
+  node api-server.js                    # Run on port 7401 with default registry
+  node api-server.js 8080              # Run on port 8080
+  node api-server.js 8080 ./my-registry # Run on port 8080 with custom registry
+  node api-server.js --help            # Show this help
+
+Environment Variables:
+  DCP_JWT_SECRET  JWT secret for authentication (default: dev-secret-change-in-production)
+
+API Endpoints:
+  GET  /api/v1/health              # Health check
+  GET  /api/v1/registry            # Get complete registry
+  GET  /api/v1/registry/components # Get all components
+  GET  /api/v1/registry/tokens     # Get all tokens
+  POST /api/v1/validate            # Validate registry
+  POST /api/v1/extract             # Extract components
+  POST /api/v1/transpile           # Transpile component
+  POST /api/v1/build               # Build registry
+  POST /api/v1/build-packs         # Build component packs
+  POST /api/v1/serve-registry      # Serve registry
+  POST /api/v1/add-component       # Add component
+
+Documentation: http://localhost:7401/docs (when server is running)
+`);
+    process.exit(0);
+  }
+
+  const port = parseInt(process.argv[2]) || 7401;
   const registryPath = process.argv[3] || './registry';
+  const verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
   
   console.error('🚀 DCP API Server starting...');
   console.error(`📁 Registry: ${registryPath}`);
   console.error(`🌐 Port: ${port}`);
   
   runApiServer({ 
-    port: parseInt(port), 
+    port, 
     registryPath,
-    verbose: true 
+    verbose 
   }).catch((error) => {
     console.error('Failed to start API server:', error);
     process.exit(1);

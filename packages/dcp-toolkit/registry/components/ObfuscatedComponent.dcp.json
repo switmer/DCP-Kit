@@ -1,0 +1,25 @@
+{
+  "name": "ObfuscatedComponent",
+  "description": "ObfuscatedComponent component",
+  "category": "components",
+  "props": {
+    "label": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "tests/unit/temp-security-trust/obfuscated/Obfuscated.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-08-01T17:31:16.386Z"
+  }
+}

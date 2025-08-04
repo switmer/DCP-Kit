@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { extractThemeConfig, extractCSSVariableThemes } from './configHandler.js';
-import { mapTailwindClassesToCSSVariables } from './tokenHandler.js';
+import { mapTailwindClassesToCSSVariables } from '../tokens/legacyCssVarExtractor.js';
 
 /**
  * Comprehensive theme extraction for design systems

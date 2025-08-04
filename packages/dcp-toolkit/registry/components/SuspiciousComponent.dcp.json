@@ -1,6 +1,6 @@
 {
-  "name": "Component",
-  "description": "Component component",
+  "name": "SuspiciousComponent",
+  "description": "SuspiciousComponent component",
   "category": "components",
   "props": {},
   "variants": {},
@@ -10,9 +10,9 @@
   },
   "examples": [],
   "extensions": {
-    "filePath": "tests/unit/temp-security-trust/file-types/Component.tsx",
+    "filePath": "tests/unit/temp-security-trust/obfuscated/Suspicious.tsx",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-08-01T17:31:11.502Z"
+    "extractedAt": "2025-08-01T17:31:13.776Z"
   }
 }

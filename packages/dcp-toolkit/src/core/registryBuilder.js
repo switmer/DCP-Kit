@@ -1,6 +1,6 @@
 import { readJSON, writeJSON, getAllFiles } from './utils.js';
 import { enrichComponent, enrichToken } from './llmEnrichment.js';
-import { loadOrCreateTokenFile } from './tokenHandler.js';
+import { loadOrCreateTokenFile } from '../tokens/legacyCssVarExtractor.js';
 import { findComponentFiles, validateComponentFile } from './componentFinder.js';
 import { parseTSX } from './parser.js';
 import path from 'path';

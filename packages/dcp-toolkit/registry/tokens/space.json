@@ -1,0 +1,128 @@
+{
+  "0": {
+    "value": "0px",
+    "type": "space",
+    "description": "space token - 0",
+    "source": "radix"
+  },
+  "1": {
+    "value": "4px",
+    "type": "space",
+    "description": "space token - 1",
+    "source": "radix"
+  },
+  "2": {
+    "value": "8px",
+    "type": "space",
+    "description": "space token - 2",
+    "source": "radix"
+  },
+  "3": {
+    "value": "12px",
+    "type": "space",
+    "description": "space token - 3",
+    "source": "radix"
+  },
+  "4": {
+    "value": "16px",
+    "type": "space",
+    "description": "space token - 4",
+    "source": "radix"
+  },
+  "5": {
+    "value": "20px",
+    "type": "space",
+    "description": "space token - 5",
+    "source": "radix"
+  },
+  "6": {
+    "value": "24px",
+    "type": "space",
+    "description": "space token - 6",
+    "source": "radix"
+  },
+  "7": {
+    "value": "28px",
+    "type": "space",
+    "description": "space token - 7",
+    "source": "radix"
+  },
+  "8": {
+    "value": "32px",
+    "type": "space",
+    "description": "space token - 8",
+    "source": "radix"
+  },
+  "9": {
+    "value": "36px",
+    "type": "space",
+    "description": "space token - 9",
+    "source": "radix"
+  },
+  "10": {
+    "value": "40px",
+    "type": "space",
+    "description": "space token - 10",
+    "source": "radix"
+  },
+  "11": {
+    "value": "44px",
+    "type": "space",
+    "description": "space token - 11",
+    "source": "radix"
+  },
+  "12": {
+    "value": "48px",
+    "type": "space",
+    "description": "space token - 12",
+    "source": "radix"
+  },
+  "13": {
+    "value": "52px",
+    "type": "space",
+    "description": "space token - 13",
+    "source": "radix"
+  },
+  "14": {
+    "value": "56px",
+    "type": "space",
+    "description": "space token - 14",
+    "source": "radix"
+  },
+  "15": {
+    "value": "60px",
+    "type": "space",
+    "description": "space token - 15",
+    "source": "radix"
+  },
+  "16": {
+    "value": "64px",
+    "type": "space",
+    "description": "space token - 16",
+    "source": "radix"
+  },
+  "17": {
+    "value": "68px",
+    "type": "space",
+    "description": "space token - 17",
+    "source": "radix"
+  },
+  "18": {
+    "value": "72px",
+    "type": "space",
+    "description": "space token - 18",
+    "source": "radix"
+  },
+  "19": {
+    "value": "76px",
+    "type": "space",
+    "description": "space token - 19",
+    "source": "radix"
+  },
+  "20": {
+    "value": "80px",
+    "type": "space",
+    "description": "space token - 20",
+    "source": "radix"
+  }
+}

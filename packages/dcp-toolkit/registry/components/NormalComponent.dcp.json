@@ -1,0 +1,27 @@
+{
+  "name": "NormalComponent",
+  "description": "NormalComponent component",
+  "category": "components",
+  "props": {
+    "label": {
+      "type": "string",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "tests/unit/temp-security-trust/obfuscated/Normal.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-08-01T17:31:13.791Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  }
+}

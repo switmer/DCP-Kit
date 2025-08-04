@@ -1,0 +1,549 @@
+{
+  "radix-colors.slate-1": {
+    "value": "#fcfcfc",
+    "type": "color",
+    "description": "slate color scale - 1",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-2": {
+    "value": "#f8f8f8",
+    "type": "color",
+    "description": "slate color scale - 2",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-3": {
+    "value": "#f3f4f6",
+    "type": "color",
+    "description": "slate color scale - 3",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-4": {
+    "value": "#e5e7eb",
+    "type": "color",
+    "description": "slate color scale - 4",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-5": {
+    "value": "#d1d5db",
+    "type": "color",
+    "description": "slate color scale - 5",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-6": {
+    "value": "#9ca3af",
+    "type": "color",
+    "description": "slate color scale - 6",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-7": {
+    "value": "#6b7280",
+    "type": "color",
+    "description": "slate color scale - 7",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-8": {
+    "value": "#4b5563",
+    "type": "color",
+    "description": "slate color scale - 8",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-9": {
+    "value": "#374151",
+    "type": "color",
+    "description": "slate color scale - 9",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-10": {
+    "value": "#1f2937",
+    "type": "color",
+    "description": "slate color scale - 10",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-11": {
+    "value": "#111827",
+    "type": "color",
+    "description": "slate color scale - 11",
+    "source": "style-dictionary"
+  },
+  "radix-colors.slate-12": {
+    "value": "#030712",
+    "type": "color",
+    "description": "slate color scale - 12",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-1": {
+    "value": "#eff6ff",
+    "type": "color",
+    "description": "blue color scale - 1",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-2": {
+    "value": "#dbeafe",
+    "type": "color",
+    "description": "blue color scale - 2",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-3": {
+    "value": "#bfdbfe",
+    "type": "color",
+    "description": "blue color scale - 3",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-4": {
+    "value": "#93c5fd",
+    "type": "color",
+    "description": "blue color scale - 4",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-5": {
+    "value": "#60a5fa",
+    "type": "color",
+    "description": "blue color scale - 5",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-6": {
+    "value": "#3b82f6",
+    "type": "color",
+    "description": "blue color scale - 6",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-7": {
+    "value": "#2563eb",
+    "type": "color",
+    "description": "blue color scale - 7",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-8": {
+    "value": "#1d4ed8",
+    "type": "color",
+    "description": "blue color scale - 8",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-9": {
+    "value": "#1e40af",
+    "type": "color",
+    "description": "blue color scale - 9",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-10": {
+    "value": "#1e3a8a",
+    "type": "color",
+    "description": "blue color scale - 10",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-11": {
+    "value": "#172554",
+    "type": "color",
+    "description": "blue color scale - 11",
+    "source": "style-dictionary"
+  },
+  "radix-colors.blue-12": {
+    "value": "#0f172a",
+    "type": "color",
+    "description": "blue color scale - 12",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-1": {
+    "value": "#f0fdf4",
+    "type": "color",
+    "description": "green color scale - 1",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-2": {
+    "value": "#dcfce7",
+    "type": "color",
+    "description": "green color scale - 2",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-3": {
+    "value": "#bbf7d0",
+    "type": "color",
+    "description": "green color scale - 3",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-4": {
+    "value": "#86efac",
+    "type": "color",
+    "description": "green color scale - 4",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-5": {
+    "value": "#4ade80",
+    "type": "color",
+    "description": "green color scale - 5",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-6": {
+    "value": "#22c55e",
+    "type": "color",
+    "description": "green color scale - 6",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-7": {
+    "value": "#16a34a",
+    "type": "color",
+    "description": "green color scale - 7",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-8": {
+    "value": "#15803d",
+    "type": "color",
+    "description": "green color scale - 8",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-9": {
+    "value": "#166534",
+    "type": "color",
+    "description": "green color scale - 9",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-10": {
+    "value": "#14532d",
+    "type": "color",
+    "description": "green color scale - 10",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-11": {
+    "value": "#052e16",
+    "type": "color",
+    "description": "green color scale - 11",
+    "source": "style-dictionary"
+  },
+  "radix-colors.green-12": {
+    "value": "#022c22",
+    "type": "color",
+    "description": "green color scale - 12",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-1": {
+    "value": "#fef2f2",
+    "type": "color",
+    "description": "red color scale - 1",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-2": {
+    "value": "#fee2e2",
+    "type": "color",
+    "description": "red color scale - 2",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-3": {
+    "value": "#fecaca",
+    "type": "color",
+    "description": "red color scale - 3",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-4": {
+    "value": "#fca5a5",
+    "type": "color",
+    "description": "red color scale - 4",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-5": {
+    "value": "#f87171",
+    "type": "color",
+    "description": "red color scale - 5",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-6": {
+    "value": "#ef4444",
+    "type": "color",
+    "description": "red color scale - 6",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-7": {
+    "value": "#dc2626",
+    "type": "color",
+    "description": "red color scale - 7",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-8": {
+    "value": "#b91c1c",
+    "type": "color",
+    "description": "red color scale - 8",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-9": {
+    "value": "#991b1b",
+    "type": "color",
+    "description": "red color scale - 9",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-10": {
+    "value": "#7f1d1d",
+    "type": "color",
+    "description": "red color scale - 10",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-11": {
+    "value": "#450a0a",
+    "type": "color",
+    "description": "red color scale - 11",
+    "source": "style-dictionary"
+  },
+  "radix-colors.red-12": {
+    "value": "#450a0a",
+    "type": "color",
+    "description": "red color scale - 12",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.0": {
+    "value": "0px",
+    "type": "spacing",
+    "description": "Spacing token - 0",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.1": {
+    "value": "4px",
+    "type": "spacing",
+    "description": "Spacing token - 1",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.2": {
+    "value": "8px",
+    "type": "spacing",
+    "description": "Spacing token - 2",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.3": {
+    "value": "12px",
+    "type": "spacing",
+    "description": "Spacing token - 3",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.4": {
+    "value": "16px",
+    "type": "spacing",
+    "description": "Spacing token - 4",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.5": {
+    "value": "20px",
+    "type": "spacing",
+    "description": "Spacing token - 5",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.6": {
+    "value": "24px",
+    "type": "spacing",
+    "description": "Spacing token - 6",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.7": {
+    "value": "28px",
+    "type": "spacing",
+    "description": "Spacing token - 7",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.8": {
+    "value": "32px",
+    "type": "spacing",
+    "description": "Spacing token - 8",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.9": {
+    "value": "36px",
+    "type": "spacing",
+    "description": "Spacing token - 9",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.10": {
+    "value": "40px",
+    "type": "spacing",
+    "description": "Spacing token - 10",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.11": {
+    "value": "44px",
+    "type": "spacing",
+    "description": "Spacing token - 11",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.12": {
+    "value": "48px",
+    "type": "spacing",
+    "description": "Spacing token - 12",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.13": {
+    "value": "52px",
+    "type": "spacing",
+    "description": "Spacing token - 13",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.14": {
+    "value": "56px",
+    "type": "spacing",
+    "description": "Spacing token - 14",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.15": {
+    "value": "60px",
+    "type": "spacing",
+    "description": "Spacing token - 15",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.16": {
+    "value": "64px",
+    "type": "spacing",
+    "description": "Spacing token - 16",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.17": {
+    "value": "68px",
+    "type": "spacing",
+    "description": "Spacing token - 17",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.18": {
+    "value": "72px",
+    "type": "spacing",
+    "description": "Spacing token - 18",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.19": {
+    "value": "76px",
+    "type": "spacing",
+    "description": "Spacing token - 19",
+    "source": "style-dictionary"
+  },
+  "radix-spacing.20": {
+    "value": "80px",
+    "type": "spacing",
+    "description": "Spacing token - 20",
+    "source": "style-dictionary"
+  },
+  "radix-radius.0": {
+    "value": "0px",
+    "type": "radius",
+    "description": "Border radius - 0",
+    "source": "style-dictionary"
+  },
+  "radix-radius.1": {
+    "value": "4px",
+    "type": "radius",
+    "description": "Border radius - 1",
+    "source": "style-dictionary"
+  },
+  "radix-radius.2": {
+    "value": "6px",
+    "type": "radius",
+    "description": "Border radius - 2",
+    "source": "style-dictionary"
+  },
+  "radix-radius.3": {
+    "value": "8px",
+    "type": "radius",
+    "description": "Border radius - 3",
+    "source": "style-dictionary"
+  },
+  "radix-radius.4": {
+    "value": "12px",
+    "type": "radius",
+    "description": "Border radius - 4",
+    "source": "style-dictionary"
+  },
+  "radix-radius.5": {
+    "value": "16px",
+    "type": "radius",
+    "description": "Border radius - 5",
+    "source": "style-dictionary"
+  },
+  "radix-radius.6": {
+    "value": "20px",
+    "type": "radius",
+    "description": "Border radius - 6",
+    "source": "style-dictionary"
+  },
+  "radix-radius.7": {
+    "value": "24px",
+    "type": "radius",
+    "description": "Border radius - 7",
+    "source": "style-dictionary"
+  },
+  "radix-radius.8": {
+    "value": "32px",
+    "type": "radius",
+    "description": "Border radius - 8",
+    "source": "style-dictionary"
+  },
+  "radix-radius.9": {
+    "value": "40px",
+    "type": "radius",
+    "description": "Border radius - 9",
+    "source": "style-dictionary"
+  },
+  "radix-radius.10": {
+    "value": "48px",
+    "type": "radius",
+    "description": "Border radius - 10",
+    "source": "style-dictionary"
+  },
+  "radix-radius.11": {
+    "value": "56px",
+    "type": "radius",
+    "description": "Border radius - 11",
+    "source": "style-dictionary"
+  },
+  "radix-radius.12": {
+    "value": "64px",
+    "type": "radius",
+    "description": "Border radius - 12",
+    "source": "style-dictionary"
+  },
+  "radix-typography.heading1": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "32px",
+      "fontWeight": "600",
+      "lineHeight": "1.2"
+    },
+    "type": "typography",
+    "description": "Typography style - heading1",
+    "source": "style-dictionary"
+  },
+  "radix-typography.heading2": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "24px",
+      "fontWeight": "600",
+      "lineHeight": "1.3"
+    },
+    "type": "typography",
+    "description": "Typography style - heading2",
+    "source": "style-dictionary"
+  },
+  "radix-typography.heading3": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "20px",
+      "fontWeight": "600",
+      "lineHeight": "1.4"
+    },
+    "type": "typography",
+    "description": "Typography style - heading3",
+    "source": "style-dictionary"
+  },
+  "radix-typography.body": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "1.5"
+    },
+    "type": "typography",
+    "description": "Typography style - body",
+    "source": "style-dictionary"
+  },
+  "radix-typography.caption": {
+    "value": {
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "1.4"
+    },
+    "type": "typography",
+    "description": "Typography style - caption",
+    "source": "style-dictionary"
+  }
+}

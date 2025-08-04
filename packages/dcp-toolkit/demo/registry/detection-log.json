@@ -1,0 +1,35 @@
+{
+  "detectionRun": "2025-08-04T15:42:36.424Z",
+  "version": "1.0.0",
+  "sources": [],
+  "overrides": {
+    "appliedFrom": null,
+    "rules": []
+  },
+  "summary": {
+    "totalSources": 0,
+    "byType": {},
+    "highConfidence": 0,
+    "successRate": 0,
+    "totalTokens": 0,
+    "issues": [],
+    "recommendations": [
+      {
+        "type": "setup",
+        "priority": "high",
+        "message": "No token sources detected. Consider setting up a design token system.",
+        "actions": [
+          "Create a tokens.json file",
+          "Set up CSS custom properties",
+          "Configure Tailwind CSS theme"
+        ]
+      }
+    ]
+  },
+  "performance": {
+    "startTime": 2837.697665989399,
+    "detectionTime": 0.8947920203208923,
+    "extractionTime": 4.171665996313095,
+    "totalTime": 9.589917004108429
+  }
+}

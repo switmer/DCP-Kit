@@ -18,7 +18,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
 // Core functionality imports - only what we need for MCP
-// import { extractCssCustomProps, mapTailwindClassesToCSSVariables } from './core/tokenHandler.js';
+// import { extractCssCustomProps, mapTailwindClassesToCSSVariables } from './tokens/legacyCssVarExtractor.js';
 // import { parseTSX } from './core/parser.js';
 import { ProjectIntelligenceScanner } from './core/projectIntelligence.js';
 import { ProjectValidator } from './core/projectValidator.js';

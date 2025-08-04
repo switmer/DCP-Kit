@@ -1,0 +1,80 @@
+{
+  "radix-0": {
+    "value": "0px",
+    "type": "radius",
+    "description": "radius token - 0",
+    "source": "radix"
+  },
+  "radix-1": {
+    "value": "4px",
+    "type": "radius",
+    "description": "radius token - 1",
+    "source": "radix"
+  },
+  "radix-2": {
+    "value": "6px",
+    "type": "radius",
+    "description": "radius token - 2",
+    "source": "radix"
+  },
+  "radix-3": {
+    "value": "8px",
+    "type": "radius",
+    "description": "radius token - 3",
+    "source": "radix"
+  },
+  "radix-4": {
+    "value": "12px",
+    "type": "radius",
+    "description": "radius token - 4",
+    "source": "radix"
+  },
+  "radix-5": {
+    "value": "16px",
+    "type": "radius",
+    "description": "radius token - 5",
+    "source": "radix"
+  },
+  "radix-6": {
+    "value": "20px",
+    "type": "radius",
+    "description": "radius token - 6",
+    "source": "radix"
+  },
+  "radix-7": {
+    "value": "24px",
+    "type": "radius",
+    "description": "radius token - 7",
+    "source": "radix"
+  },
+  "radix-8": {
+    "value": "32px",
+    "type": "radius",
+    "description": "radius token - 8",
+    "source": "radix"
+  },
+  "radix-9": {
+    "value": "40px",
+    "type": "radius",
+    "description": "radius token - 9",
+    "source": "radix"
+  },
+  "radix-10": {
+    "value": "48px",
+    "type": "radius",
+    "description": "radius token - 10",
+    "source": "radix"
+  },
+  "radix-11": {
+    "value": "56px",
+    "type": "radius",
+    "description": "radius token - 11",
+    "source": "radix"
+  },
+  "radix-12": {
+    "value": "64px",
+    "type": "radius",
+    "description": "radius token - 12",
+    "source": "radix"
+  }
+}

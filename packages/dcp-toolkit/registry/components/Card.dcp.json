@@ -1,0 +1,57 @@
+{
+  "name": "Card",
+  "description": "Card component",
+  "category": "layout",
+  "props": {
+    "title": {
+      "type": "string",
+      "description": "The title displayed at the top of the card",
+      "required": true,
+      "source": "auto"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description text",
+      "required": true,
+      "source": "auto"
+    },
+    "variant": {
+      "type": "enum",
+      "description": "Visual style variant",
+      "required": true,
+      "source": "auto"
+    },
+    "clickable": {
+      "type": "boolean",
+      "description": "Whether the card can be clicked",
+      "required": true,
+      "source": "auto"
+    },
+    "children": {
+      "type": "object",
+      "description": "Content to display in the card",
+      "required": true,
+      "source": "auto"
+    },
+    "onClick": {
+      "type": "object",
+      "description": "Callback when card is clicked",
+      "required": true,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "extensions": {
+    "filePath": "tests/unit/temp-agent-compatibility/components/Card.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2025-08-01T17:31:09.262Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  }
+}

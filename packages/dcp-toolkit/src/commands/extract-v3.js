@@ -3,7 +3,7 @@ import fsSync from 'fs';
 import path from 'path';
 import { glob } from 'glob';
 import chalk from 'chalk';
-import { extractCssCustomProps } from '../core/tokenHandler.js';
+import { extractCssCustomProps } from '../tokens/legacyCssVarExtractor.js';
 import { adaptorRegistry, createAdaptor, autoDetectAdaptor } from '../adaptors/registry.js';
 import { extractThemeContext, enhanceComponentWithThemeContext, generateThemeContextSummary } from '../core/themeExtractor.js';
 import { ProjectIntelligenceScanner } from '../core/projectIntelligence.js';
