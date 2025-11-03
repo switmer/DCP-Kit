@@ -126,14 +126,30 @@ class RegistryServer {
     // Static file serving for packs
     this.app.use('/packs', express.static(this.packsDir));
 
-    // Serve Browse UI static assets
-    const staticDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../../static');
-    this.app.use('/static', express.static(staticDir, {
-      setHeaders: (res) => {
-        res.setHeader('Access-Control-Allow-Origin', '*');
+    // Serve Browse UI static assets from packs directory (browse.css, browse.js)
+    this.app.get('/browse.css', async (req, res) => {
+      try {
+        const cssPath = path.join(this.packsDir, 'browse.css');
+        const css = await fs.readFile(cssPath, 'utf-8');
+        res.setHeader('Content-Type', 'text/css');
         res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.send(css);
+      } catch (error) {
+        res.status(404).send('/* browse.css not found */');
       }
-    }));
+    });
+
+    this.app.get('/browse.js', async (req, res) => {
+      try {
+        const jsPath = path.join(this.packsDir, 'browse.js');
+        const js = await fs.readFile(jsPath, 'utf-8');
+        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.send(js);
+      } catch (error) {
+        res.status(404).send('// browse.js not found');
+      }
+    });
 
     // Browse registry UI (production-ready)
     this.app.get('/', this.serveBrowseUI.bind(this));
