@@ -298,7 +298,8 @@ class ComponentPackBuilder {
     }
 
     // Generate basic component template from props/variants
-    const props = component.props || [];
+    const propsObj = component.props || {};
+    const props = Object.entries(propsObj).map(([name, prop]) => ({ name, ...prop }));
     const variants = component.variants || {};
     const hasVariants = Object.keys(variants).length > 0;
 
@@ -443,7 +444,8 @@ ${componentName}.displayName = "${componentName}"`;
 
   async generateDemoComponent(component) {
     const componentName = component.name;
-    const props = component.props || [];
+    const propsObj = component.props || {};
+    const props = Object.entries(propsObj).map(([name, prop]) => ({ name, ...prop }));
     const variants = component.variants || {};
 
     // Generate demo props based on component schema
@@ -472,7 +474,8 @@ export default function ${componentName}Demo() {
   }
 
   generateDemoProps(component) {
-    const props = component.props || [];
+    const propsObj = component.props || {};
+    const props = Object.entries(propsObj).map(([name, prop]) => ({ name, ...prop }));
     const demoValues = [];
 
     props.forEach(prop => {
@@ -518,7 +521,8 @@ ${examples}
   async generateReadme(component) {
     const componentName = component.name;
     const description = component.description || `${componentName} component`;
-    const props = component.props || [];
+    const propsObj = component.props || {};
+    const props = Object.entries(propsObj).map(([name, prop]) => ({ name, ...prop }));
     const variants = component.variants || {};
     const tokensUsed = component.tokensUsed || [];
 
