@@ -72,6 +72,26 @@ export async function runBuildPacks(registryPath, options = {}) {
     }
   }
 
+  // Process tokens if they exist
+  const tokens = [];
+  if (registry.tokens && typeof registry.tokens === 'object') {
+    for (const [category, tokenGroup] of Object.entries(registry.tokens)) {
+      if (typeof tokenGroup === 'object') {
+        for (const [tokenName, tokenData] of Object.entries(tokenGroup)) {
+          tokens.push({
+            name: tokenName,
+            category,
+            type: tokenData.type || 'unknown',
+            value: tokenData.value,
+            description: tokenData.description || '',
+            source: tokenData.source || '',
+            url: `/tokens/${category}/${tokenName}`
+          });
+        }
+      }
+    }
+  }
+
   // Generate index manifest
   const indexManifest = {
     namespace,
@@ -83,7 +103,16 @@ export async function runBuildPacks(registryPath, options = {}) {
       title: pack.title,
       description: pack.description,
       url: `/r/${namespace}/${pack.name}`,
+      type: 'component',
       tags: pack.tags || []
+    })),
+    tokens: tokens.map(token => ({
+      name: token.name,
+      category: token.category,
+      type: token.type,
+      value: token.value,
+      description: token.description,
+      url: token.url
     }))
   };
 
