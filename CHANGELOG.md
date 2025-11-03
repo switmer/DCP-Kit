@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4] - 2025-11-03
+
+### 🐛 Bug Fixes
+- **CRITICAL**: Fixed build-packs crash with `props.map is not a function`
+  - Converted component.props object to array before using .map()
+  - Applied fix to generateComponentSource, generateDemoComponent, generateDemoProps, and generateReadme
+  - All 137 components now build successfully
+
+### 📚 Documentation
+- **NEW**: [Getting Started Guide](./docs/GETTING_STARTED.md) - Complete tutorial with workflows
+- **NEW**: [Quick Reference](./docs/QUICK_REFERENCE.md) - One-page cheat sheet
+- Comprehensive documentation for Browse UI, MCP, installation, and publishing
+- Common workflows and troubleshooting guides
+
 ## [3.0.3] - 2025-11-03
 
 ### 🐛 Bug Fixes
