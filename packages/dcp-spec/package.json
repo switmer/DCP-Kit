@@ -1,5 +1,5 @@
 {
-  "name": "@dcp/spec",
+  "name": "dcp-spec",
   "version": "1.0.0",
   "description": "Design Component Protocol - JSON Schema definitions and OpenAPI specification",
   "type": "module",

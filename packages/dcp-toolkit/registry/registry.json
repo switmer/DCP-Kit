@@ -1,21 +1,80 @@
 {
-  "name": "demo",
+  "name": "obfuscated",
   "version": "1.0.0",
-  "description": "DCP registry extracted from ./demo",
-  "components": [],
-  "tokens": {
-    "custom": {
-      "colors": {},
-      "spacing": {},
-      "typography": {},
-      "borders": {},
-      "shadows": {},
-      "animations": {},
-      "breakpoints": {},
-      "zIndex": {},
-      "meta": {}
+  "description": "DCP registry extracted from /Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/obfuscated",
+  "components": [
+    {
+      "name": "NormalComponent",
+      "description": "NormalComponent component",
+      "category": "components",
+      "props": {
+        "label": {
+          "type": "string",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        }
+      },
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/temp-security-trust/obfuscated/Normal.tsx",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-08-28T15:12:38.243Z",
+        "tsMorphAnalysis": true,
+        "typescriptAnalysis": true
+      }
+    },
+    {
+      "name": "ObfuscatedComponent",
+      "description": "ObfuscatedComponent component",
+      "category": "components",
+      "props": {
+        "label": {
+          "type": "object",
+          "description": "",
+          "required": true,
+          "source": "auto"
+        }
+      },
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/temp-security-trust/obfuscated/Obfuscated.tsx",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-08-28T15:12:40.707Z"
+      }
+    },
+    {
+      "name": "SuspiciousComponent",
+      "description": "SuspiciousComponent component",
+      "category": "components",
+      "props": {},
+      "variants": {},
+      "composition": {
+        "slots": [],
+        "subComponents": []
+      },
+      "examples": [],
+      "extensions": {
+        "filePath": "tests/unit/temp-security-trust/obfuscated/Suspicious.tsx",
+        "componentType": "arrow",
+        "adaptor": "react-tsx",
+        "extractedAt": "2025-08-28T15:12:42.718Z"
+      }
     }
-  },
+  ],
+  "tokens": {},
   "themeContext": {
     "config": null,
     "cssVariables": {
@@ -26,8 +85,8 @@
     "summary": "Theme Configuration: None detected\n- No theme configuration file found\n- No CSS variables extracted\n"
   },
   "metadata": {
-    "extractedAt": "2025-08-04T15:42:36.410Z",
-    "sourceDir": "./demo",
+    "extractedAt": "2025-08-28T15:12:38.169Z",
+    "sourceDir": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/obfuscated",
     "transformedFrom": "multi-framework",
     "version": "3.0.0",
     "adaptorRegistry": [
@@ -35,7 +94,7 @@
       "shadcn-react-tsx"
     ]
   },
-  "lastModified": "2025-08-04T15:42:36.531Z",
+  "lastModified": "2025-08-28T15:12:42.719Z",
   "intelligence": {
     "projectStructure": {
       "detectedPaths": {},
@@ -52,15 +111,11 @@
       ]
     },
     "environment": {
-      "configFiles": {
-        "tailwind.config.js": {
-          "exists": true,
-          "path": "demo/tailwind.config.js"
-        }
-      },
+      "configFiles": {},
       "missingFiles": [
         "package.json",
         "tsconfig.json",
+        "tailwind.config.js",
         "tailwind.config.ts",
         "components.json",
         "next.config.js",

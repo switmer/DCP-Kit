@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dcp-transformer.com/schemas/figma-mapping.schema.json",
+  "title": "DCP Figma Component Mapping",
+  "description": "Schema for mapping DCP component names to Figma design URLs",
+  "type": "object",
+  "patternProperties": {
+    "^[A-Z][a-zA-Z0-9]*$": {
+      "type": "string",
+      "pattern": "^https://(?:www\\.)?figma\\.com/design/[a-zA-Z0-9]+.*(?:node-id=[0-9]+:[0-9]+|node-id=[0-9]+%3A[0-9]+).*$",
+      "description": "Figma design URL with node-id parameter pointing to the component"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "Button": "https://figma.com/design/abc123?node-id=123:456",
+      "Card": "https://figma.com/design/abc123?node-id=234:567",
+      "Modal": "https://figma.com/design/abc123?node-id=345:678"
+    }
+  ]
+}

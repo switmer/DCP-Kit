@@ -1,16 +1,35 @@
 #!/usr/bin/env node
 
-import { program } from 'commander';
+/**
+ * DCP CLI Entry Point
+ * 
+ * This file now delegates to the new modular CLI structure in src/cli/index.js
+ * The old command definitions below are kept for backward compatibility during migration
+ */
+
 import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-program
-  .name('dcp')
-  .description('Design Component Protocol Transformer - CRISPR for Code')
-  .version('1.2.0')
+// Try to use the new CLI structure first
+try {
+  const { program } = await import('../src/cli/index.js');
+  // The new CLI program is already configured and ready to parse
+  program.parse();
+} catch (error) {
+  // Fallback to old CLI if new one fails
+  console.error('Failed to load new CLI structure, falling back to legacy CLI');
+  console.error(error.message);
+  
+  // Import old CLI implementation
+  const { program } = await import('commander');
+  
+  program
+    .name('dcp')
+    .description('Design Component Protocol Transformer - CRISPR for Code')
+    .version('2.0.0')
   .addHelpText('after', `
 Complete Workflow:
   0. Validate:  dcp validate --auto-fix             # Ensure project is ready
@@ -1452,4 +1471,53 @@ Usage with VS Code:
       });
   });
 
-program.parse();
+program
+  .command('bridge')
+  .description('Start DCP-Figma MCP bridge server (enriches Figma MCP with DCP data)')
+  .option('-p, --port <number>', 'bridge server port', '3846')
+  .option('--figma-port <number>', 'Figma MCP server port', '3845')
+  .option('-r, --registry <path>', 'DCP registry directory path', './registry')
+  .option('--verbose', 'verbose logging')
+  .addHelpText('after', `
+Examples:
+  $ dcp bridge                                     # Start on localhost:3846
+  $ dcp bridge --port 8080 --registry ./my-registry  # Custom configuration
+  $ dcp bridge --figma-port 3850 --verbose        # Different Figma port
+
+What it does:
+  • Proxies Figma Dev Mode MCP requests
+  • Enriches responses with DCP component metadata  
+  • Adds design token synchronization
+  • Provides unified design-code context for AI agents
+
+Setup:
+  1. Enable Figma Dev Mode MCP Server (Preferences → Enable Dev Mode MCP Server)
+  2. Run: dcp bridge --registry ./registry
+  3. Update your MCP client to use: http://localhost:3846/mcp
+  
+MCP Client Configuration (VS Code):
+  "mcp": {
+    "servers": {
+      "DCP-Figma Bridge": {
+        "type": "sse", 
+        "url": "http://localhost:3846/mcp"
+      }
+    }
+  }`)
+  .action(async (options) => {
+    try {
+      const { runMCPBridge } = await import('../src/mcp-bridge.js');
+      await runMCPBridge({
+        bridgePort: parseInt(options.port),
+        figmaPort: parseInt(options.figmaPort),
+        registryPath: options.registry,
+        verbose: options.verbose
+      });
+    } catch (error) {
+      console.error('❌ Failed to start MCP bridge:', error.message);
+      process.exit(1);
+    }
+  });
+
+  program.parse();
+}

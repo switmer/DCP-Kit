@@ -17,6 +17,48 @@ import {
 import { promises as fs } from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
+
+// -------------------------------------------------------------------------------------------------
+// CRITICAL: Prevent human-readable logs from corrupting the MCP JSON stream.
+// MCP servers MUST output only JSON-RPC on stdout. All logging goes to stderr.
+// This MUST happen BEFORE any imports that might log.
+// -------------------------------------------------------------------------------------------------
+
+// Always redirect console.log to stderr for MCP server (stdout is JSON-RPC only)
+// Check if we're running as MCP server:
+// 1. Explicit --stdio flag
+// 2. MCP_STDIO env var
+// 3. Running via dcp-mcp command (process.argv[1] contains mcp-server)
+// 4. stdin is a pipe (typical for MCP stdio transport)
+const isMCPServer = 
+  process.argv.includes('--stdio') || 
+  process.env.MCP_STDIO === 'true' ||
+  process.argv[1]?.includes('mcp-server') ||
+  (!process.stdin.isTTY && process.stdin.isReadable());
+
+if (isMCPServer) {
+  // Redirect console.log BEFORE any imports that might log
+  const originalLog = console.log;
+  console.log = (...args) => {
+    console.error(...args);
+  };
+  
+  // Also redirect process.stdout.write to stderr for safety
+  const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+  process.stdout.write = function(chunk, encoding, fd) {
+    // Only allow through if it looks like JSON (starts with { or [)
+    const str = chunk.toString();
+    if (str.trim().match(/^[\s]*[{[]/)) {
+      return originalStdoutWrite(chunk, encoding, fd);
+    }
+    // Otherwise redirect to stderr
+    return process.stderr.write(chunk, encoding, fd);
+  };
+  
+  // Set environment variable so imported modules know to be silent
+  process.env.DCP_MCP_SERVER = 'true';
+}
+
 // Core functionality imports - only what we need for MCP
 // import { extractCssCustomProps, mapTailwindClassesToCSSVariables } from './tokens/legacyCssVarExtractor.js';
 // import { parseTSX } from './core/parser.js';
@@ -24,32 +66,19 @@ import { ProjectIntelligenceScanner } from './core/projectIntelligence.js';
 import { ProjectValidator } from './core/projectValidator.js';
 // import { AssetAnalyzer } from './core/assetAnalyzer.js';
 
-// -------------------------------------------------------------------------------------------------
-// Prevent human-readable logs from corrupting the MCP JSON stream.
-// If the process is launched with `--stdio` (Claude / LLM tooling) or MCP_STDIO=true,
-// redirect all console.log output to stderr so stdout remains JSON-only.
-// -------------------------------------------------------------------------------------------------
-
-if (process.argv.includes('--stdio') || process.env.MCP_STDIO === 'true') {
-  const originalLog = console.log;
-  console.log = (...args) => {
-    // Preserve timestamps/formatting if needed
-    console.error(...args);
-  };
-  // Optional: surface a hint once on stderr
-  console.error('[mcp-server] console.log redirected to stderr to keep stdout JSON-clean');
-}
-
 class DCPMCPServer {
-  constructor(registryPath = './registry') {
-    this.registryPath = path.resolve(registryPath);
-    this.registry = null;
-    this.watcher = null;
-    this.reloadDebounceTimer = null;
+  constructor(defaultRegistryPath = './registry') {
+    // Support legacy behavior: if a default path is provided, we'll use it as fallback
+    this.defaultRegistryPath = defaultRegistryPath ? path.resolve(defaultRegistryPath) : null;
+    
+    // Registry cache: { path: { registry, loadedAt, watcher } }
+    this.registryCache = new Map();
+    this.maxCacheSize = 10; // LRU cache max registries
+    
     this.server = new Server(
       {
         name: 'dcp-registry',
-        version: '2.0.0',
+        version: '3.0.0',
       },
       {
         capabilities: {
@@ -63,101 +92,188 @@ class DCPMCPServer {
     this.setupTools();
   }
 
-  async loadRegistry(force = false) {
-    if (!this.registry || force) {
+  /**
+   * Auto-detect registry path if not provided
+   * Looks in: CWD, CWD/registry, parent/registry
+   */
+  async autoDetectRegistry() {
+    const searchPaths = [
+      process.cwd(),
+      path.join(process.cwd(), 'registry'),
+      path.join(process.cwd(), '..', 'registry'),
+      this.defaultRegistryPath
+    ].filter(Boolean);
+
+    for (const searchPath of searchPaths) {
       try {
-        const registryFile = path.join(this.registryPath, 'registry.json');
-        const registryData = await fs.readFile(registryFile, 'utf8');
-        this.registry = JSON.parse(registryData);
-        
-        if (force) {
-          console.error(`Registry reloaded: ${this.registry.components?.length || 0} components, ${Object.keys(this.registry.tokens || {}).length} token categories`);
-        }
+        const registryFile = path.join(searchPath, 'registry.json');
+        await fs.access(registryFile);
+        return path.resolve(searchPath);
       } catch (error) {
-        if (error.code === 'ENOENT') {
-          console.error(`Registry not found at ${this.registryPath}`);
-          console.error(`Hint: Run 'dcp extract' to create a registry first`);
-        } else {
-          console.error(`Failed to load registry from ${this.registryPath}:`, error.message);
-        }
-        
-        // Return empty registry as fallback with helpful error
-        this.registry = {
+        // Continue searching
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Load a registry from a specific path (with caching)
+   */
+  async loadRegistry(registryPath = null, force = false) {
+    // Auto-detect if not provided
+    if (!registryPath) {
+      registryPath = await this.autoDetectRegistry();
+      if (!registryPath) {
+        return {
           components: [],
           tokens: {},
           themeContext: null,
           metadata: { 
-            error: error.code === 'ENOENT' 
-              ? `Registry not found at ${this.registryPath}. Run 'dcp extract' first.`
-              : `Failed to parse registry: ${error.message}`
+            error: 'No registry found. Provide registryPath or run from a project with ./registry/'
           }
         };
       }
     }
-    return this.registry;
-  }
 
-  setupHotReload() {
-    if (this.watcher) {
-      this.watcher.close();
+    const resolvedPath = path.resolve(registryPath);
+    
+    // Check cache
+    if (!force && this.registryCache.has(resolvedPath)) {
+      const cached = this.registryCache.get(resolvedPath);
+      // Move to end (LRU)
+      this.registryCache.delete(resolvedPath);
+      this.registryCache.set(resolvedPath, cached);
+      return cached.registry;
     }
 
-    // Watch for registry changes
-    const watchPattern = path.join(this.registryPath, '**/*.json');
+    // Load from disk
+    try {
+      const registryFile = path.join(resolvedPath, 'registry.json');
+      const registryData = await fs.readFile(registryFile, 'utf8');
+      const registry = JSON.parse(registryData);
+      
+      // Setup hot-reload watcher for this registry
+      const watcher = this.setupHotReloadForPath(resolvedPath);
+      
+      // Cache it
+      const cacheEntry = {
+        registry,
+        loadedAt: Date.now(),
+        watcher
+      };
+      
+      // LRU eviction
+      if (this.registryCache.size >= this.maxCacheSize) {
+        const firstKey = this.registryCache.keys().next().value;
+        const evicted = this.registryCache.get(firstKey);
+        if (evicted.watcher) {
+          evicted.watcher.close();
+        }
+        this.registryCache.delete(firstKey);
+      }
+      
+      this.registryCache.set(resolvedPath, cacheEntry);
+      
+      if (force) {
+        console.error(`Registry loaded: ${registry.components?.length || 0} components, ${Object.keys(registry.tokens || {}).length} token categories from ${resolvedPath}`);
+      }
+      
+      return registry;
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // Check if registry.json exists in wrong location (like tokens/)
+        const tokensRegistryFile = path.join(resolvedPath, 'tokens', 'registry.json');
+        try {
+          await fs.access(tokensRegistryFile);
+          console.error(`⚠️  Registry found in wrong location: ${tokensRegistryFile}`);
+          console.error(`⚠️  Registry files should be at: ${resolvedPath}/registry.json`);
+          console.error(`⚠️  Files found in tokens/ directory should be moved to the registry root.`);
+          console.error(`⚠️  Expected structure:`);
+          console.error(`    ${resolvedPath}/`);
+          console.error(`    ${resolvedPath}/registry.json`);
+          console.error(`    ${resolvedPath}/metadata.json`);
+          console.error(`    ${resolvedPath}/schemas.json`);
+          console.error(`    ${resolvedPath}/components/`);
+          console.error(`    ${resolvedPath}/tokens/`);
+        } catch (tokensError) {
+          // registry.json not in tokens/ either
+        }
+        
+        console.error(`Registry not found at ${path.join(resolvedPath, 'registry.json')}`);
+        console.error(`Hint: Run 'dcp extract' to create a registry first`);
+      } else {
+        console.error(`Failed to load registry from ${resolvedPath}:`, error.message);
+      }
+      
+      // Return empty registry as fallback with helpful error
+      return {
+        components: [],
+        tokens: {},
+        themeContext: null,
+        metadata: { 
+          error: error.code === 'ENOENT' 
+            ? `Registry not found at ${resolvedPath}. Run 'dcp extract' first.`
+            : `Failed to parse registry: ${error.message}`
+        }
+      };
+    }
+  }
+
+  setupHotReloadForPath(registryPath) {
+    const watchPattern = path.join(registryPath, '**/*.json');
     
-    this.watcher = chokidar.watch(watchPattern, {
+    const watcher = chokidar.watch(watchPattern, {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true,
       ignoreInitial: true
     });
 
-    this.watcher.on('change', (filePath) => {
+    let reloadDebounceTimer = null;
+
+    watcher.on('change', (filePath) => {
       // Debounce registry reloads to avoid excessive refreshing
-      if (this.reloadDebounceTimer) {
-        clearTimeout(this.reloadDebounceTimer);
+      if (reloadDebounceTimer) {
+        clearTimeout(reloadDebounceTimer);
       }
       
-              this.reloadDebounceTimer = setTimeout(async () => {
-          console.error(`Registry file changed: ${path.relative(this.registryPath, filePath)}`);
-          await this.loadRegistry(true); // Force reload
-        }, 200); // 200ms debounce
+      reloadDebounceTimer = setTimeout(async () => {
+        console.error(`Registry file changed: ${path.relative(registryPath, filePath)}`);
+        await this.loadRegistry(registryPath, true); // Force reload
+      }, 200); // 200ms debounce
     });
 
-    this.watcher.on('add', (filePath) => {
+    watcher.on('add', (filePath) => {
       if (path.basename(filePath) === 'registry.json') {
-        console.error(`Registry file created: ${path.relative(this.registryPath, filePath)}`);
+        console.error(`Registry file created: ${path.relative(registryPath, filePath)}`);
         setTimeout(async () => {
-          await this.loadRegistry(true);
+          await this.loadRegistry(registryPath, true);
         }, 100);
       }
     });
 
-    console.error(`Watching for registry changes in: ${this.registryPath}`);
+    console.error(`Watching for registry changes in: ${registryPath}`);
+    
+    return watcher;
   }
 
   async start() {
-    // Initial registry load
-    await this.loadRegistry();
-    
-    // Setup hot reload
-    this.setupHotReload();
-    
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     
-    console.error(`DCP MCP Server v2.0 started`);
-    console.error(`Registry: ${this.registryPath}`);
-    console.error(`Components: ${this.registry.components?.length || 0}`);
-    console.error(`Token categories: ${Object.keys(this.registry.tokens || {}).length}`);
+    console.error(`DCP MCP Server v3.0 started`);
+    console.error(`Multi-registry support enabled`);
+    console.error(`Default registry: ${this.defaultRegistryPath || 'auto-detect'}`);
   }
 
   async stop() {
-    if (this.watcher) {
-      await this.watcher.close();
+    // Close all watchers
+    for (const [, cached] of this.registryCache) {
+      if (cached.watcher) {
+        await cached.watcher.close();
+      }
     }
-    if (this.reloadDebounceTimer) {
-      clearTimeout(this.reloadDebounceTimer);
-    }
+    this.registryCache.clear();
   }
 
   setupTools() {
@@ -171,6 +287,10 @@ class DCPMCPServer {
             inputSchema: {
               type: 'object',
               properties: {
+                registryPath: {
+                  type: 'string',
+                  description: 'Path to the registry directory (optional, auto-detects if not provided)',
+                },
                 filter: {
                   type: 'string',
                   description: 'Token filter pattern (e.g., "color.*", "spacing.lg", "*primary*")',
@@ -194,6 +314,10 @@ class DCPMCPServer {
             inputSchema: {
               type: 'object',
               properties: {
+                registryPath: {
+                  type: 'string',
+                  description: 'Path to the registry directory (optional, auto-detects if not provided)',
+                },
                 component: {
                   type: 'string',
                   description: 'Component name to retrieve (e.g., "Button", "Card")',
@@ -901,8 +1025,8 @@ class DCPMCPServer {
     });
   }
 
-  async handleQueryTokens({ filter = '*', category, format = 'css' }) {
-    const registry = await this.loadRegistry();
+  async handleQueryTokens({ registryPath, filter = '*', category, format = 'css' }) {
+    const registry = await this.loadRegistry(registryPath);
     const tokens = registry.tokens || {};
     
     let filteredTokens = tokens;
@@ -947,23 +1071,57 @@ Usage: Use these tokens in your code. Example: color="primary.500" or className=
     };
   }
 
-  async handleGetComponent({ component, include = ['props', 'variants'] }) {
-    const registry = await this.loadRegistry();
+  async handleGetComponent({ registryPath, component, include = ['props', 'variants'] }) {
+    const registry = await this.loadRegistry(registryPath);
     const components = registry.components || [];
     
-    const comp = components.find(c => 
-      c.name === component || 
-      c.displayName === component ||
-      c.exportName === component
-    );
+    // Case-insensitive search with multiple name fields
+    // Prioritize exact matches over partial matches
+    const searchTerm = component.toLowerCase();
+    
+    // First pass: exact match only
+    let comp = components.find(c => {
+      const name = (c.name || '').toLowerCase();
+      const displayName = (c.displayName || '').toLowerCase();
+      const exportName = (c.exportName || '').toLowerCase();
+      return name === searchTerm || 
+             displayName === searchTerm ||
+             exportName === searchTerm;
+    });
+    
+    // Second pass: fuzzy match if no exact match found
+    if (!comp) {
+      comp = components.find(c => {
+        const name = (c.name || '').toLowerCase();
+        const displayName = (c.displayName || '').toLowerCase();
+        return name.includes(searchTerm) ||
+               displayName.includes(searchTerm);
+      });
+    }
     
     if (!comp) {
-      const available = components.map(c => c.name || c.displayName).filter(Boolean);
+      const available = components.map(c => c.name || c.displayName || c.exportName).filter(Boolean);
+      const suggestions = available
+        .filter(name => name.toLowerCase().includes(searchTerm))
+        .slice(0, 5);
+      
+      let errorMessage = `Component "${component}" not found.\n\n`;
+      errorMessage += `Total components in registry: ${components.length}\n`;
+      if (available.length > 0) {
+        errorMessage += `Available components (showing first 20): ${available.slice(0, 20).join(', ')}`;
+        if (available.length > 20) {
+          errorMessage += ` ... and ${available.length - 20} more`;
+        }
+      }
+      if (suggestions.length > 0) {
+        errorMessage += `\n\nDid you mean: ${suggestions.join(', ')}?`;
+      }
+      
       return {
         content: [
           {
             type: 'text',
-            text: `Component "${component}" not found. Available components: ${available.join(', ')}`,
+            text: errorMessage,
           },
         ],
       };
@@ -975,9 +1133,17 @@ Usage: Use these tokens in your code. Example: color="primary.500" or className=
     };
 
     if (include.includes('props')) {
-      response.props = comp.props || [];
-      response.requiredProps = comp.props?.filter(p => p.required) || [];
-      response.optionalProps = comp.props?.filter(p => !p.required) || [];
+      // Props is an object in DCP spec, not an array
+      response.props = comp.props || {};
+      
+      // Convert props object to array for required/optional filtering
+      const propsArray = Object.entries(comp.props || {}).map(([name, prop]) => ({
+        name,
+        ...prop
+      }));
+      
+      response.requiredProps = propsArray.filter(p => p.required);
+      response.optionalProps = propsArray.filter(p => !p.required);
     }
 
     if (include.includes('variants')) {
@@ -1017,8 +1183,8 @@ ${response.examples.map((ex, i) => `${i + 1}. ${ex.name}: ${ex.code}`).join('\n'
     };
   }
 
-  async handleValidateCode({ code, component, checkTokens = true, checkProps = true }) {
-    const registry = await this.loadRegistry();
+  async handleValidateCode({ registryPath, code, component, checkTokens = true, checkProps = true }) {
+    const registry = await this.loadRegistry(registryPath);
     const violations = [];
     const suggestions = [];
 
@@ -1072,8 +1238,8 @@ Summary: ${isValid ?
     };
   }
 
-  async handleSuggestAlternatives({ type, current, component, category }) {
-    const registry = await this.loadRegistry();
+  async handleSuggestAlternatives({ registryPath, type, current, component, category }) {
+    const registry = await this.loadRegistry(registryPath);
     let suggestions = [];
 
     switch (type) {
@@ -1109,7 +1275,7 @@ Total: ${suggestions.length} suggestions found`,
     try {
       // Run both intelligence scanner and validation
       const scanner = new ProjectIntelligenceScanner(projectPath);
-      const validator = new ProjectValidator(projectPath);
+      const validator = new ProjectValidator(projectPath, { silent: true });
       
       const [intelligence, validation] = await Promise.all([
         scanner.scan(),
@@ -1157,7 +1323,7 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
 
   async handleValidateProject({ path: projectPath = '.', autoFix = false }) {
     try {
-      const validator = new ProjectValidator(projectPath);
+      const validator = new ProjectValidator(projectPath, { silent: true });
       const validation = await validator.validate();
       
       // Auto-fix if requested and there are fixable issues
@@ -1240,7 +1406,7 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
       
       // Run validation first if requested
       if (validate) {
-        const validator = new ProjectValidator(source);
+        const validator = new ProjectValidator(source, { silent: true });
         const validation = await validator.validate();
         
         if (!validation.canProceed && autoFix) {
@@ -1272,8 +1438,15 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
         adaptor,
         verbose: false,
         json: true,
+        silent: true, // Suppress all console output for MCP
         skipValidation: !validate
       });
+      
+      // Resolve output path to absolute
+      const outputPath = path.resolve(output);
+      
+      // Force reload the registry if it's already cached
+      await this.loadRegistry(outputPath, true);
       
       return {
         content: [{
@@ -1287,7 +1460,9 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
             registryPath: `${output}/registry.json`,
             themeContext: result.registry.themeContext?.summary || 'No theme context',
             adaptorUsage: result.summary?.adaptorUsage || {},
-            extractedAt: new Date().toISOString()
+            extractedAt: new Date().toISOString(),
+            registryReloaded: true,
+            registryPath: outputPath
           }, null, 2),
         }],
       };
@@ -1722,7 +1897,8 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
     
     if (!component) return violations;
 
-    const validProps = (component.props || []).map(p => p.name);
+    // Props is an object in DCP spec - convert to array of prop names
+    const validProps = Object.keys(component.props || {});
     
     // Extract props from JSX
     const jsxMatch = code.match(new RegExp(`<${componentName}[^>]*>`, 'g'));
@@ -1769,7 +1945,8 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
     const component = components.find(c => c.name === componentName);
     if (!component) return [];
     
-    const validProps = (component.props || []).map(p => p.name);
+    // Props is an object in DCP spec - convert to array of prop names
+    const validProps = Object.keys(component.props || {});
     return validProps
       .map(prop => ({ prop, score: this.similarity(current, prop) }))
       .sort((a, b) => b.score - a.score)
@@ -1792,7 +1969,13 @@ Summary: ${validation.summary.errors} errors, ${validation.summary.warnings} war
   generateComponentExamples(component) {
     const examples = [];
     const componentName = component.name || component.displayName;
-    const requiredProps = (component.props || []).filter(p => p.required);
+    
+    // Props is an object in DCP spec - convert to array of required props
+    const propsArray = Object.entries(component.props || {}).map(([name, prop]) => ({
+      name,
+      ...prop
+    }));
+    const requiredProps = propsArray.filter(p => p.required);
     
     // Basic example
     const basicProps = requiredProps.map(prop => {
@@ -1955,17 +2138,18 @@ Status: Server running successfully`,
 
   async handleAddComponent({ componentUrl, targetDir = './components/ui', packageJson = './package.json', skipInstall = false, force = false, dryRun = false }) {
     try {
-      // Import add component command
-      const { runDcpAdd } = await import('./commands/dcp-add.js');
+      // Import add component command v2 (zero-fetch installer)
+      const { runDcpAdd } = await import('./commands/dcp-add-v2.js');
       
       const result = await runDcpAdd(componentUrl, {
         target: targetDir,
-        packageJson,
-        noInstall: skipInstall,
-        force,
+        pm: null, // Auto-detect
+        token: process.env.DCP_REGISTRY_TOKEN,
         dryRun,
+        yes: true, // Skip prompts in MCP context
+        overwrite: force ? 'force' : 'skip',
+        registryFormat: 'shadcn',
         verbose: false,
-        json: true
       });
       
       return {
@@ -1974,16 +2158,21 @@ Status: Server running successfully`,
             type: 'text',
             text: `Component Installation Results:
 
-${dryRun ? 'DRY RUN - Preview Only' : 'Installation Complete'}
+${dryRun ? '🔍 DRY RUN - Preview Only' : '✅ Installation Complete'}
 
-Component: ${result.component?.name || 'Unknown'}
+Component: ${result.component?.name || 'Unknown'}${result.component?.version ? `@${result.component.version}` : ''}
+Namespace: ${result.component?.namespace || 'N/A'}
 Target Directory: ${result.targetDir}
-Files: ${result.files}
-Dependencies: ${result.peerDepsInstalled ? 'Updated' : 'Skipped'}
+Files Installed: ${result.files?.length || 0}
+Dependencies: ${result.depsInstalled ? 'Installed' : 'Skipped'}
 
-${result.dryRun ? 
-  'This was a preview - run without dry-run to install' : 
-  `Successfully installed ${result.component?.name} component`}`,
+${dryRun ? 
+  'This was a preview - run without dryRun to actually install' : 
+  `Successfully installed ${result.component?.name} component!`}
+
+Files written:
+${result.files?.slice(0, 10).map(f => `  - ${f}`).join('\n') || '  (none)'}
+${result.files?.length > 10 ? `  ... and ${result.files.length - 10} more` : ''}`,
           },
         ],
       };

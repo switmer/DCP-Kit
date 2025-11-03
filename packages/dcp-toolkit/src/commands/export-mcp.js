@@ -286,9 +286,17 @@ class MCPExporter {
   optimizeForModel(flattened) {
     switch (this.optimizeFor) {
       case 'claude':
+      case 'claude-3':
+      case 'claude-3-opus':
+      case 'claude-3-sonnet':
         return this.optimizeForClaude(flattened);
       case 'gpt':
+      case 'gpt-4':
+      case 'gpt-4-turbo':
         return this.optimizeForGPT(flattened);
+      case 'gemini':
+      case 'gemini-pro':
+        return this.optimizeForGemini(flattened);
       case 'generic':
       default:
         return flattened;
@@ -297,29 +305,309 @@ class MCPExporter {
   
   optimizeForClaude(flattened) {
     // Claude-specific optimizations
-    return {
+    // Claude prefers structured, hierarchical data with clear relationships
+    const optimized = {
       ...flattened,
+      
+      // Optimize token structure for Claude
+      tokens: this.optimizeTokensForClaude(flattened.tokens),
+      
+      // Optimize components for Claude's understanding
+      components: this.optimizeComponentsForClaude(flattened.components),
       
       // Add Claude-friendly structure
       claudeContext: {
         systemPrompt: this.generateClaudeSystemPrompt(),
         mutationInstructions: this.generateClaudeMutationInstructions(),
-        exampleQueries: this.generateClaudeExampleQueries()
+        exampleQueries: this.generateClaudeExampleQueries(),
+        // Claude-specific optimizations
+        formatting: {
+          preferStructured: true,
+          includeTypeHints: true,
+          emphasizeRelationships: true
+        }
       }
     };
+    
+    // Deduplicate and compress for Claude
+    return this.deduplicateAndCompress(optimized, 'claude');
   }
   
   optimizeForGPT(flattened) {
-    // GPT-specific optimizations
-    return {
+    // GPT-4 specific optimizations
+    // GPT-4 prefers concise, example-rich data
+    const optimized = {
       ...flattened,
+      
+      // Optimize for GPT-4's token efficiency
+      tokens: this.optimizeTokensForGPT(flattened.tokens),
+      
+      // Optimize components with examples
+      components: this.optimizeComponentsForGPT(flattened.components),
       
       // Add GPT-friendly structure
       gptContext: {
         functions: this.generateGPTFunctions(),
-        examples: this.generateGPTExamples()
+        examples: this.generateGPTExamples(),
+        // GPT-4 specific optimizations
+        formatting: {
+          preferConcise: true,
+          includeExamples: true,
+          emphasizePatterns: true
+        }
       }
     };
+    
+    // Deduplicate and compress for GPT
+    return this.deduplicateAndCompress(optimized, 'gpt');
+  }
+  
+  optimizeForGemini(flattened) {
+    // Gemini-specific optimizations
+    // Gemini works well with hierarchical, descriptive data
+    return {
+      ...flattened,
+      geminiContext: {
+        systemInstructions: this.generateGeminiSystemInstructions(),
+        preferredFormat: 'hierarchical'
+      }
+    };
+  }
+  
+  optimizeTokensForClaude(tokens) {
+    // Claude-specific token optimization
+    // Group related tokens, remove redundancy, add type hints
+    const optimized = {};
+    
+    for (const [category, tokenList] of Object.entries(tokens)) {
+      // Deduplicate tokens
+      const seen = new Set();
+      const deduplicated = tokenList.filter(token => {
+        const key = `${token.name}:${JSON.stringify(token.value)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      
+      // Add type inference for Claude
+      optimized[category] = deduplicated.map(token => ({
+        ...token,
+        inferredType: this.inferTokenType(token.value),
+        semanticGroup: this.getSemanticGroup(category, token.name)
+      }));
+    }
+    
+    return optimized;
+  }
+  
+  optimizeTokensForGPT(tokens) {
+    // GPT-4 specific token optimization
+    // More compact, example-based representation
+    const optimized = {};
+    
+    for (const [category, tokenList] of Object.entries(tokens)) {
+      // Compress token representation
+      optimized[category] = tokenList.map(token => ({
+        n: token.name, // Shortened keys
+        v: token.value,
+        t: token.type || this.inferTokenType(token.value),
+        d: token.description || ''
+      }));
+    }
+    
+    return optimized;
+  }
+  
+  optimizeComponentsForClaude(components) {
+    // Claude-specific component optimization
+    // Emphasize relationships and mutation paths
+    return components.map(component => ({
+      ...component,
+      // Add relationship context
+      relationships: {
+        parent: this.findParentComponent(component),
+        children: this.findChildComponents(component),
+        siblings: this.findSiblingComponents(component)
+      },
+      // Enhanced mutation paths
+      mutationPaths: this.generateMutationPaths(component),
+      // Type hints for Claude
+      typeHints: this.generateTypeHints(component)
+    }));
+  }
+  
+  optimizeComponentsForGPT(components) {
+    // GPT-4 specific component optimization
+    // More compact, example-focused
+    return components.map(component => ({
+      n: component.name, // Shortened keys
+      d: component.description,
+      p: component.props?.map(p => ({
+        n: p.name,
+        t: p.type,
+        r: p.required,
+        d: p.description
+      })),
+      v: component.variants,
+      e: component.examples?.slice(0, 2) // Limit examples for GPT
+    }));
+  }
+  
+  deduplicateAndCompress(data, model) {
+    // Remove duplicate information across components
+    const deduplicated = JSON.parse(JSON.stringify(data)); // Deep clone
+    
+    // Find common prop patterns
+    const commonProps = this.findCommonProps(deduplicated.components);
+    
+    // Reference common props instead of duplicating
+    if (commonProps.length > 0 && model === 'claude') {
+      deduplicated.commonProps = commonProps;
+      deduplicated.components = deduplicated.components.map(comp => {
+        const optimizedProps = comp.props?.map(prop => {
+          const commonMatch = commonProps.find(cp => 
+            cp.name === prop.name && cp.type === prop.type
+          );
+          if (commonMatch) {
+            return { ...prop, reference: `commonProps.${commonMatch.name}` };
+          }
+          return prop;
+        });
+        return { ...comp, props: optimizedProps };
+      });
+    }
+    
+    return deduplicated;
+  }
+  
+  inferTokenType(value) {
+    // Infer token type from value
+    if (typeof value === 'string') {
+      if (value.startsWith('#')) return 'color';
+      if (value.match(/^\d+px$|^\d+rem$|^\d+em$/)) return 'spacing';
+      if (value.match(/^\d+$/)) return 'number';
+      if (value.includes('font')) return 'typography';
+    }
+    if (typeof value === 'number') return 'number';
+    return 'unknown';
+  }
+  
+  getSemanticGroup(category, name) {
+    // Group tokens semantically for better understanding
+    if (category === 'colors') {
+      if (name.includes('primary')) return 'brand-primary';
+      if (name.includes('secondary')) return 'brand-secondary';
+      if (name.includes('background')) return 'surfaces';
+      if (name.includes('text')) return 'text';
+    }
+    if (category === 'spacing') {
+      if (name.match(/xs|sm/)) return 'small';
+      if (name.match(/md|base/)) return 'medium';
+      if (name.match(/lg|xl|2xl/)) return 'large';
+    }
+    return category;
+  }
+  
+  findParentComponent(component) {
+    // Find parent component (if this is a subcomponent)
+    if (!this.registry.components) return null;
+    
+    const nameParts = component.name.split(/(?=[A-Z])/);
+    if (nameParts.length > 1) {
+      const parentName = nameParts.slice(0, -1).join('');
+      return this.registry.components.find(c => c.name === parentName)?.name || null;
+    }
+    return null;
+  }
+  
+  findChildComponents(component) {
+    // Find child components
+    if (!this.registry.components) return [];
+    
+    return this.registry.components
+      .filter(c => c.name.startsWith(component.name) && c.name !== component.name)
+      .map(c => c.name);
+  }
+  
+  findSiblingComponents(component) {
+    // Find sibling components (same category, similar props)
+    if (!this.registry.components) return [];
+    
+    return this.registry.components
+      .filter(c => 
+        c.name !== component.name &&
+        c.category === component.category
+      )
+      .map(c => c.name)
+      .slice(0, 5);
+  }
+  
+  generateMutationPaths(component) {
+    // Generate all possible mutation paths for a component
+    const paths = {
+      component: `/components/${component.name}`,
+      props: {},
+      variants: {}
+    };
+    
+    if (component.props) {
+      component.props.forEach(prop => {
+        paths.props[prop.name] = `/components/${component.name}/props/${prop.name}`;
+      });
+    }
+    
+    if (component.variants) {
+      Object.keys(component.variants).forEach(variant => {
+        paths.variants[variant] = `/components/${component.name}/variants/${variant}`;
+      });
+    }
+    
+    return paths;
+  }
+  
+  generateTypeHints(component) {
+    // Generate type hints for Claude's understanding
+    return {
+      componentType: component.type || 'ui',
+      hasVariants: !!(component.variants && Object.keys(component.variants).length > 0),
+      hasComposition: !!(component.composition && (
+        component.composition.slots?.length > 0 ||
+        component.composition.subComponents?.length > 0
+      )),
+      propCount: component.props?.length || 0,
+      complexity: component.props?.length > 10 ? 'high' : component.props?.length > 5 ? 'medium' : 'low'
+    };
+  }
+  
+  findCommonProps(components) {
+    // Find props that appear in multiple components
+    const propCounts = {};
+    
+    components.forEach(component => {
+      component.props?.forEach(prop => {
+        const key = `${prop.name}:${prop.type}`;
+        if (!propCounts[key]) {
+          propCounts[key] = {
+            name: prop.name,
+            type: prop.type,
+            count: 0,
+            components: []
+          };
+        }
+        propCounts[key].count++;
+        propCounts[key].components.push(component.name);
+      });
+    });
+    
+    // Return props that appear in 3+ components
+    return Object.values(propCounts)
+      .filter(p => p.count >= 3)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // Top 10 common props
+  }
+  
+  generateGeminiSystemInstructions() {
+    return `You are analyzing a design system registry. Focus on understanding component relationships and providing clear, actionable mutation suggestions.`;
   }
   
   generateClaudeSystemPrompt() {

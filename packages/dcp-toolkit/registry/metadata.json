@@ -1,6 +1,6 @@
 {
-  "extractedAt": "2025-08-04T15:42:36.410Z",
-  "sourceDir": "./demo",
+  "extractedAt": "2025-08-28T15:12:38.169Z",
+  "sourceDir": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/temp-security-trust/obfuscated",
   "transformedFrom": "multi-framework",
   "version": "3.0.0",
   "adaptorRegistry": [

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: https:; connect-src 'self' *;">
+  <title>DCP Component Browser</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./browse.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="brand">
+        <h1 id="registry-name" class="registry-name">Design System</h1>
+        <span id="registry-version" class="registry-version"></span>
+      </div>
+      <div id="staleness-badge" class="staleness-badge-container"></div>
+    </div>
+    
+    <!-- Search and Filters -->
+    <div class="search-container">
+      <div class="search-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+          <circle cx="8.5" cy="8.5" r="5.5" stroke-width="2"/>
+          <path d="M12.5 12.5L16.5 16.5" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input 
+          type="search" 
+          id="search-input" 
+          class="search-input" 
+          placeholder="Search components..."
+          aria-label="Search components"
+        >
+      </div>
+      <div id="search-results-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    </div>
+    
+    <!-- Facet Filters -->
+    <div id="facet-filters" class="facet-filters">
+      <div id="namespace-facets" class="facet-group"></div>
+      <div id="type-facets" class="facet-group"></div>
+      <div id="category-facets" class="facet-group"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="app" class="main-content">
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading components...</p>
+    </div>
+    
+    <!-- Error State -->
+    <div id="error-state" class="error-state hidden">
+      <svg class="error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+        <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+        <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h2>Failed to Load Registry</h2>
+      <p id="error-message">Check your network connection and try again.</p>
+      <button onclick="window.location.reload()" class="retry-button">Retry</button>
+    </div>
+    
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state hidden">
+      <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+        <line x1="8" y1="12" x2="16" y2="12" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h2>No Components Found</h2>
+      <p id="empty-message">Try different keywords or clear your filters.</p>
+      <button id="clear-filters" class="clear-button">Clear Filters</button>
+    </div>
+    
+    <!-- Component Grid -->
+    <section id="component-grid" class="component-grid" aria-label="Component list"></section>
+  </main>
+
+  <!-- Component Detail Modal -->
+  <dialog id="component-modal" class="component-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-title" class="modal-title">Component</h2>
+          <p id="modal-description" class="modal-description"></p>
+        </div>
+        <button id="modal-close" class="modal-close" aria-label="Close modal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18" stroke-width="2" stroke-linecap="round"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      
+      <div id="modal-body" class="modal-body">
+        <!-- Dynamically filled by JavaScript -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <span class="footer-text">
+        Powered by <strong>DCP</strong> — Design Component Protocol
+      </span>
+      <span class="footer-links">
+        <a href="https://github.com/stevewitmer/DCP-Transformer" target="_blank" rel="noopener">GitHub</a>
+        <span class="separator">•</span>
+        <a href="https://github.com/stevewitmer/DCP-Transformer/blob/main/README.md" target="_blank" rel="noopener">Docs</a>
+      </span>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="./browse.js"></script>
+</body>
+</html>
+

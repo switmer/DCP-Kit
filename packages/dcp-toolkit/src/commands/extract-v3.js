@@ -60,7 +60,9 @@ async function getOptimizedGlob(sourceDir, userGlob) {
         const limitedSample = sampleFiles.slice(0, 5); // Just check first 5 files
         
         if (sampleFiles.length > 0) {
-          console.log(`🎯 Using directory: ${candidate}/ (found ${sampleFiles.length}+ component files)`);
+          if (!process.env.DCP_MCP_SERVER) {
+            console.log(`🎯 Using directory: ${candidate}/ (found ${sampleFiles.length}+ component files)`);
+          }
           return testGlob;
         }
       }
@@ -70,7 +72,9 @@ async function getOptimizedGlob(sourceDir, userGlob) {
   }
   
   // No specific directory found - scan root but with aggressive filtering
-  console.log('⚠️  No standard source directory found, scanning project root with aggressive filtering');
+  if (!process.env.DCP_MCP_SERVER) {
+    console.log('⚠️  No standard source directory found, scanning project root with aggressive filtering');
+  }
   return '**/*.{tsx,jsx,ts,js}';
 }
 
@@ -92,8 +96,9 @@ export async function runExtract(source, options = {}) {
   // Get optimized glob pattern based on project structure
   const globPattern = await getOptimizedGlob(source, userGlob);
 
-  // Only show console output if not in JSON mode
-  if (!json) {
+  // Only show console output if not in JSON mode and not running as MCP server
+  const isMCP = process.env.DCP_MCP_SERVER === 'true' || options.silent;
+  if (!json && !isMCP) {
     console.log(chalk.blue(`🔍 Extracting components from: ${source}`));
     if (adaptorName) {
       console.log(chalk.gray(`🔌 Using adaptor: ${adaptorName}`));
@@ -112,7 +117,7 @@ export async function runExtract(source, options = {}) {
     includeStories,
     llmEnrich,
     flattenTokens,
-    verbose: verbose && !json,
+    verbose: verbose && !json && !isMCP, // Also respect MCP mode
     barrels: options.barrels,
     maxDepth: options.maxDepth,
     traceBarrels: options.traceBarrels,
@@ -122,7 +127,9 @@ export async function runExtract(source, options = {}) {
   const result = await extractor.extract(globPattern);
   
   // Run project intelligence scan for enhanced onboarding
-  const projectScanner = new ProjectIntelligenceScanner(source);
+  // Use current working directory (project root) instead of source path for detection
+  const projectRoot = process.cwd();
+  const projectScanner = new ProjectIntelligenceScanner(projectRoot);
   const intelligence = await projectScanner.scan();
   
   // Enhance registry with intelligence data
@@ -160,8 +167,8 @@ export async function runExtract(source, options = {}) {
   await fs.writeFile(schemaPath, JSON.stringify(result.schemas, null, 2));
   await fs.writeFile(metadataPath, JSON.stringify(result.metadata, null, 2));
   
-  // Only show console output if not in JSON mode
-  if (!json) {
+  // Only show console output if not in JSON mode and not running as MCP server
+  if (!json && !isMCP) {
     console.log(chalk.green(`📁 Registry written to: ${registryPath}`));
     console.log(chalk.green(`📋 Schemas written to: ${schemaPath}`));
     console.log(chalk.green(`📊 Metadata written to: ${metadataPath}`));
@@ -179,7 +186,10 @@ export async function runExtract(source, options = {}) {
     
     // Show performance metrics
     const extractionTime = result.stats.extractionTime / 1000; // Convert to seconds
-    const componentsWithProps = result.registry.components.filter(c => c.props?.length > 0).length;
+    // Fix: props is an object, not an array - check for keys instead of length
+    const componentsWithProps = result.registry.components.filter(c => {
+      return c.props && typeof c.props === 'object' && Object.keys(c.props).length > 0;
+    }).length;
     const successRate = componentCount > 0 ? (componentsWithProps / componentCount * 100).toFixed(1) : 0;
     
     console.log(chalk.blue('⚡ Performance Metrics:'));
@@ -202,7 +212,8 @@ export async function runExtract(source, options = {}) {
     // Show intelligence findings
     if (intelligence) {
       console.log(chalk.blue('🧠 Project Intelligence:'));
-      console.log(chalk.gray(`   Framework: ${intelligence.environment.framework || 'unknown'}`));
+      const framework = intelligence.projectStructure?.conventions?.framework || 'unknown';
+      console.log(chalk.gray(`   Framework: ${framework}`));
       console.log(chalk.gray(`   Confidence: ${intelligence.intelligence.confidence}%`));
       console.log(chalk.gray(`   Readiness: ${intelligence.intelligence.readiness}`));
       
@@ -222,7 +233,7 @@ export async function runExtract(source, options = {}) {
     const planPath = path.join(outputDir, 'mutation-plan.json');
     const mutationPlan = generateStarterMutationPlan(result.registry);
     await fs.writeFile(planPath, JSON.stringify(mutationPlan, null, 2));
-    if (!json) {
+    if (!json && !isMCP) {
       console.log(chalk.green(`🧠 Mutation plan written to: ${planPath}`));
     }
   }

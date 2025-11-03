@@ -20,7 +20,7 @@
     "filePath": "tests/unit/temp-security-trust/obfuscated/Normal.tsx",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-08-01T17:31:13.791Z",
+    "extractedAt": "2025-08-28T15:12:38.243Z",
     "tsMorphAnalysis": true,
     "typescriptAnalysis": true
   }

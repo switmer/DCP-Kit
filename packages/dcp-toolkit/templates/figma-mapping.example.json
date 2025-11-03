@@ -1,0 +1,9 @@
+{
+  "Button": "https://figma.com/design/abc123def456?node-id=123:456",
+  "Card": "https://figma.com/design/abc123def456?node-id=234:567", 
+  "Modal": "https://figma.com/design/abc123def456?node-id=345:678",
+  "Input": "https://figma.com/design/abc123def456?node-id=456:789",
+  "Select": "https://figma.com/design/abc123def456?node-id=567:890",
+  "Checkbox": "https://figma.com/design/abc123def456?node-id=678:901",
+  "Radio": "https://figma.com/design/abc123def456?node-id=789:012"
+}

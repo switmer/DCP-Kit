@@ -695,30 +695,145 @@ class DCPApiServer {
 
   async handleAnalyze(req, res) {
     try {
-      const { source = '.', includeUsage = true, includeDependencies = true } = req.body;
+      const { source = '.', includeUsage = true, includeDependencies = true, includeAssets = true } = req.body;
       
       // Import analysis tools
       const { ProjectIntelligenceScanner } = await import('./core/projectIntelligence.js');
       const { DependencyGraphAnalyzer } = await import('./core/dependencyGraph.js');
+      const { AssetAnalyzer } = await import('./core/assetAnalyzer.js');
+      const { glob } = await import('glob');
+      const fs = await import('fs/promises');
       
       const results = {
         source,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        analysis: {}
       };
       
       // Project intelligence
       const scanner = new ProjectIntelligenceScanner(source);
       results.intelligence = await scanner.scan();
       
+      // Component usage analysis
+      if (includeUsage) {
+        const registry = await this.loadRegistry();
+        const componentNames = (registry.components || []).map(c => c.name);
+        
+        // Find component usage in source files
+        const componentFiles = await glob('**/*.{tsx,jsx,ts,js}', {
+          cwd: source,
+          ignore: ['**/node_modules/**', '**/dist/**', '**/build/**']
+        });
+        
+        const usageMap = {};
+        for (const componentName of componentNames) {
+          usageMap[componentName] = {
+            files: [],
+            count: 0
+          };
+        }
+        
+        for (const file of componentFiles.slice(0, 100)) { // Limit to first 100 files for performance
+          try {
+            const content = await fs.readFile(path.join(source, file), 'utf-8');
+            for (const componentName of componentNames) {
+              const matches = content.match(new RegExp(`<${componentName}[\\s>]`, 'g'));
+              if (matches) {
+                usageMap[componentName].files.push(file);
+                usageMap[componentName].count += matches.length;
+              }
+            }
+          } catch (error) {
+            // Skip files that can't be read
+          }
+        }
+        
+        results.usage = {
+          components: usageMap,
+          totalFilesScanned: Math.min(componentFiles.length, 100)
+        };
+      }
+      
       // Dependency analysis if requested
       if (includeDependencies) {
         const analyzer = new DependencyGraphAnalyzer(source);
-        // Would need to scan files and analyze dependencies
-        results.dependencies = {
-          external: [],
-          internal: [],
-          analysis: 'Not fully implemented in this endpoint'
+        
+        // Analyze a sample of component files
+        const componentFiles = await glob('**/*.{tsx,jsx}', {
+          cwd: source,
+          ignore: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/*.test.*', '**/*.spec.*']
+        });
+        
+        const dependencyResults = {
+          external: new Set(),
+          internal: new Set(),
+          componentDependencies: {}
         };
+        
+        for (const file of componentFiles.slice(0, 50)) { // Limit for performance
+          try {
+            const content = await fs.readFile(path.join(source, file), 'utf-8');
+            const analysis = await analyzer.analyzeComponent(path.join(source, file), content);
+            
+            if (analysis) {
+              analysis.externalDeps.forEach(dep => dependencyResults.external.add(dep));
+              analysis.internalDeps.forEach(dep => dependencyResults.internal.add(dep));
+              dependencyResults.componentDependencies[file] = {
+                external: analysis.externalDeps,
+                internal: analysis.internalDeps,
+                hooks: analysis.hooks,
+                context: analysis.context
+              };
+            }
+          } catch (error) {
+            // Skip files that can't be analyzed
+          }
+        }
+        
+        results.dependencies = {
+          external: Array.from(dependencyResults.external),
+          internal: Array.from(dependencyResults.internal),
+          componentDependencies: dependencyResults.componentDependencies,
+          filesAnalyzed: Math.min(componentFiles.length, 50)
+        };
+      }
+      
+      // Asset analysis if requested
+      if (includeAssets) {
+        const assetAnalyzer = new AssetAnalyzer(source);
+        const registry = await this.loadRegistry();
+        
+        const assetResults = {
+          images: [],
+          icons: [],
+          staticAssets: []
+        };
+        
+        // Analyze first few components for assets
+        const componentsToAnalyze = (registry.components || []).slice(0, 20);
+        for (const component of componentsToAnalyze) {
+          if (component.files && component.files[0]?.path) {
+            try {
+              const componentPath = path.join(source, component.files[0].path);
+              const content = await fs.readFile(componentPath, 'utf-8');
+              const assetData = await assetAnalyzer.analyzeComponent(
+                componentPath,
+                content,
+                Object.keys(component.props || {})
+              );
+              
+              if (assetData) {
+                assetResults.images.push(...(assetData.imageProps || []));
+                assetResults.icons.push(...(assetData.iconComponents || []));
+                assetResults.staticAssets.push(...(assetData.staticAssets || []));
+              }
+            } catch (error) {
+              // Skip components that can't be analyzed
+            }
+          }
+        }
+        
+        results.assets = assetResults;
       }
       
       res.json({
@@ -734,16 +849,92 @@ class DCPApiServer {
     try {
       const registry = await this.loadRegistry();
       
+      // Analyze component complexity
+      const complexityAnalysis = this.analyzeComplexity(registry.components || []);
+      
+      // Group components by category
+      const categories = this.groupBy(registry.components || [], 'category');
+      
+      // Analyze token usage
+      const flattenedTokens = this.flattenTokens(registry.tokens || {});
+      const tokenCategories = Object.keys(registry.tokens || {});
+      
+      // Count token usage in components
+      const tokenUsage = {};
+      for (const component of registry.components || []) {
+        if (component.tokens && Array.isArray(component.tokens)) {
+          for (const token of component.tokens) {
+            tokenUsage[token] = (tokenUsage[token] || 0) + 1;
+          }
+        }
+      }
+      
+      // Find most/least used tokens
+      const tokenUsageEntries = Object.entries(tokenUsage).sort((a, b) => b[1] - a[1]);
+      const mostUsedTokens = tokenUsageEntries.slice(0, 10).map(([token, count]) => ({ token, count }));
+      const leastUsedTokens = tokenUsageEntries.slice(-10).map(([token, count]) => ({ token, count }));
+      
+      // Analyze component props
+      const propStats = {
+        totalProps: 0,
+        averagePropsPerComponent: 0,
+        componentsWithVariants: 0,
+        componentsWithComposition: 0
+      };
+      
+      for (const component of registry.components || []) {
+        const propCount = Object.keys(component.props || {}).length;
+        propStats.totalProps += propCount;
+        
+        if (component.variants && Object.keys(component.variants).length > 0) {
+          propStats.componentsWithVariants++;
+        }
+        
+        if (component.composition && (
+          (component.composition.slots && component.composition.slots.length > 0) ||
+          (component.composition.subComponents && component.composition.subComponents.length > 0)
+        )) {
+          propStats.componentsWithComposition++;
+        }
+      }
+      
+      propStats.averagePropsPerComponent = registry.components?.length > 0
+        ? propStats.totalProps / registry.components.length
+        : 0;
+      
       const analytics = {
         components: {
           total: registry.components?.length || 0,
-          categories: this.groupBy(registry.components || [], 'category'),
-          complexity: this.analyzeComplexity(registry.components || [])
+          categories: Object.keys(categories).map(cat => ({
+            name: cat,
+            count: categories[cat].length,
+            components: categories[cat].map(c => c.name)
+          })),
+          complexity: complexityAnalysis,
+          props: propStats,
+          withVariants: propStats.componentsWithVariants,
+          withComposition: propStats.componentsWithComposition
         },
         tokens: {
-          total: Object.keys(this.flattenTokens(registry.tokens || {})).length,
-          categories: Object.keys(registry.tokens || {}),
-          usage: 'Token usage tracking not yet implemented'
+          total: Object.keys(flattenedTokens).length,
+          categories: tokenCategories.map(cat => ({
+            name: cat,
+            count: Object.keys(registry.tokens[cat] || {}).length
+          })),
+          usage: {
+            totalTokensUsed: Object.keys(tokenUsage).length,
+            mostUsed: mostUsedTokens,
+            leastUsed: leastUsedTokens,
+            unusedTokens: Object.keys(flattenedTokens).filter(
+              token => !tokenUsage[token]
+            ).slice(0, 20) // Top 20 unused
+          }
+        },
+        registry: {
+          version: registry.version || '1.0.0',
+          name: registry.name || 'Unknown',
+          lastModified: registry.lastModified || registry.metadata?.extractedAt,
+          extractionTime: registry.metadata?.extractedAt
         },
         timestamp: new Date().toISOString(),
         requestId: req.id
@@ -756,19 +947,137 @@ class DCPApiServer {
   }
 
   async handlePreview(req, res) {
-    res.status(501).json({
-      error: 'Not Implemented',
-      message: 'Mutation preview endpoint not yet implemented',
-      requestId: req.id
-    });
+    try {
+      const { patches, options = {} } = req.body;
+      
+      if (!patches || !Array.isArray(patches) || patches.length === 0) {
+        return res.status(400).json({
+          error: 'Invalid Request',
+          message: 'patches array is required and must not be empty',
+          requestId: req.id
+        });
+      }
+
+      // Load current registry
+      const registry = await this.loadRegistry();
+      
+      // Import mutation and preview tools
+      const { BatchMutator } = await import('./core/batchMutate.js');
+      const { DiffPreview } = await import('./core/diffPreview.js');
+      
+      // Create mutator and previewer
+      const mutator = new BatchMutator({ verbose: this.verbose });
+      const previewer = new DiffPreview({ 
+        verbose: this.verbose,
+        outputFormat: options.format || 'json'
+      });
+
+      // Apply mutations in dry-run mode
+      const mutationResult = await mutator.applyMutations(
+        registry,
+        patches,
+        { dryRun: true, validate: true }
+      );
+
+      // Generate diff preview
+      const preview = await previewer.generatePreview(
+        registry,
+        mutationResult.mutatedDCP,
+        patches
+      );
+
+      // Prepare response
+      const response = {
+        valid: mutationResult.success,
+        patches: patches,
+        preview: preview,
+        summary: preview.summary,
+        changes: preview.componentChanges,
+        diff: options.generateDiff !== false ? preview.formats.json : undefined,
+        warnings: mutationResult.warnings || [],
+        requestId: req.id,
+        timestamp: new Date().toISOString()
+      };
+
+      res.json(response);
+    } catch (error) {
+      throw this.createError('Preview Failed', error.message, 500);
+    }
   }
 
   async handleMutate(req, res) {
-    res.status(501).json({
-      error: 'Not Implemented', 
-      message: 'Mutation endpoint not yet implemented',
-      requestId: req.id
-    });
+    try {
+      const { patches, message, createUndo = true } = req.body;
+      
+      if (!patches || !Array.isArray(patches) || patches.length === 0) {
+        return res.status(400).json({
+          error: 'Invalid Request',
+          message: 'patches array is required and must not be empty',
+          requestId: req.id
+        });
+      }
+
+      // Require authentication for mutations
+      if (!req.user && this.environment === 'production') {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'Authentication required for mutations',
+          requestId: req.id
+        });
+      }
+
+      // Load current registry
+      const registry = await this.loadRegistry();
+      const registryPath = path.join(this.registryPath, 'registry.json');
+      
+      // Import mutation tools
+      const { BatchMutator } = await import('./core/batchMutate.js');
+      const mutator = new BatchMutator({ 
+        verbose: this.verbose,
+        enableGit: false // API mutations don't commit to git
+      });
+
+      // Apply mutations
+      const mutationResult = await mutator.applyMutations(
+        registry,
+        patches,
+        { 
+          dryRun: false,
+          validate: true,
+          createBackup: true,
+          outputPath: registryPath
+        }
+      );
+
+      // Generate undo patch if requested
+      let undoPatch = null;
+      if (createUndo && mutationResult.backupPath) {
+        const originalRegistry = JSON.parse(
+          await fs.readFile(mutationResult.backupPath, 'utf-8')
+        );
+        const { compare } = await import('fast-json-patch');
+        undoPatch = compare(originalRegistry, mutationResult.mutatedDCP);
+      }
+
+      // Prepare response
+      const response = {
+        success: mutationResult.success,
+        mutations: patches.length,
+        successful: mutationResult.successful,
+        failed: mutationResult.failed,
+        mutatedRegistry: mutationResult.mutatedDCP,
+        undoPatch: undoPatch,
+        backupPath: mutationResult.backupPath,
+        message: message || `Applied ${patches.length} mutations via API`,
+        warnings: mutationResult.warnings || [],
+        requestId: req.id,
+        timestamp: new Date().toISOString()
+      };
+
+      res.json(response);
+    } catch (error) {
+      throw this.createError('Mutation Failed', error.message, 500);
+    }
   }
 
   async handleRollback(req, res) {

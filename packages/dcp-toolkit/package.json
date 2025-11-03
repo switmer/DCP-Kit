@@ -10,6 +10,7 @@
     "dcp-transform": "./bin/dcp-transformer.js",
     "dcp-mcp": "./src/mcp-server.js",
     "dcp-mcp-http": "./src/mcp-server-http.js",
+    "dcp-bridge": "./src/mcp-bridge.js",
     "dcp-api": "./src/api-server.js"
   },
   "main": "./src/lib/index.js",
@@ -89,6 +90,7 @@
     "execa": "^9.6.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.4.1",
+    "http-proxy-middleware": "^3.0.3",
     "fast-json-patch": "^3.1.1",
     "glob": "^10.3.3",
     "helmet": "^7.1.0",

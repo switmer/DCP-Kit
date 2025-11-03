@@ -126,8 +126,18 @@ class RegistryServer {
     // Static file serving for packs
     this.app.use('/packs', express.static(this.packsDir));
 
-    // Browse registry UI (simple HTML)
+    // Serve Browse UI static assets
+    const staticDir = path.join(path.dirname(new URL(import.meta.url).pathname), '../../static');
+    this.app.use('/static', express.static(staticDir, {
+      setHeaders: (res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+      }
+    }));
+
+    // Browse registry UI (production-ready)
     this.app.get('/', this.serveBrowseUI.bind(this));
+    this.app.get('/browse', this.serveBrowseUI.bind(this));
 
     // 404 handler
     this.app.use((req, res) => {
@@ -139,7 +149,8 @@ class RegistryServer {
           '/index.json', 
           '/r/:namespace/:component',
           '/blobs/:hash',
-          '/packs'
+          '/packs',
+          '/browse'
         ]
       });
     });
@@ -186,25 +197,18 @@ class RegistryServer {
       const metaData = await fs.readFile(metaPath, 'utf-8');
       const meta = JSON.parse(metaData);
 
-      // Update file URLs to be absolute
-      const files = {};
-      for (const [fileName, filePath] of Object.entries(meta.files)) {
-        if (filePath.startsWith('./blobs/')) {
-          files[fileName] = `${this.baseUrl}/blobs/${path.basename(filePath)}`;
-        } else if (filePath.startsWith('./')) {
-          files[fileName] = `${this.baseUrl}/packs/${component}/${fileName}`;
-        } else {
-          files[fileName] = filePath; // Already absolute
-        }
-      }
+      // Files is now an array per DCP spec (not an object)
+      // No need to transform - just use as-is since build-packs already includes full metadata
+      const files = meta.files || [];
 
-      // Update install command
+      // Update install command and URLs
       const response = {
         ...meta,
-        files,
+        files, // Array format from build-packs
         installCommand: `npx dcp-add "${this.baseUrl}/r/${namespace}/${component}${version ? `@${version}` : ''}"`,
-        registryUrl: `${this.baseUrl}/r/${namespace}/${component}`,
-        downloadUrl: files,
+        // Don't prepend baseUrl if registryUrl already contains it
+        registryUrl: meta.registryUrl || `${this.baseUrl}/r/${namespace}/${component}`,
+        blobsBaseUrl: `${this.baseUrl}/blobs`, // Add explicit blobs base URL
         metadata: {
           ...meta.metadata,
           servedAt: new Date().toISOString(),
@@ -270,11 +274,21 @@ class RegistryServer {
 
   async serveBrowseUI(req, res) {
     try {
-      const indexPath = path.join(this.packsDir, 'index.json');
-      const indexData = await fs.readFile(indexPath, 'utf-8');
-      const index = JSON.parse(indexData);
+      // Try to serve browse.html from packs directory first (if it was copied during build)
+      const packsHtmlPath = path.join(this.packsDir, 'browse.html');
+      
+      try {
+        await fs.access(packsHtmlPath);
+        const html = await fs.readFile(packsHtmlPath, 'utf-8');
+        res.setHeader('Content-Type', 'text/html');
+        return res.send(html);
+      } catch (error) {
+        // Fallback to simple HTML if browse.html doesn't exist
+        const indexPath = path.join(this.packsDir, 'index.json');
+        const indexData = await fs.readFile(indexPath, 'utf-8');
+        const index = JSON.parse(indexData);
 
-      const html = `
+        const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -319,8 +333,9 @@ GET  /packs/:component        # Component directory</pre>
 </body>
 </html>`;
 
-      res.setHeader('Content-Type', 'text/html');
-      res.send(html);
+        res.setHeader('Content-Type', 'text/html');
+        res.send(html);
+      }
     } catch (error) {
       res.status(500).json({
         error: 'Failed to generate browse UI',

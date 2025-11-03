@@ -92,6 +92,47 @@ export async function runBuildPacks(registryPath, options = {}) {
     JSON.stringify(indexManifest, null, 2)
   );
 
+  // Copy Browse UI static files
+  try {
+    // Use __dirname equivalent for ESM
+    const currentFileUrl = new URL(import.meta.url);
+    const currentDir = path.dirname(currentFileUrl.pathname);
+    const staticSrcDir = path.resolve(currentDir, '../../static');
+    const staticDestDir = outputDir;
+    
+    if (verbose) {
+      console.log(`  📁 Static source: ${staticSrcDir}`);
+    }
+    
+    const staticFiles = ['browse.html', 'browse.js', 'browse.css'];
+    let copiedCount = 0;
+    
+    for (const file of staticFiles) {
+      const srcPath = path.join(staticSrcDir, file);
+      const destPath = path.join(staticDestDir, file);
+      
+      try {
+        await fs.copyFile(srcPath, destPath);
+        copiedCount++;
+        if (verbose) {
+          console.log(`  📄 Copied ${file}`);
+        }
+      } catch (error) {
+        if (verbose) {
+          console.warn(`  ⚠️  Could not copy ${file}: ${error.message}`);
+        }
+      }
+    }
+    
+    if (verbose && copiedCount > 0) {
+      console.log(`  ✅ Copied ${copiedCount}/${staticFiles.length} Browse UI files`);
+    }
+  } catch (error) {
+    if (verbose) {
+      console.warn(`  ⚠️  Could not copy static files: ${error.message}`);
+    }
+  }
+
   if (verbose) {
     console.log(`\n📊 Build Summary:`);
     console.log(`   Components: ${results.packs.length}`);
@@ -128,15 +169,41 @@ class ComponentPackBuilder {
     const readme = await this.generateReadme(component);
     const styles = await this.generateStyles(component, registry);
 
-    // Store blobs and get URLs
-    const files = {};
+    // Store blobs and get URLs (as array for DCP spec compliance)
+    const files = [];
     
-    files['index.tsx'] = await this.storeBlob(sourceCode, 'tsx');
-    files['demo.tsx'] = await this.storeBlob(demoCode, 'tsx');
-    files['README.md'] = await this.storeBlob(readme, 'md');
+    const indexBlob = await this.storeBlob(sourceCode, 'tsx');
+    files.push({
+      path: `registry/${component.name.toLowerCase()}/index.tsx`,
+      type: 'registry:component',
+      sha1: indexBlob.sha1,
+      size: indexBlob.size,
+    });
+    
+    const demoBlob = await this.storeBlob(demoCode, 'tsx');
+    files.push({
+      path: `registry/${component.name.toLowerCase()}/demo.tsx`,
+      type: 'registry:example',
+      sha1: demoBlob.sha1,
+      size: demoBlob.size,
+    });
+    
+    const readmeBlob = await this.storeBlob(readme, 'md');
+    files.push({
+      path: `registry/${component.name.toLowerCase()}/README.md`,
+      type: 'registry:doc',
+      sha1: readmeBlob.sha1,
+      size: readmeBlob.size,
+    });
     
     if (styles) {
-      files['styles.css'] = await this.storeBlob(styles, 'css');
+      const stylesBlob = await this.storeBlob(styles, 'css');
+      files.push({
+        path: `registry/${component.name.toLowerCase()}/styles.css`,
+        type: 'registry:style',
+        sha1: stylesBlob.sha1,
+        size: stylesBlob.size,
+      });
     }
 
     // Generate metadata
@@ -146,8 +213,10 @@ class ComponentPackBuilder {
       title: component.displayName || component.name,
       description: component.description || `${component.name} component`,
       category: component.category || 'components',
+      type: 'registry:component',
+      namespace: this.namespace,
       
-      // File references
+      // File references (array format per DCP spec)
       files,
       
       // Component schema
@@ -188,7 +257,7 @@ class ComponentPackBuilder {
       title: meta.title,
       description: meta.description,
       outputPath: componentDir,
-      files: Object.keys(files).length,
+      files: files.length,
       meta
     };
   }
@@ -553,7 +622,13 @@ ${values.map(value =>
       this.blobCache.set(hash, fileName);
     }
     
-    return this.baseUrl ? `${this.baseUrl}/blobs/${fileName}` : `./blobs/${fileName}`;
+    // Return both URL and metadata for DCP spec compliance
+    return {
+      url: this.baseUrl ? `${this.baseUrl}/blobs/${fileName}` : `./blobs/${fileName}`,
+      sha1: hash,
+      size: Buffer.byteLength(content, 'utf8'),
+      fileName,
+    };
   }
 
   // Helper methods
