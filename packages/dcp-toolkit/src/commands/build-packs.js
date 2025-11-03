@@ -82,7 +82,7 @@ export async function runBuildPacks(registryPath, options = {}) {
       version: pack.version,
       title: pack.title,
       description: pack.description,
-      url: `${baseUrl}/r/${namespace}/${pack.name}`,
+      url: `/r/${namespace}/${pack.name}`,
       tags: pack.tags || []
     }))
   };
