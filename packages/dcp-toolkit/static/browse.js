@@ -488,7 +488,7 @@
           ${renderInstallCommand(registryUrl, currentPM)}
         </div>
 
-        ${renderDependencies(component.dependencies, component.peerDependencies)}
+        ${renderDependencies(component.dependencies || [], component.peerDependencies || [])}
 
         <div class="action-buttons">
           <button class="btn btn-primary" onclick="window.dcpBrowse.copyInstallCommand()">
