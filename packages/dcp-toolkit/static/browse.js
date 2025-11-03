@@ -9,9 +9,12 @@
   // State
   let indexData = null;
   let components = [];
+  let tokens = [];
+  let allItems = []; // Combined components + tokens
   let activeFacets = {
     namespace: [],
-    type: [],
+    itemType: [], // 'component', 'token', 'hook', etc.
+    tokenType: [], // 'color', 'spacing', 'typography', etc.
     category: []
   };
   let currentPM = 'npm';
@@ -126,7 +129,9 @@
       }
       
       indexData = await response.json();
-      components = indexData.components || [];
+      components = (indexData.components || []).map(c => ({ ...c, itemType: 'component' }));
+      tokens = (indexData.tokens || []).map(t => ({ ...t, itemType: 'token' }));
+      allItems = [...components, ...tokens];
 
       // Update header
       if (indexData.metadata) {
@@ -141,6 +146,7 @@
       
       track('registry_loaded', {
         componentCount: components.length,
+        tokenCount: tokens.length,
         version: indexData.metadata?.version
       });
     } catch (error) {

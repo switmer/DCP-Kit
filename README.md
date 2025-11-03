@@ -59,7 +59,11 @@ dcp extract ./src/components --auto-detect-tokens --out ./registry
 # │   └── registry.json                 # Main registry file
 ```
 
-**📖 [Full Documentation →](./docs/WHATS_READY.md)**
+**📖 Documentation:**
+- **[Getting Started Guide](./docs/GETTING_STARTED.md)** - Complete tutorial with workflows
+- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - One-page cheat sheet
+- **[What's Ready](./docs/WHATS_READY.md)** - Production features
+- **[What's Coming](./docs/WHATS_COMING.md)** - Roadmap
 
 ## 🎨 Browse UI - Visual Component Discovery
 
