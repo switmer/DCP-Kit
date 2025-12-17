@@ -13,6 +13,7 @@ import {
   ListResourcesRequestSchema,
   ListPromptsRequestSchema,
   ReadResourceRequestSchema,
+  GetPromptRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -34,7 +35,7 @@ const isMCPServer =
   process.argv.includes('--stdio') || 
   process.env.MCP_STDIO === 'true' ||
   process.argv[1]?.includes('mcp-server') ||
-  (!process.stdin.isTTY && process.stdin.isReadable());
+  (!process.stdin.isTTY && typeof process.stdin.readable === 'boolean' ? process.stdin.readable : !process.stdin.isTTY);
 
 if (isMCPServer) {
   // Redirect console.log BEFORE any imports that might log
@@ -304,6 +305,50 @@ class DCPMCPServer {
                   enum: ['css', 'js', 'tailwind', 'raw'],
                   description: 'Output format for token values',
                   default: 'css',
+                },
+              },
+            },
+          },
+          {
+            name: 'dcp_list_components',
+            description: 'Browse and search all components in the registry with filtering and pagination',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                registryPath: {
+                  type: 'string',
+                  description: 'Path to the registry directory (optional, auto-detects if not provided)',
+                },
+                search: {
+                  type: 'string',
+                  description: 'Search query to filter components by name or description',
+                },
+                namespace: {
+                  type: 'string',
+                  description: 'Filter by namespace (e.g., "ui", "marketing")',
+                },
+                type: {
+                  type: 'string',
+                  description: 'Filter by component type',
+                },
+                category: {
+                  type: 'string',
+                  description: 'Filter by category (must match component categories array)',
+                },
+                detailed: {
+                  type: 'boolean',
+                  description: 'Include detailed information (key props, variants summary, dependencies)',
+                  default: false,
+                },
+                limit: {
+                  type: 'number',
+                  description: 'Maximum number of components to return (default: 50, max: 200)',
+                  default: 50,
+                },
+                offset: {
+                  type: 'number',
+                  description: 'Number of components to skip (for pagination)',
+                  default: 0,
                 },
               },
             },
@@ -810,6 +855,39 @@ class DCPMCPServer {
               required: ['componentUrl'],
             },
           },
+          {
+            name: 'dcp_audit_usages',
+            description: 'Audit component usages across the codebase - find all instances, extract props, group by signature, and detect drift',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                component: {
+                  type: 'string',
+                  description: 'Component name to audit (e.g., "Button", "Badge")',
+                },
+                source: {
+                  type: 'string',
+                  description: 'Source directory to scan (defaults to current directory)',
+                  default: '.',
+                },
+                importPath: {
+                  type: 'string',
+                  description: 'Optional: Expected import path pattern (e.g., "@/components/ui/Button") - auto-detected if not provided',
+                },
+                groupByProps: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Optional: Props to group by for signature analysis (e.g., ["variant", "size"]). If not provided, will auto-infer meaningful props from actual usage patterns.',
+                },
+                glob: {
+                  type: 'string',
+                  description: 'File pattern to search (defaults to **/*.{tsx,jsx})',
+                  default: '**/*.{tsx,jsx}',
+                },
+              },
+              required: ['component'],
+            },
+          },
         ],
       };
     });
@@ -820,6 +898,8 @@ class DCPMCPServer {
         switch (request.params.name) {
           case 'dcp_query_tokens':
             return await this.handleQueryTokens(request.params.arguments);
+          case 'dcp_list_components':
+            return await this.handleListComponents(request.params.arguments);
           case 'dcp_get_component':
             return await this.handleGetComponent(request.params.arguments);
           case 'dcp_validate_code':
@@ -852,6 +932,8 @@ class DCPMCPServer {
             return await this.handleServeRegistry(request.params.arguments);
           case 'dcp_add_component':
             return await this.handleAddComponent(request.params.arguments);
+          case 'dcp_audit_usages':
+            return await this.handleAuditUsages(request.params.arguments);
           default:
             throw new Error(`Unknown tool: ${request.params.name}`);
         }
@@ -1019,9 +1101,71 @@ class DCPMCPServer {
                 required: false
               }
             ]
+          },
+          {
+            name: 'audit-component-usages',
+            description: 'Audit component usages across the codebase - find all instances, extract props, group by signature, detect drift, and parse Tailwind classes for semantic patterns',
+            arguments: [
+              {
+                name: 'component',
+                description: 'Component name to audit (e.g., "Button", "Badge", "DialogContent")',
+                required: true
+              },
+              {
+                name: 'source',
+                description: 'Source directory to scan (defaults to current directory)',
+                required: false
+              }
+            ]
+          },
+          {
+            name: 'suggest-component-variants',
+            description: 'Analyze component usage patterns and suggest missing variants based on repeated className overrides and prop combinations',
+            arguments: [
+              {
+                name: 'component',
+                description: 'Component name to analyze',
+                required: true
+              }
+            ]
           }
         ]
       };
+    });
+
+    // Add prompt execution handler (for when prompts are invoked)
+    this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+      const { name, arguments: args } = request.params;
+      
+      try {
+        switch (name) {
+          case 'validate-component-usage':
+            return await this.handleValidateCodePrompt(args);
+          case 'suggest-component-alternatives':
+            return await this.handleSuggestAlternativesPrompt(args);
+          case 'generate-component-example':
+            return await this.handleGenerateExamplePrompt(args);
+          case 'audit-component-usages':
+            return await this.handleAuditUsagesPrompt(args);
+          case 'suggest-component-variants':
+            return await this.handleSuggestVariantsPrompt(args);
+          default:
+            throw new Error(`Unknown prompt: ${name}`);
+        }
+      } catch (error) {
+        return {
+          messages: [
+            {
+              role: 'user',
+              content: {
+                type: 'text',
+                text: `Error executing prompt "${name}": ${error.message}`
+              }
+            }
+          ],
+          isError: true
+        };
+      }
     });
   }
 
@@ -1066,6 +1210,125 @@ ${Object.keys(formattedTokens).length > 0 ?
 }
 
 Usage: Use these tokens in your code. Example: color="primary.500" or className="text-primary-500"`,
+        },
+      ],
+    };
+  }
+
+  async handleListComponents({ 
+    registryPath, 
+    search, 
+    namespace, 
+    type, 
+    category, 
+    detailed = false, 
+    limit = 50, 
+    offset = 0 
+  }) {
+    const registry = await this.loadRegistry(registryPath);
+    let components = registry.components || [];
+    
+    // Apply filters
+    if (search) {
+      const searchLower = search.toLowerCase();
+      components = components.filter(c => {
+        const name = (c.name || c.displayName || '').toLowerCase();
+        const description = (c.description || '').toLowerCase();
+        return name.includes(searchLower) || description.includes(searchLower);
+      });
+    }
+    
+    if (namespace) {
+      components = components.filter(c => (c.namespace || 'ui').toLowerCase() === namespace.toLowerCase());
+    }
+    
+    if (type) {
+      components = components.filter(c => (c.type || 'component').toLowerCase() === type.toLowerCase());
+    }
+    
+    if (category) {
+      components = components.filter(c => {
+        const categories = c.categories || [];
+        return categories.some(cat => cat.toLowerCase() === category.toLowerCase());
+      });
+    }
+    
+    // Get total count before pagination
+    const total = components.length;
+    
+    // Apply pagination
+    const maxLimit = Math.min(limit, 200); // Cap at 200
+    const paginated = components.slice(offset, offset + maxLimit);
+    
+    // Format component summaries
+    const summaries = paginated.map(comp => {
+      const summary = {
+        name: comp.name || comp.displayName || comp.exportName || 'Unknown',
+        description: comp.description || 'No description available',
+        namespace: comp.namespace || 'ui',
+        type: comp.type || 'component',
+        propsCount: comp.props ? Object.keys(comp.props).length : 0,
+        categories: comp.categories || [],
+      };
+      
+      // Add detailed info if requested
+      if (detailed) {
+        // Extract key props (top 5 most important - required props first, then commonly used)
+        const propsArray = Object.entries(comp.props || {}).map(([name, prop]) => ({
+          name,
+          ...prop
+        }));
+        const requiredProps = propsArray.filter(p => p.required);
+        const optionalProps = propsArray.filter(p => !p.required);
+        
+        summary.keyProps = [
+          ...requiredProps.slice(0, 3),
+          ...optionalProps.slice(0, 2)
+        ].slice(0, 5).map(p => ({
+          name: p.name,
+          type: p.type || 'any',
+          required: p.required || false
+        }));
+        
+        // Variants summary
+        if (comp.variants && Object.keys(comp.variants).length > 0) {
+          summary.variants = Object.entries(comp.variants).map(([key, values]) => ({
+            name: key,
+            options: Array.isArray(values) ? values : [values],
+            count: Array.isArray(values) ? values.length : 1
+          }));
+        }
+        
+        // Dependencies count
+        const depsArray = Array.isArray(comp.dependencies) ? comp.dependencies : 
+                         (comp.dependencies && typeof comp.dependencies === 'object' ? Object.keys(comp.dependencies) : []);
+        const peerDepsArray = Array.isArray(comp.peerDependencies) ? comp.peerDependencies :
+                             (comp.peerDependencies && typeof comp.peerDependencies === 'object' ? Object.keys(comp.peerDependencies) : []);
+        summary.dependenciesCount = depsArray.length + peerDepsArray.length;
+      }
+      
+      return summary;
+    });
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            total,
+            returned: summaries.length,
+            limit: maxLimit,
+            offset,
+            hasMore: offset + summaries.length < total,
+            filters: {
+              search: search || null,
+              namespace: namespace || null,
+              type: type || null,
+              category: category || null
+            },
+            components: summaries
+          }, null, 2),
         },
       ],
     };
@@ -1127,9 +1390,27 @@ Usage: Use these tokens in your code. Example: color="primary.500" or className=
       };
     }
 
+    // Helper to convert name to PascalCase for jsxName
+    const toPascal = (name) => {
+      if (!name) return 'Component';
+      return name
+        .split(/[-_\s]/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join('');
+    };
+
     const response = {
       name: comp.name || comp.displayName,
+      jsxName: comp.jsxName || toPascal(comp.title || comp.displayName || comp.name),
       description: comp.description || 'No description available',
+      category: comp.category || 'unknown',
+      categories: Array.isArray(comp.categories) ? comp.categories : (comp.category ? [comp.category] : []),
+      type: comp.type || comp.extensions?.componentType || 'component',
+      namespace: comp.namespace || 'ui',
+      version: comp.version || '1.0.0',
+      sourceFile: comp.filePath || comp.extensions?.filePath || undefined,
+      lastExtracted: comp.extensions?.extractedAt || comp.lastExtracted || undefined,
+      composition: comp.composition || { slots: [], subComponents: [] },
     };
 
     if (include.includes('props')) {
@@ -1151,33 +1432,24 @@ Usage: Use these tokens in your code. Example: color="primary.500" or className=
     }
 
     if (include.includes('examples')) {
-      response.examples = this.generateComponentExamples(comp);
+      response.examples = comp.examples || this.generateComponentExamples(comp);
     }
 
     if (include.includes('dependencies')) {
       response.dependencies = comp.dependencies || [];
+      response.peerDependencies = comp.peerDependencies || [];
     }
 
+    if (include.includes('composition')) {
+      response.composition = comp.composition || {};
+    }
+
+    // Return as JSON for AI consumption
     return {
       content: [
         {
           type: 'text',
-          text: `Component: ${response.name}
-
-Description: ${response.description || 'No description available'}
-Category: ${response.category || 'unknown'}
-
-${response.requiredProps?.length > 0 ? `Required Props:
-${response.requiredProps.map(p => `  - ${p.name}: ${p.type} - ${p.description || 'No description'}`).join('\n')}` : ''}
-
-${response.optionalProps?.length > 0 ? `Optional Props:
-${response.optionalProps.map(p => `  - ${p.name}: ${p.type} - ${p.description || 'No description'}`).join('\n')}` : ''}
-
-${Object.keys(response.variants || {}).length > 0 ? `Variants:
-${Object.entries(response.variants).map(([key, values]) => `  - ${key}: ${Array.isArray(values) ? values.join(', ') : JSON.stringify(values)}`).join('\n')}` : ''}
-
-${response.examples?.length > 0 ? `Examples:
-${response.examples.map((ex, i) => `${i + 1}. ${ex.name}: ${ex.code}`).join('\n')}` : ''}`,
+          text: JSON.stringify(response, null, 2),
         },
       ],
     };
@@ -2187,6 +2459,252 @@ ${result.files?.length > 10 ? `  ... and ${result.files.length - 10} more` : ''}
         isError: true,
       };
     }
+  }
+
+  async handleAuditUsages({ component, source = '.', importPath, groupByProps, glob: globPattern = '**/*.{tsx,jsx}' }) {
+    try {
+      const { ComponentUsageAuditor } = await import('./core/componentUsageAuditor.js');
+      const auditor = new ComponentUsageAuditor(source);
+      
+      const result = await auditor.auditComponent(component, {
+        importPath,
+        groupByProps,
+        glob: globPattern
+      });
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              error: error.message,
+              component,
+              source
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  // Prompt execution handlers
+  async handleValidateCodePrompt({ code, component }) {
+    const result = await this.handleValidateCode({ code, component });
+    return {
+      messages: [
+        {
+          role: 'assistant',
+          content: {
+            type: 'text',
+            text: result.content[0].text
+          }
+        }
+      ]
+    };
+  }
+
+  async handleSuggestAlternativesPrompt({ current, type, component, category }) {
+    const result = await this.handleSuggestAlternatives({ current, type, component, category });
+    return {
+      messages: [
+        {
+          role: 'assistant',
+          content: {
+            type: 'text',
+            text: result.content[0].text
+          }
+        }
+      ]
+    };
+  }
+
+  async handleGenerateExamplePrompt({ component, variant }) {
+    const registry = await this.loadRegistry();
+    const comp = registry.components.find(c => 
+      (c.name || '').toLowerCase() === component.toLowerCase() ||
+      (c.displayName || '').toLowerCase() === component.toLowerCase()
+    );
+    
+    if (!comp) {
+      return {
+        messages: [
+          {
+            role: 'assistant',
+            content: {
+              type: 'text',
+              text: `Component "${component}" not found in registry. Available: ${registry.components.slice(0, 10).map(c => c.name).join(', ')}`
+            }
+          }
+        ]
+      };
+    }
+
+    const examples = comp.examples || [];
+    const variantExamples = variant 
+      ? examples.filter(ex => ex.title?.toLowerCase().includes(variant.toLowerCase()))
+      : examples;
+
+    const exampleText = variantExamples.length > 0
+      ? variantExamples.map(ex => `**${ex.title}:**\n\`\`\`tsx\n${ex.code}\n\`\`\``).join('\n\n')
+      : `**Basic Usage:**\n\`\`\`tsx\n<${comp.name || component} />\n\`\`\``;
+
+    return {
+      messages: [
+        {
+          role: 'assistant',
+          content: {
+            type: 'text',
+            text: `# ${comp.name || component} Examples\n\n${exampleText}`
+          }
+        }
+      ]
+    };
+  }
+
+  async handleAuditUsagesPrompt({ component, source = '.' }) {
+    const result = await this.handleAuditUsages({ component, source });
+    const auditData = JSON.parse(result.content[0].text);
+    
+    // Format as readable summary
+    const summary = `# Component Usage Audit: ${component}
+
+**Total Usages:** ${auditData.totalUsages}
+**Files Scanned:** ${auditData.filesScanned}
+**Files with Usages:** ${auditData.filesWithUsages}
+
+## Top Usage Patterns
+
+${auditData.signatures.slice(0, 5).map(sig => 
+  `- **${sig.signature}**: ${sig.count} usages (${sig.percentage})`
+).join('\n')}
+
+## Drift Indicators
+
+${auditData.driftIndicators.length > 0
+  ? auditData.driftIndicators.map(ind => `- ⚠️ ${ind.message}`).join('\n')
+  : '✅ No drift detected'}
+
+## Suggestions
+
+${auditData.suggestions.length > 0
+  ? auditData.suggestions.map(s => `- 💡 ${s.message}`).join('\n')
+  : '✅ No suggestions'}
+
+${auditData.propsDiscovered?.className?.tailwindPatterns
+  ? `\n## Tailwind Patterns\n\n**Top Utilities:**\n${auditData.propsDiscovered.className.tailwindPatterns.topUtilities.slice(0, 5).map(u => `- ${u.class}: ${u.count} (${u.percentage})`).join('\n')}\n\n**Width Patterns:**\n${Object.entries(auditData.propsDiscovered.className.tailwindPatterns.widthPatterns).map(([semantic, data]) => `- ${semantic}: ${data.count} (${data.percentage})`).join('\n')}`
+  : ''}
+
+<details>
+<summary>Full Audit Data (JSON)</summary>
+
+\`\`\`json
+${JSON.stringify(auditData, null, 2)}
+\`\`\`
+
+</details>`;
+
+    return {
+      messages: [
+        {
+          role: 'assistant',
+          content: {
+            type: 'text',
+            text: summary
+          }
+        }
+      ]
+    };
+  }
+
+  async handleSuggestVariantsPrompt({ component }) {
+    // Run audit first to get usage patterns
+    const auditResult = await this.handleAuditUsages({ component });
+    const auditData = JSON.parse(auditResult.content[0].text);
+    
+    const suggestions = [];
+    
+    // Analyze className patterns for variant suggestions
+    if (auditData.propsDiscovered?.className?.tailwindPatterns) {
+      const patterns = auditData.propsDiscovered.className.tailwindPatterns;
+      
+      // Check for repeated color patterns
+      const colorPatterns = patterns.topUtilities.filter(u => 
+        u.class.match(/^(bg-|text-|border-)/) && u.count > auditData.totalUsages * 0.1
+      );
+      
+      if (colorPatterns.length > 0) {
+        suggestions.push({
+          type: 'color_variants',
+          message: `Consider adding color variants: ${colorPatterns.slice(0, 3).map(p => p.class.split('-')[1]).join(', ')}`,
+          examples: colorPatterns.slice(0, 3)
+        });
+      }
+
+      // Check for size patterns
+      if (patterns.widthPatterns && Object.keys(patterns.widthPatterns).length > 2) {
+        suggestions.push({
+          type: 'size_variants',
+          message: `Add size prop with variants: ${Object.keys(patterns.widthPatterns).slice(0, 5).join(', ')}`,
+          patterns: patterns.widthPatterns
+        });
+      }
+    }
+
+    // Check for missing props
+    if (auditData.driftIndicators.some(ind => ind.type === 'missing_prop')) {
+      const missingProps = auditData.driftIndicators
+        .filter(ind => ind.type === 'missing_prop')
+        .map(ind => ind.prop);
+      
+      suggestions.push({
+        type: 'missing_props',
+        message: `Make these props optional or add defaults: ${missingProps.join(', ')}`,
+        props: missingProps
+      });
+    }
+
+    const summary = `# Variant Suggestions for ${component}
+
+${suggestions.length > 0
+  ? suggestions.map(s => `## ${s.type.replace('_', ' ').toUpperCase()}\n\n${s.message}`).join('\n\n')
+  : '✅ Component variants look good - no major patterns detected'}
+
+## Usage Summary
+- **Total Usages:** ${auditData.totalUsages}
+- **Unique Signatures:** ${auditData.signatures.length}
+- **Drift Indicators:** ${auditData.driftIndicators.length}
+
+<details>
+<summary>Full Analysis</summary>
+
+\`\`\`json
+${JSON.stringify(auditData, null, 2)}
+\`\`\`
+
+</details>`;
+
+    return {
+      messages: [
+        {
+          role: 'assistant',
+          content: {
+            type: 'text',
+            text: summary
+          }
+        }
+      ]
+    };
   }
 
   async start() {
