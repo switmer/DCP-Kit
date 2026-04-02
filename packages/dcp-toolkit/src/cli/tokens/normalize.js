@@ -3,16 +3,17 @@
  * Normalize tokens to standard DCP format
  */
 
+import chalk from 'chalk';
+
 export default async function normalize(inputFile, options) {
   try {
     const { UniversalTokenExtractor } = await import('../../../src/tokens/extractor.js');
     const fs = await import('fs/promises');
     const path = await import('path');
-    const chalk = await import('chalk');
     
     if (!options.json && options.verbose) {
-      console.log(chalk.default.blue(`🔄 Normalizing tokens: ${inputFile}`));
-      console.log(chalk.default.gray(`From: ${options.from} → To: ${options.to}`));
+      console.log(chalk.blue(`🔄 Normalizing tokens: ${inputFile}`));
+      console.log(chalk.gray(`From: ${options.from} → To: ${options.to}`));
     }
     
     // Read input file
@@ -32,7 +33,7 @@ export default async function normalize(inputFile, options) {
     if (sourceFormat === 'detect') {
       sourceFormat = extractor.detectFormat(inputTokens, inputFile);
       if (!options.json && options.verbose) {
-        console.log(chalk.default.gray(`Detected format: ${sourceFormat}`));
+        console.log(chalk.gray(`Detected format: ${sourceFormat}`));
       }
     }
     
@@ -92,17 +93,17 @@ export default async function normalize(inputFile, options) {
         tokenCount
       }, null, 2));
     } else {
-      console.log(chalk.default.green(`✅ Normalized ${tokenCount} tokens`));
-      console.log(chalk.default.gray(`📄 Output: ${outputFile}`));
-      console.log(chalk.default.gray(`🔄 ${sourceFormat} → ${options.to}`));
+      console.log(chalk.green(`✅ Normalized ${tokenCount} tokens`));
+      console.log(chalk.gray(`📄 Output: ${outputFile}`));
+      console.log(chalk.gray(`🔄 ${sourceFormat} → ${options.to}`));
     }
     
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ 
-        success: false, 
+      console.error(JSON.stringify({
+        success: false,
         error: error.message,
-        inputFile 
+        inputFile
       }, null, 2));
     } else {
       console.error('❌ Token normalization failed:', error.message);

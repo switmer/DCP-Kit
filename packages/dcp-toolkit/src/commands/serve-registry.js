@@ -132,7 +132,9 @@ class RegistryServer {
         const cssPath = path.join(this.packsDir, 'browse.css');
         const css = await fs.readFile(cssPath, 'utf-8');
         res.setHeader('Content-Type', 'text/css');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.send(css);
       } catch (error) {
         res.status(404).send('/* browse.css not found */');
@@ -144,7 +146,9 @@ class RegistryServer {
         const jsPath = path.join(this.packsDir, 'browse.js');
         const js = await fs.readFile(jsPath, 'utf-8');
         res.setHeader('Content-Type', 'application/javascript');
-        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.send(js);
       } catch (error) {
         res.status(404).send('// browse.js not found');

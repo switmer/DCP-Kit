@@ -9,7 +9,7 @@ export class DetectionLogger {
   constructor(outputDir, options = {}) {
     this.outputDir = outputDir;
     this.verbose = options.verbose || false;
-    this.logFile = path.join(outputDir, 'detection-log.json');
+    this.logFile = path.join(outputDir, 'detection.log.json');
     
     this.log = {
       detectionRun: new Date().toISOString(),
@@ -48,6 +48,9 @@ export class DetectionLogger {
     };
 
     this.log.sources.push(logEntry);
+
+    // Update summary stats incrementally
+    this.generateSummary();
 
     if (this.verbose) {
       const confidence = `${(source.confidence * 100).toFixed(0)}%`;
@@ -151,12 +154,25 @@ export class DetectionLogger {
     // Total tokens extracted
     const totalTokens = sources.reduce((sum, s) => sum + (s.extraction?.tokensFound || 0), 0);
 
+    // Confidence statistics
+    const confidences = sources.map(s => s.confidence).filter(c => c !== undefined);
+    const avgConfidence = confidences.length > 0
+      ? confidences.reduce((a, b) => a + b, 0) / confidences.length
+      : 0;
+    const maxConfidence = confidences.length > 0 ? Math.max(...confidences) : 0;
+    const minConfidence = confidences.length > 0 ? Math.min(...confidences) : 0;
+
     this.log.summary = {
       totalSources: sources.length,
       byType,
       highConfidence,
       successRate: Math.round(successRate * 100),
       totalTokens,
+      confidence: {
+        average: avgConfidence,
+        highest: maxConfidence,
+        lowest: minConfidence
+      },
       issues: this.log.summary.issues
     };
 
@@ -219,12 +235,16 @@ export class DetectionLogger {
       });
     }
 
-    // Multiple token systems (potential conflicts)
-    if (Object.keys(summary.byType).length > 2) {
+    // Multiple token systems (potential conflicts) - compute byType from live sources
+    const byType = {};
+    sources.forEach(source => {
+      byType[source.type] = (byType[source.type] || 0) + 1;
+    });
+    if (Object.keys(byType).length > 2) {
       recommendations.push({
         type: 'conflicts',
         priority: 'medium',
-        message: `Multiple token systems detected (${Object.keys(summary.byType).join(', ')}).`,
+        message: `Multiple token systems detected (${Object.keys(byType).join(', ')}).`,
         actions: [
           'Consider using --conflict-strategy to handle duplicates',
           'Standardize on a single token system',
@@ -258,16 +278,28 @@ export class DetectionLogger {
     try {
       // Ensure output directory exists
       await fs.promises.mkdir(this.outputDir, { recursive: true });
-      
+
+      // Check if log file exists and merge sources
+      if (fs.existsSync(this.logFile)) {
+        try {
+          const existingContent = await fs.promises.readFile(this.logFile, 'utf8');
+          const existingLog = JSON.parse(existingContent);
+          const existingSources = existingLog.sources || [];
+          this.log.sources = [...existingSources, ...this.log.sources];
+        } catch (e) {
+          // If existing file can't be read, continue with current sources
+        }
+      }
+
       // Finalize summary
       this.generateSummary();
-      
+
       // Add total runtime
       this.log.performance.totalTime = performance.now() - this.log.performance.startTime;
-      
+
       // Write log file
       await fs.promises.writeFile(
-        this.logFile, 
+        this.logFile,
         JSON.stringify(this.log, null, 2),
         'utf8'
       );

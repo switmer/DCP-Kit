@@ -4,6 +4,7 @@
  */
 
 import chalk from 'chalk';
+import { jsonError } from '../output.js';
 
 export default async function demo(components = [], options = {}) {
   try {
@@ -32,10 +33,10 @@ export default async function demo(components = [], options = {}) {
     console.log(chalk.gray('  • Enable prop editing'));
     console.log(chalk.gray('  • Include usage examples'));
     
-    process.exit(0);
+    process.exit(2);
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error(chalk.red('❌ Demo failed:'), error.message);
     }

@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { createRequire } from 'node:module';
 
 export class ConfigEvaluator {
   constructor(options = {}) {
@@ -30,6 +31,8 @@ export class ConfigEvaluator {
       case '.js':
       case '.mjs':
         return this.evaluateJS(configPath);
+      case '.cjs':
+        return this.evaluateCJS(configPath);
       case '.ts':
         return this.evaluateTS(configPath);
       case '.json':
@@ -48,22 +51,44 @@ export class ConfigEvaluator {
         console.log(`📄 Evaluating JS config: ${configPath}`);
       }
 
+      // Check if file uses CommonJS - try CJS evaluation first
+      const content = fs.readFileSync(configPath, 'utf8');
+      if (content.includes('module.exports')) {
+        try {
+          return await this.evaluateCJS(configPath);
+        } catch (cjsError) {
+          // CJS failed, fall through to static extraction
+          return this.extractStaticFromFile(configPath);
+        }
+      }
+
       // Convert to file URL for dynamic import
       const fileUrl = pathToFileURL(path.resolve(configPath)).href;
-      
+
       // Add cache busting to ensure fresh imports
       const moduleUrl = `${fileUrl}?t=${Date.now()}`;
-      
+
       // Dynamic import with timeout
-      const module = await this.withTimeout(
-        import(moduleUrl),
-        this.timeout,
-        `Config evaluation timeout: ${configPath}`
-      );
+      let module;
+      try {
+        module = await this.withTimeout(
+          import(moduleUrl),
+          this.timeout,
+          `Config evaluation timeout: ${configPath}`
+        );
+      } catch (importError) {
+        // Import failed - static fallback
+        return this.extractStaticFromFile(configPath);
+      }
 
       // Extract default export or module itself
       const config = module.default || module;
-      
+
+      // If import returned empty, try static extraction as fallback
+      if (typeof config === 'object' && config !== null && Object.keys(config).length === 0) {
+        return this.extractStaticFromFile(configPath);
+      }
+
       if (typeof config === 'function') {
         // Handle functional configs (common in Tailwind)
         try {
@@ -82,8 +107,57 @@ export class ConfigEvaluator {
       if (this.verbose) {
         console.warn(`Failed to evaluate JS config ${configPath}:`, error.message);
       }
-      
-      // Fallback: try static analysis
+
+      // Fallback: try CJS require for module.exports files
+      try {
+        const content = fs.readFileSync(configPath, 'utf8');
+        if (content.includes('module.exports')) {
+          return await this.evaluateCJS(configPath);
+        }
+      } catch (cjsError) {
+        // CJS fallback also failed, continue to static extraction
+      }
+
+      // Final fallback: try static analysis
+      return this.extractStaticFromFile(configPath);
+    }
+  }
+
+  /**
+   * Evaluate CommonJS config files (.cjs or .js with module.exports)
+   */
+  async evaluateCJS(configPath) {
+    try {
+      if (this.verbose) {
+        console.log(`📄 Evaluating CJS config: ${configPath}`);
+      }
+      const require = createRequire(import.meta.url);
+      const absPath = path.resolve(configPath);
+
+      // If the file is .js (may be in ESM context), copy to a .cjs temp file
+      const ext = path.extname(absPath);
+      let requirePath = absPath;
+      let tempFile = null;
+      if (ext === '.js') {
+        tempFile = absPath + `.${Date.now()}.cjs`;
+        fs.copyFileSync(absPath, tempFile);
+        requirePath = tempFile;
+      }
+
+      try {
+        // Clear require cache for fresh load
+        delete require.cache[requirePath];
+        const config = require(requirePath);
+        return config;
+      } finally {
+        if (tempFile && fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      }
+    } catch (error) {
+      if (this.verbose) {
+        console.warn(`Failed to evaluate CJS config ${configPath}:`, error.message);
+      }
       return this.extractStaticFromFile(configPath);
     }
   }
@@ -156,7 +230,7 @@ export class ConfigEvaluator {
    */
   extractStaticFromFile(configPath) {
     const content = fs.readFileSync(configPath, 'utf8');
-    
+
     if (configPath.includes('tailwind')) {
       return this.extractTailwindStatic(content);
     } else if (configPath.includes('mui') || configPath.includes('theme')) {
@@ -208,12 +282,12 @@ export class ConfigEvaluator {
    */
   extractMUIStatic(content) {
     const theme = { palette: {}, spacing: 8, typography: {} };
-    
+
     try {
-      // Extract palette colors
-      const paletteMatch = content.match(/palette\s*:\s*\{([\s\S]*?)\}/);
-      if (paletteMatch) {
-        theme.palette = this.parseObjectLiteral(paletteMatch[1]);
+      // Extract palette colors (needs balanced braces for nested objects)
+      const paletteBody = this.extractBalancedBlock(content, 'palette');
+      if (paletteBody) {
+        theme.palette = this.parseNestedObjectLiteral(paletteBody);
       }
 
       // Extract spacing
@@ -222,10 +296,10 @@ export class ConfigEvaluator {
         theme.spacing = parseInt(spacingMatch[1]);
       }
 
-      // Extract typography
-      const typographyMatch = content.match(/typography\s*:\s*\{([\s\S]*?)\}/);
-      if (typographyMatch) {
-        theme.typography = this.parseObjectLiteral(typographyMatch[1]);
+      // Extract typography (needs balanced braces for nested objects)
+      const typographyBody = this.extractBalancedBlock(content, 'typography');
+      if (typographyBody) {
+        theme.typography = this.parseNestedObjectLiteral(typographyBody);
       }
 
       if (this.verbose) {
@@ -259,6 +333,14 @@ export class ConfigEvaluator {
         exports[match[1]] = this.parseObjectLiteral(match[2]);
       }
 
+      // Extract module.exports = { ... } (CommonJS)
+      if (!exports.default) {
+        const moduleExportsMatch = content.match(/module\.exports\s*=\s*\{([\s\S]*?)\}/);
+        if (moduleExportsMatch) {
+          exports.default = this.parseObjectLiteral(moduleExportsMatch[1]);
+        }
+      }
+
       if (this.verbose) {
         console.log('📦 Extracted generic static exports');
       }
@@ -269,6 +351,68 @@ export class ConfigEvaluator {
     }
 
     return exports.default || exports;
+  }
+
+  /**
+   * Extract a balanced-brace block for a given key from source content.
+   * Returns the inner content between the outermost braces.
+   */
+  extractBalancedBlock(content, key) {
+    const re = new RegExp(key + '\\s*:\\s*\\{');
+    const match = re.exec(content);
+    if (!match) return null;
+
+    let depth = 1;
+    let start = match.index + match[0].length;
+    let i = start;
+    while (i < content.length && depth > 0) {
+      if (content[i] === '{') depth++;
+      else if (content[i] === '}') depth--;
+      i++;
+    }
+    return depth === 0 ? content.slice(start, i - 1) : null;
+  }
+
+  /**
+   * Parse an object literal that may contain one level of nested objects.
+   * Returns nested structure: { primary: { main: '#...', ... }, ... }
+   */
+  parseNestedObjectLiteral(objectString) {
+    const obj = {};
+    // Match nested objects: key: { ... }
+    const nestedRe = /([\w-]+)\s*:\s*\{([^}]*)\}/g;
+    let nestedMatch;
+    const nestedRanges = [];
+    while ((nestedMatch = nestedRe.exec(objectString)) !== null) {
+      const key = nestedMatch[1];
+      obj[key] = this.parseObjectLiteral(nestedMatch[2]);
+      nestedRanges.push([nestedMatch.index, nestedMatch.index + nestedMatch[0].length]);
+    }
+
+    // Match top-level simple properties (not inside a nested block)
+    const simpleRe = /([\w-]+)\s*:\s*(['"`])([^'"`]*)\2/g;
+    let simpleMatch;
+    while ((simpleMatch = simpleRe.exec(objectString)) !== null) {
+      // Skip if this match falls inside a nested range
+      const pos = simpleMatch.index;
+      const inNested = nestedRanges.some(([s, e]) => pos >= s && pos < e);
+      if (!inNested) {
+        obj[simpleMatch[1]] = simpleMatch[3];
+      }
+    }
+
+    // Match top-level numeric properties not inside nested blocks
+    const numRe = /([\w-]+)\s*:\s*(\d+(?:\.\d+)?)\s*[,\n}]/g;
+    let numMatch;
+    while ((numMatch = numRe.exec(objectString)) !== null) {
+      const pos = numMatch.index;
+      const inNested = nestedRanges.some(([s, e]) => pos >= s && pos < e);
+      if (!inNested && !obj.hasOwnProperty(numMatch[1])) {
+        obj[numMatch[1]] = parseFloat(numMatch[2]);
+      }
+    }
+
+    return obj;
   }
 
   /**

@@ -4,6 +4,7 @@
  */
 
 import chalk from 'chalk';
+import { jsonError } from '../output.js';
 
 export default async function rollback(mutationId, options = {}) {
   try {
@@ -33,7 +34,7 @@ export default async function rollback(mutationId, options = {}) {
     process.exit(0);
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error(chalk.red('❌ Rollback failed:'), error.message);
     }

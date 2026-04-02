@@ -5,6 +5,7 @@
 
 import chalk from 'chalk';
 import chokidar from 'chokidar';
+import { jsonError } from '../output.js';
 
 export default async function watch(watchPath = '.', options = {}) {
   try {
@@ -60,7 +61,7 @@ export default async function watch(watchPath = '.', options = {}) {
     
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error(chalk.red('❌ Watch failed:'), error.message);
     }

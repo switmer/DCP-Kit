@@ -326,7 +326,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
       
       // Apply agent mutation
       const { stdout: mutateOutput } = await execAsync(
-        `node "${cliPath}" mutate "${originalPath}" "${mutationPath}" "${mutatedPath}" --agent-mode --json`
+        `node "${cliPath}" workflow mutate "${originalPath}" "${mutationPath}" "${mutatedPath}" --agent-mode --json`
       );
       
       const mutateResult = JSON.parse(mutateOutput);
@@ -395,7 +395,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
         await fs.writeFile(mutationPath, JSON.stringify(mutations[i], null, 2));
         
         const { stdout } = await execAsync(
-          `node "${cliPath}" mutate "${currentPath}" "${mutationPath}" "${nextPath}" --agent-mode --json`
+          `node "${cliPath}" workflow mutate "${currentPath}" "${mutationPath}" "${nextPath}" --agent-mode --json`
         );
         
         const result = JSON.parse(stdout);
@@ -468,7 +468,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
       
       // Apply breaking mutation
       await execAsync(
-        `node "${cliPath}" mutate "${originalPath}" "${mutationPath}" "${brokenPath}" --undo "${undoPath}" --json`
+        `node "${cliPath}" workflow mutate "${originalPath}" "${mutationPath}" "${brokenPath}" --undo "${undoPath}" --json`
       );
       
       // Verify it's no longer agent compatible
@@ -485,7 +485,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
       
       // Rollback
       const { stdout: rollbackOutput } = await execAsync(
-        `node "${cliPath}" rollback "${brokenPath}" "${undoPath}" --json`
+        `node "${cliPath}" workflow rollback "${brokenPath}" "${undoPath}" --json`
       );
       
       const rollbackResult = JSON.parse(rollbackOutput);
@@ -524,7 +524,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
       const prompt = 'Add a new variant called "outline" to the Button component';
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" agent "${prompt}" --registry "${registryPath}" --json`
+        `node "${cliPath}" workflow agent "${prompt}" --registry "${registryPath}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -566,7 +566,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
       const prompt = 'Make all buttons in modals use the secondary variant by default';
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" agent "${prompt}" --registry "${registryPath}" --analyze-relationships --json`
+        `node "${cliPath}" workflow agent "${prompt}" --registry "${registryPath}" --analyze-relationships --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -607,7 +607,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
       const prompt = 'Add a success type to Alert component and update examples to show all four types';
       
       const { stdout: agentOutput } = await execAsync(
-        `node "${cliPath}" agent "${prompt}" --registry "${registryPath}" --json`
+        `node "${cliPath}" workflow agent "${prompt}" --registry "${registryPath}" --json`
       );
       
       const agentResult = JSON.parse(agentOutput.trim());
@@ -621,7 +621,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
         await fs.writeFile(mutationPath, JSON.stringify(agentResult.mutation, null, 2));
         
         await execAsync(
-          `node "${cliPath}" mutate "${registryPath}" "${mutationPath}" "${resultPath}" --json`
+          `node "${cliPath}" workflow mutate "${registryPath}" "${mutationPath}" "${resultPath}" --json`
         );
         
         // Validate the result matches prompt expectations
@@ -660,7 +660,7 @@ describe('🧠 Agent Compatibility & Machine Readability', () => {
       const prompt = 'Add a danger variant';
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" agent "${prompt}" --registry "${registryPath}" --json`
+        `node "${cliPath}" workflow agent "${prompt}" --registry "${registryPath}" --json`
       );
       
       const result = JSON.parse(stdout.trim());

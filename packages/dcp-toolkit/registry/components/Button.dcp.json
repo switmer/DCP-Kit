@@ -9,10 +9,11 @@
     "subComponents": []
   },
   "examples": [],
+  "source": "\"use strict\";\nvar __importDefault = (this && this.__importDefault) || function (mod) {\n    return (mod && mod.__esModule) ? mod : { \"default\": mod };\n};\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.Button = void 0;\nvar react_1 = __importDefault(require(\"react\"));\n/**\n * Primary UI component for user interaction\n */\nvar Button = function (_a) {\n    var _b = _a.variant, variant = _b === void 0 ? 'primary' : _b, _c = _a.size, size = _c === void 0 ? 'medium' : _c, _d = _a.disabled, disabled = _d === void 0 ? false : _d, children = _a.children, onClick = _a.onClick;\n    var baseStyle = \"px-4 py-2 rounded font-semibold\";\n    var variantStyles = {\n        primary: \"bg-blue-600 text-white hover:bg-blue-700\",\n        secondary: \"bg-gray-200 text-gray-800 hover:bg-gray-300\",\n        tertiary: \"bg-transparent text-blue-600 hover:text-blue-800\",\n    };\n    var sizeStyles = {\n        small: \"text-sm\",\n        medium: \"text-base\",\n        large: \"text-lg px-6 py-3\",\n    };\n    var disabledStyle = disabled ? \"opacity-50 cursor-not-allowed\" : \"cursor-pointer\";\n    return (react_1.default.createElement(\"button\", { type: \"button\", className: \"\".concat(baseStyle, \" \").concat(variantStyles[variant], \" \").concat(sizeStyles[size], \" \").concat(disabledStyle), disabled: disabled, onClick: onClick }, children));\n};\nexports.Button = Button;\nexports.default = exports.Button;\n",
   "extensions": {
     "filePath": "tests/unit/fixtures/src/components/Button.js",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-08-28T15:12:42.284Z"
+    "extractedAt": "2026-04-02T17:54:19.679Z"
   }
 }

@@ -87,8 +87,8 @@ Examples:
         
         if (!validation.canProceed && !options.autoFix) {
           if (options.json) {
-            console.log(JSON.stringify({ 
-              success: false, 
+            console.error(JSON.stringify({
+              success: false,
               error: 'Project validation failed',
               issues: validation.issues,
               suggestion: 'Run with --auto-fix to attempt automatic fixes, or --skip-validation to proceed anyway'
@@ -109,8 +109,8 @@ Examples:
           const revalidation = await validator.validate();
           if (!revalidation.canProceed) {
             if (options.json) {
-              console.log(JSON.stringify({ 
-                success: false, 
+              console.error(JSON.stringify({
+                success: false,
                 error: 'Auto-fix did not resolve all critical issues',
                 issues: revalidation.issues
               }, null, 2));
@@ -145,7 +145,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Extract failed:', error.message);
       }
@@ -203,7 +203,7 @@ Examples:
       process.exit(validation.canProceed ? 0 : 1);
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Validation failed:', error.message);
       }
@@ -415,7 +415,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Build failed:', error.message);
       }
@@ -460,7 +460,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Build failed:', error.message);
       }
@@ -502,7 +502,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Radix tokens failed:', error.message);
       }
@@ -514,7 +514,7 @@ program
   .command('serve-registry [packs-dir]')
   .description('Serve component packs via HTTP for development')
   .option('-p, --port <number>', 'server port', '7401')
-  .option('-h, --host <host>', 'server host', 'localhost')
+  .option('--host <host>', 'server host', 'localhost')
   .option('--no-cors', 'disable CORS')
   .option('--secret <secret>', 'JWT secret for private registries')
   .option('--base-url <url>', 'base URL for hosted files')
@@ -545,7 +545,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Server failed:', error.message);
       }
@@ -595,7 +595,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Publish failed:', error.message);
       }
@@ -646,7 +646,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Installation failed:', error.message);
       }
@@ -687,7 +687,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Failed to list adaptors:', error.message);
       }
@@ -762,7 +762,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Transpile failed:', error.message);
       }
@@ -805,7 +805,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Export failed:', error.message);
       }
@@ -866,8 +866,8 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ 
-          success: false, 
+        console.error(JSON.stringify({
+          success: false,
           valid: false,
           componentsValidated: 0,
           errors: [error.message],
@@ -948,7 +948,7 @@ JSON Patch format:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Mutation failed:', error.message);
       }
@@ -1014,7 +1014,7 @@ Examples:
       // Console output handled by runDiff function
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Diff failed:', error.message);
       }
@@ -1082,7 +1082,7 @@ Supported prompts:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Agent planning failed:', error.message);
       }
@@ -1262,7 +1262,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Diff failed:', error.message);
       }
@@ -1314,7 +1314,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Demo processing failed:', error.message);
       }
@@ -1356,7 +1356,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        console.error(JSON.stringify({ success: false, error: error.message }, null, 2));
       } else {
         console.error('❌ Documentation generation failed:', error.message);
       }
@@ -1369,7 +1369,7 @@ program
   .command('api')
   .description('Start DCP REST API server')
   .option('-p, --port <number>', 'server port', '7401')
-  .option('-h, --host <string>', 'server host', 'localhost')
+  .option('--host <string>', 'server host', 'localhost')
   .option('-r, --registry <path>', 'registry directory path', './registry')
   .option('--jwt-secret <secret>', 'JWT secret for authentication (use DCP_JWT_SECRET env var in production)')
   .option('--rate-limit <number>', 'rate limit per 15 minutes', '1000')

@@ -98,20 +98,20 @@ describe('ReactTSXAdaptor - Barrel Resolution', () => {
   test('should deduplicate components preferring direct over barrel exports', async () => {
     // Test the deduplication logic
     const components = [
-      { 
-        name: 'Button', 
-        metadata: { source: 'barrel', componentType: 'barrel' }
+      {
+        name: 'Button',
+        extensions: { source: 'barrel', componentType: 'barrel' }
       },
-      { 
-        name: 'Button', 
-        metadata: { componentType: 'canonical' }
+      {
+        name: 'Button',
+        extensions: { componentType: 'canonical' }
       }
     ];
-    
+
     const deduplicated = adaptor.deduplicateComponents(components);
-    
+
     expect(deduplicated.length).toBe(1);
-    expect(deduplicated[0].metadata.componentType).toBe('canonical');
+    expect(deduplicated[0].extensions.componentType).toBe('canonical');
   });
 
   test('should trace barrel resolution when enabled', async () => {

@@ -7,6 +7,7 @@ import chalk from 'chalk';
 import fs from 'fs/promises';
 import path from 'path';
 import { diffLines, createTwoFilesPatch } from 'diff';
+import { jsonError } from '../output.js';
 
 export default async function diff(component, options = {}) {
   try {
@@ -36,7 +37,7 @@ export default async function diff(component, options = {}) {
     process.exit(0);
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error(chalk.red('❌ Diff failed:'), error.message);
     }

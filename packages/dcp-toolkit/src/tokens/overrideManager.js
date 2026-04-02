@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { globSync } from 'glob';
+import { minimatch } from 'minimatch';
 
 export class OverrideManager {
   constructor(rootPath, options = {}) {
@@ -25,9 +26,11 @@ export class OverrideManager {
    * Load override configuration
    */
   async loadConfig() {
+    const defaults = { autoDetect: true, include: [], exclude: [] };
+
     for (const configFile of this.configPaths) {
       const configPath = path.join(this.rootPath, configFile);
-      
+
       if (fs.existsSync(configPath)) {
         try {
           if (this.verbose) {
@@ -39,14 +42,16 @@ export class OverrideManager {
             const content = fs.readFileSync(configPath, 'utf8');
             config = JSON.parse(content);
           } else if (configFile.endsWith('.js')) {
-            // Dynamic import for JS configs
             const fileUrl = `file://${path.resolve(configPath)}?t=${Date.now()}`;
             const module = await import(fileUrl);
             config = module.default || module;
           }
 
-          this.config = {
-            ...config,
+          // Store full config internally, return tokens sub-object
+          this.config = config;
+          const tokenConfig = {
+            ...defaults,
+            ...(config.tokens || {}),
             configPath,
             configFile
           };
@@ -55,7 +60,7 @@ export class OverrideManager {
             console.log(`✅ Loaded DCP config from ${configFile}`);
           }
 
-          return this.config;
+          return tokenConfig;
         } catch (error) {
           if (this.verbose) {
             console.warn(`⚠️  Failed to load ${configFile}: ${error.message}`);
@@ -65,22 +70,26 @@ export class OverrideManager {
     }
 
     // No config found - use defaults
-    this.config = { configPath: null };
-    return this.config;
+    this.config = {};
+    return { ...defaults, configPath: null };
   }
 
   /**
    * Apply overrides to detected sources
    */
-  applyOverrides(detectedSources) {
-    if (!this.config || !this.config.tokens) {
+  async applyOverrides(detectedSources) {
+    // Load config if not yet loaded
+    if (!this.config) {
+      await this.loadConfig();
+    }
+
+    const tokenConfig = this.config?.tokens || this.config || {};
+    if (!tokenConfig.exclude && !tokenConfig.include && !tokenConfig.forceType && !tokenConfig.boostConfidence) {
       return detectedSources; // No overrides to apply
     }
 
     let sources = [...detectedSources];
     this.appliedRules = [];
-
-    const tokenConfig = this.config.tokens;
 
     // Apply exclude rules
     if (tokenConfig.exclude) {
@@ -114,22 +123,45 @@ export class OverrideManager {
    * Apply exclude rules
    */
   applyExcludeRules(sources, excludePatterns) {
-    const patterns = Array.isArray(excludePatterns) ? excludePatterns : [excludePatterns];
-    
+    const rules = Array.isArray(excludePatterns) ? excludePatterns : [excludePatterns];
+
     return sources.filter(source => {
-      for (const pattern of patterns) {
-        if (this.matchesPattern(source.path, pattern)) {
+      for (const rule of rules) {
+        let shouldExclude = false;
+        let reason = '';
+
+        if (typeof rule === 'object' && rule !== null) {
+          // Structured exclude rule
+          if (rule.type && rule.type === source.type) {
+            shouldExclude = true;
+            reason = `Excluded by type: ${rule.type}`;
+          } else if (rule.pattern && this.matchesPattern(source.path, rule.pattern)) {
+            shouldExclude = true;
+            reason = `Excluded by pattern: ${rule.pattern}`;
+          } else if (rule.minConfidence !== undefined && source.confidence < rule.minConfidence) {
+            shouldExclude = true;
+            reason = `Excluded by confidence threshold: below ${rule.minConfidence}`;
+          }
+          // Skip empty or invalid rules (no type, pattern, or minConfidence)
+        } else if (typeof rule === 'string') {
+          if (this.matchesPattern(source.path, rule)) {
+            shouldExclude = true;
+            reason = `Excluded by pattern: ${rule}`;
+          }
+        }
+
+        if (shouldExclude) {
           this.appliedRules.push({
             action: 'exclude',
             path: source.path,
-            pattern,
-            reason: `Excluded by pattern: ${pattern}`
+            type: source.type,
+            reason
           });
-          
+
           if (this.verbose) {
-            console.log(`🚫 Excluded: ${source.path} (pattern: ${pattern})`);
+            console.log(`🚫 Excluded: ${source.path} (${reason})`);
           }
-          
+
           return false;
         }
       }
@@ -141,51 +173,69 @@ export class OverrideManager {
    * Apply include rules (force detection)
    */
   applyIncludeRules(includePatterns) {
-    const patterns = Array.isArray(includePatterns) ? includePatterns : [includePatterns];
+    const rules = Array.isArray(includePatterns) ? includePatterns : [includePatterns];
     const forcedSources = [];
 
-    for (const pattern of patterns) {
+    for (const rule of rules) {
+      let globPattern;
+      let sourceConfig = {};
+
+      if (typeof rule === 'object' && rule !== null) {
+        // Structured include: { type, path, pattern, confidence, description }
+        globPattern = rule.path || rule.pattern;
+        sourceConfig = {
+          type: rule.type,
+          confidence: rule.confidence,
+          description: rule.description
+        };
+        // Skip invalid rules (no path or pattern)
+        if (!globPattern) continue;
+      } else if (typeof rule === 'string') {
+        globPattern = rule;
+      } else {
+        continue;
+      }
+
       try {
-        // Use glob to find matching files
-        const matches = globSync(pattern, {
+        const matches = globSync(globPattern, {
           cwd: this.rootPath,
           absolute: true,
           nodir: true
         });
 
         for (const match of matches) {
-          // Check if not already detected
           const alreadyDetected = forcedSources.some(s => s.path === match);
-          
+
           if (!alreadyDetected && fs.existsSync(match)) {
             const forcedSource = {
-              type: 'custom', // Default type, can be overridden by forceType
+              type: sourceConfig.type || 'custom',
               path: match,
-              confidence: 0.7, // Medium confidence for forced inclusion
-              description: `Manually included via pattern: ${pattern}`,
-              metadata: { 
+              confidence: sourceConfig.confidence || 0.7,
+              source: 'manual',
+              description: sourceConfig.description || `Manually included via pattern: ${globPattern}`,
+              metadata: {
                 forcedInclude: true,
-                includePattern: pattern 
+                includePattern: globPattern
               }
             };
 
             forcedSources.push(forcedSource);
-            
+
             this.appliedRules.push({
               action: 'include',
               path: match,
-              pattern,
-              reason: `Forced inclusion by pattern: ${pattern}`
+              pattern: globPattern,
+              reason: `Forced inclusion by pattern: ${globPattern}`
             });
 
             if (this.verbose) {
-              console.log(`➕ Included: ${match} (pattern: ${pattern})`);
+              console.log(`➕ Included: ${match} (pattern: ${globPattern})`);
             }
           }
         }
       } catch (error) {
         if (this.verbose) {
-          console.warn(`⚠️  Include pattern failed: ${pattern} - ${error.message}`);
+          console.warn(`⚠️  Include pattern failed: ${globPattern} - ${error.message}`);
         }
       }
     }
@@ -260,30 +310,25 @@ export class OverrideManager {
    * Check if path matches pattern (supports globs)
    */
   matchesPattern(filePath, pattern) {
-    // Convert to relative path for pattern matching
+    // Normalize path for matching
+    const normalizedPath = filePath.startsWith('./') ? filePath.slice(2) : filePath;
     const relativePath = path.relative(this.rootPath, filePath);
-    
-    // Simple cases
-    if (pattern === filePath || pattern === relativePath) {
+
+    // Simple exact match
+    if (pattern === filePath || pattern === relativePath || pattern === normalizedPath) {
       return true;
     }
 
-    // Glob pattern matching
+    // Minimatch pattern matching (works with glob patterns on path strings)
     try {
-      const matches = globSync(pattern, {
-        cwd: this.rootPath,
-        absolute: false,
-        nodir: true
-      });
-      
-      return matches.some(match => {
-        const matchAbsolute = path.resolve(this.rootPath, match);
-        return matchAbsolute === filePath;
-      });
+      if (minimatch(normalizedPath, pattern, { matchBase: true })) return true;
+      if (minimatch(relativePath, pattern, { matchBase: true })) return true;
+      if (minimatch(filePath, pattern, { matchBase: true })) return true;
     } catch (error) {
       // Fallback to simple string matching
-      return filePath.includes(pattern) || relativePath.includes(pattern);
     }
+
+    return filePath.includes(pattern) || relativePath.includes(pattern);
   }
 
   /**

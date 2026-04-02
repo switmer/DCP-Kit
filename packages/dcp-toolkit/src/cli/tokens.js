@@ -6,6 +6,7 @@
  */
 
 import { program } from 'commander';
+import { jsonError } from './output.js';
 
 // Create tokens command group
 const tokensCommand = program
@@ -64,7 +65,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ Radix tokens failed:', error.message);
       }
@@ -106,7 +107,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ Export failed:', error.message);
       }
@@ -147,7 +148,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ Import failed:', error.message);
       }
@@ -188,7 +189,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ build-assets failed:', error.message);
       }

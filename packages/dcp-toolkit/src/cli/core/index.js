@@ -13,7 +13,7 @@ export function registerCoreCommands(program) {
   program
     .command('extract <source>')
     .description('Extract components from source directory (Universal v3 with token auto-detection)')
-    .option('-o, --out <dir>', 'output directory', './registry')
+    .option('-o, --output <dir>', 'output directory', './registry')
     .option('-t, --tokens <file>', 'design tokens file (JSON)')
     .option('--auto-detect-tokens', 'automatically detect and extract tokens from all sources')
     .option('-g, --glob <pattern>', 'glob pattern for files (e.g., "**/*.{tsx,jsx}")')

@@ -16,10 +16,11 @@
     "subComponents": []
   },
   "examples": [],
+  "source": "\n        const _0x1a2b=['button','label'];const _0x3c4d=function(_0x5e6f,_0x7a8b){_0x5e6f=_0x5e6f-0x0;let _0x9c1d=_0x1a2b[_0x5e6f];return _0x9c1d;};export const ObfuscatedComponent=({label})=>{return React[_0x3c4d('0x0')](_0x3c4d('0x1'),null,label);};\n      ",
   "extensions": {
     "filePath": "tests/unit/temp-security-trust/obfuscated/Obfuscated.tsx",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-08-28T15:12:40.707Z"
+    "extractedAt": "2026-04-02T17:54:20.457Z"
   }
 }

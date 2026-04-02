@@ -1,7 +1,6 @@
 import { buildRegistry } from '../core/registryBuilder.js';
 import { loadConfig } from '../core/configHandler.js';
 import path from 'path';
-import { execa } from 'execa';
 import fs from 'fs';
 
 export async function runBuild(options = {}) {
@@ -43,12 +42,10 @@ export async function runBuild(options = {}) {
         console.log('📚 Building Storybook documentation...');
       }
 
-      await execa('storybook', [
-        'build',
-        '--config-dir', sbConfigDir,
-        '--output-dir', sbOutputDir,
-        '--quiet', !verbose
-      ]);
+      const { execa } = await import('execa');
+      const args = ['build', '--config-dir', sbConfigDir, '--output-dir', sbOutputDir];
+      if (!verbose) args.push('--quiet');
+      await execa('storybook', args);
 
       // Add Storybook URLs to component metadata
       const components = JSON.parse(fs.readFileSync(config.output, 'utf8'));
@@ -65,10 +62,6 @@ export async function runBuild(options = {}) {
 
     return result;
   } catch (error) {
-    console.error('❌ Build failed:', error.message);
-    if (verbose) {
-      console.error(error);
-    }
-    process.exit(1);
+    throw new Error(`Build failed: ${error.message}`);
   }
 }

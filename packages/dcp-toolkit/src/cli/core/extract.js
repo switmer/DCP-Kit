@@ -3,6 +3,8 @@
  * Primary DCP command for component extraction with universal token pipeline
  */
 
+import { jsonError } from '../output.js';
+
 export default async function extract(source, options) {
   try {
     // Project validation (unless skipped)
@@ -13,8 +15,8 @@ export default async function extract(source, options) {
       
       if (!validation.canProceed && !options.autoFix) {
         if (options.json) {
-          console.log(JSON.stringify({ 
-            success: false, 
+          console.error(JSON.stringify({
+            success: false,
             error: 'Project validation failed',
             issues: validation.issues,
             suggestion: 'Run with --auto-fix to attempt automatic fixes, or --skip-validation to proceed anyway'
@@ -35,8 +37,8 @@ export default async function extract(source, options) {
         const revalidation = await validator.validate();
         if (!revalidation.canProceed) {
           if (options.json) {
-            console.log(JSON.stringify({ 
-              success: false, 
+            console.error(JSON.stringify({
+              success: false,
               error: 'Auto-fix did not resolve all critical issues',
               issues: revalidation.issues
             }, null, 2));
@@ -78,7 +80,7 @@ export default async function extract(source, options) {
     }
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error('❌ Extract failed:', error.message);
     }

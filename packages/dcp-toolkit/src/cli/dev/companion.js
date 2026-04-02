@@ -4,6 +4,7 @@
  */
 
 import chalk from 'chalk';
+import { jsonError } from '../output.js';
 
 export default async function companion(options = {}) {
   try {
@@ -37,10 +38,10 @@ export default async function companion(options = {}) {
     console.log(chalk.gray('  • Automatically fix simple problems'));
     console.log(chalk.gray('  • Learn from user feedback'));
     
-    process.exit(0);
+    process.exit(2);
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error(chalk.red('❌ Companion failed:'), error.message);
     }

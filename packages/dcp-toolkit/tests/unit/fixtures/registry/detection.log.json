@@ -1,0 +1,1918 @@
+{
+  "detectionRun": "2026-04-02T17:58:17.332Z",
+  "version": "1.0.0",
+  "sources": [
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:22.818Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 1.7505829334259033
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:24.165Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2823331356048584
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:24.266Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.24324989318847656
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:24.914Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2787909507751465
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:25.328Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.5876250267028809
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:25.334Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.27062511444091797
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:25.840Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2051248550415039
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:26.267Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.3089160919189453
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:26.273Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.21883296966552734
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:26.621Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2458329200744629
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:26.627Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.20737504959106445
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:26.969Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.22729182243347168
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:27.479Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2688331604003906
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:27.783Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.21962499618530273
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:45:28.402Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.22079205513000488
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:53.980Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 1.0971250534057617
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:54.528Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.4170420169830322
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:54.906Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.20212507247924805
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:55.258Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.20012521743774414
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:55.585Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.203125
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:55.901Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2679581642150879
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:56.214Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.20395898818969727
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:56.531Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.17499995231628418
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:47:56.867Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.21391701698303223
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:46.797Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.9888331890106201
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:48.609Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.8497500419616699
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:48.808Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 1.3904998302459717
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:49.490Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.31429219245910645
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:50.208Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.22204208374023438
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:50.212Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2866249084472656
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:50.879Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.24641704559326172
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:51.393Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.28766703605651855
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:51.423Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2537078857421875
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:51.749Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.20504212379455566
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:51.802Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.20887517929077148
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:52.172Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.3100001811981201
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:52.684Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2639169692993164
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:52.983Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2622499465942383
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:51:53.666Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.21149992942810059
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:16.432Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 1.6596248149871826
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:16.462Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.9990410804748535
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:18.294Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.36658382415771484
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:18.336Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.39254093170166016
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:19.324Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.3530409336090088
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:19.962Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 1.3152499198913574
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:20.170Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.25112485885620117
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:20.844Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2979581356048584
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:21.142Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.23366689682006836
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:21.341Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2987089157104492
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:21.560Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2523331642150879
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:21.691Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.23695802688598633
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:22.110Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2537500858306885
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:22.598Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.225416898727417
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:22.758Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.27108287811279297
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:54:23.469Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.3202080726623535
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:51.170Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 1.1153340339660645
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:51.777Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.23612499237060547
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:52.170Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.28908395767211914
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:52.523Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2505838871002197
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:52.843Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.19974994659423828
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:53.149Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.198167085647583
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:53.453Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.22729206085205078
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:53.772Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.19550013542175293
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:56:54.173Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.23758292198181152
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:39.772Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 2.022334098815918
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:40.404Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.3491249084472656
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:40.764Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.19712495803833008
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:41.100Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.22258281707763672
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:41.411Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2935831546783447
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:41.748Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.33237504959106445
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:42.042Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.17808294296264648
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:42.340Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.19625020027160645
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:57:42.665Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.17058300971984863
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:14.643Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 1.1020419597625732
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:15.166Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.32929205894470215
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:15.498Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2222919464111328
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:15.825Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.2489159107208252
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:16.132Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.17704200744628906
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:16.440Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.22195792198181152
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:16.719Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.18337512016296387
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:17.000Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.18758296966552734
+      }
+    },
+    {
+      "type": "style-dictionary",
+      "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tests/unit/fixtures/tokens",
+      "confidence": 0.8,
+      "description": "Style Dictionary tokens (1 files)",
+      "metadata": {
+        "tokenFiles": [
+          "theme.json"
+        ]
+      },
+      "detectedAt": "2026-04-02T17:58:17.332Z",
+      "extraction": {
+        "success": true,
+        "tokensFound": 8,
+        "categories": [
+          "colors",
+          "spacing"
+        ],
+        "error": null,
+        "fallbackUsed": false,
+        "extractionTime": 0.24695801734924316
+      }
+    }
+  ],
+  "overrides": {
+    "appliedFrom": null,
+    "rules": []
+  },
+  "summary": {
+    "totalSources": 82,
+    "byType": {
+      "style-dictionary": 82
+    },
+    "highConfidence": 82,
+    "successRate": 100,
+    "totalTokens": 656,
+    "confidence": {
+      "average": 0.7999999999999987,
+      "highest": 0.8,
+      "lowest": 0.8
+    },
+    "issues": [],
+    "recommendations": []
+  },
+  "performance": {
+    "startTime": 30237.6739590168,
+    "detectionTime": 0.29524993896484375,
+    "extractionTime": 0.27870893478393555,
+    "totalTime": 10.91429090499878
+  }
+}

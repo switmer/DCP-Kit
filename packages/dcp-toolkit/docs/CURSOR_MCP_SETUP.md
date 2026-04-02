@@ -265,3 +265,11 @@ The MCP server watches your registry and automatically reloads when:
 
 **Need help?** Check [MCP Integration Docs](./api/mcp-integration.md) or [open an issue](https://github.com/stevewitmer/dcp-transformer/issues)
 
+
+
+
+
+
+
+
+

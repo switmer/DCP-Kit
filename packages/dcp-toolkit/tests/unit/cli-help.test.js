@@ -9,65 +9,60 @@ const __dirname = path.dirname(__filename);
 const dcpPath = path.join(__dirname, '../../bin/dcp.js');
 
 describe('CLI Help Output', () => {
-  test('should show main help with all commands including new token verbs', () => {
-    const output = execSync(`node "${dcpPath}" --help`, { 
+  test('should show main help with command groups and core commands', () => {
+    const output = execSync(`node "${dcpPath}" --help`, {
       encoding: 'utf-8',
-      timeout: 5000 
+      timeout: 5000
     });
 
     // Check that core structure is present
-    expect(output).toContain('Design Component Protocol Transformer - CRISPR for Code');
+    expect(output).toContain('DCP: Design Component Protocol CLI');
     expect(output).toContain('Usage: dcp [options] [command]');
-    
-    // Check existing commands are present
+
+    // Check core commands are present
     expect(output).toContain('extract [options] <source>');
-    expect(output).toContain('adaptors [options]');
-    expect(output).toContain('watch [options] <source>');
-    expect(output).toContain('transpile [options] <registry>');
-    expect(output).toContain('mutate [options] <registry> <patch> <output>');
-    expect(output).toContain('agent [options] <prompt>');
-    
-    // Check new DTCG token commands are present
-    expect(output).toContain('export-tokens [options] <registry>');
-    expect(output).toContain('Export DCP registry tokens to DTCG format');
-    expect(output).toContain('import-tokens [options] <tokens>');
-    expect(output).toContain('Import DTCG tokens into DCP registry');
-    
+    expect(output).toContain('validate [options]');
+    expect(output).toContain('build [options]');
+    expect(output).toContain('query [options]');
+
+    // Check command groups are present
+    expect(output).toContain('registry');
+    expect(output).toContain('tokens');
+    expect(output).toContain('workflow');
+    expect(output).toContain('dev');
+    expect(output).toContain('export');
+
     // Check workflow examples are present
-    expect(output).toContain('Complete Workflow:');
-    expect(output).toContain('dcp extract ./src --json > registry.json');
-    expect(output).toContain('Agent Mode:');
+    expect(output).toContain('Core Workflow:');
+    expect(output).toContain('dcp extract');
     expect(output).toContain('Learn more: https://github.com/stevewitmer/dcp-transformer');
   });
 
-  test('should show export-tokens help', () => {
-    const output = execSync(`node "${dcpPath}" export-tokens --help`, { 
+  test('should show tokens group help', () => {
+    const output = execSync(`node "${dcpPath}" tokens --help`, {
       encoding: 'utf-8',
-      timeout: 5000 
+      timeout: 5000
     });
 
-    expect(output).toContain('Export DCP registry tokens to DTCG format');
-    expect(output).toContain('Usage: dcp export-tokens [options] <registry>');
-    expect(output).toContain('-o, --out <file>');
-    expect(output).toContain('design.tokens.json');
-    expect(output).toContain('--no-validate');
-    expect(output).toContain('--no-extensions');
-    expect(output).toContain('--group-prefix <prefix>');
-    expect(output).toContain('--json');
+    expect(output).toContain('Design token operations');
+    expect(output).toContain('Usage: dcp tokens [options] [command]');
+    expect(output).toContain('detect');
+    expect(output).toContain('extract');
+    expect(output).toContain('normalize');
+    expect(output).toContain('merge');
   });
 
-  test('should show import-tokens help', () => {
-    const output = execSync(`node "${dcpPath}" import-tokens --help`, { 
+  test('should show workflow group help', () => {
+    const output = execSync(`node "${dcpPath}" workflow --help`, {
       encoding: 'utf-8',
-      timeout: 5000 
+      timeout: 5000
     });
 
-    expect(output).toContain('Import DTCG tokens into DCP registry');
-    expect(output).toContain('Usage: dcp import-tokens [options] <tokens>');
-    expect(output).toContain('-r, --registry <file>');
-    expect(output).toContain('registry.json');
-    expect(output).toContain('--merge');
-    expect(output).toContain('--no-validate');
-    expect(output).toContain('--json');
+    expect(output).toContain('Mutation and transformation workflow');
+    expect(output).toContain('Usage: dcp workflow [options] [command]');
+    expect(output).toContain('mutate');
+    expect(output).toContain('rollback');
+    expect(output).toContain('diff');
+    expect(output).toContain('agent');
   });
 });

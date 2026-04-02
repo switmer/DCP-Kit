@@ -4,6 +4,8 @@
  */
 
 import chalk from 'chalk';
+import { jsonError } from '../output.js';
+import { missingDepMessage } from '../../utils/optionalImport.js';
 
 export default async function api(registry = './registry/registry.json', options = {}) {
   try {
@@ -42,8 +44,11 @@ export default async function api(registry = './registry/registry.json', options
     console.log(chalk.gray(`\nPress Ctrl+C to stop`));
     
   } catch (error) {
+    const installHint = missingDepMessage(error, 'dcp dev api', ['express', 'cors', 'helmet', 'jsonwebtoken', 'express-rate-limit', 'swagger-ui-express']);
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(installHint ? new Error(installHint) : error);
+    } else if (installHint) {
+      console.error(chalk.red(`❌ ${installHint}`));
     } else {
       console.error(chalk.red('❌ API server failed:'), error.message);
       if (options.verbose) {

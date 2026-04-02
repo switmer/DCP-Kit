@@ -3,18 +3,19 @@
  * Extract design tokens from all detected sources
  */
 
+import chalk from 'chalk';
+
 export default async function extract(projectPath = '.', options) {
   try {
     const { UniversalTokenExtractor } = await import('../../../src/tokens/extractor.js');
     const { TokenDetector } = await import('../../../src/tokens/detector.js');
     const fs = await import('fs/promises');
     const path = await import('path');
-    const chalk = await import('chalk');
     
     if (!options.json && options.verbose) {
-      console.log(chalk.default.blue(`🎨 Extracting tokens from: ${projectPath}`));
-      console.log(chalk.default.gray(`Output: ${options.output}`));
-      console.log(chalk.default.gray(`Format: ${options.format}`));
+      console.log(chalk.blue(`🎨 Extracting tokens from: ${projectPath}`));
+      console.log(chalk.gray(`Output: ${options.output}`));
+      console.log(chalk.gray(`Format: ${options.format}`));
     }
     
     // Detect token sources first
@@ -39,7 +40,7 @@ export default async function extract(projectPath = '.', options) {
     
     for (const source of detectedSources) {
       if (!options.json && options.verbose) {
-        console.log(chalk.default.gray(`Extracting from ${source.type}...`));
+        console.log(chalk.gray(`Extracting from ${source.type}...`));
       }
       
       const tokens = await extractor.extractFromSource(source, projectPath);
@@ -92,22 +93,22 @@ export default async function extract(projectPath = '.', options) {
         sources: extractedTokens.map(s => ({ type: s.source, count: s.count }))
       }, null, 2));
     } else {
-      console.log(chalk.default.green(`✅ Extracted ${totalTokens} tokens from ${extractedTokens.length} sources`));
-      console.log(chalk.default.gray(`📄 Output: ${outputFile}`));
+      console.log(chalk.green(`✅ Extracted ${totalTokens} tokens from ${extractedTokens.length} sources`));
+      console.log(chalk.gray(`📄 Output: ${outputFile}`));
       
       if (options.verbose) {
         extractedTokens.forEach(source => {
-          console.log(chalk.default.gray(`  • ${source.source}: ${source.count} tokens`));
+          console.log(chalk.gray(`  • ${source.source}: ${source.count} tokens`));
         });
       }
     }
     
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ 
-        success: false, 
+      console.error(JSON.stringify({
+        success: false,
         error: error.message,
-        path: projectPath 
+        path: projectPath
       }, null, 2));
     } else {
       console.error('❌ Token extraction failed:', error.message);

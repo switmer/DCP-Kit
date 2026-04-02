@@ -1,0 +1,22 @@
+{
+  "planId": "starter-1775152697296",
+  "description": "AI-generated starter mutation plan",
+  "mutations": [
+    {
+      "type": "example",
+      "description": "Change all Button components to use ghost variant",
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/components/0/variants/0/props/variant/default",
+          "value": "ghost"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "generatedAt": "2026-04-02T17:58:17.296Z",
+    "componentsCount": 1,
+    "suggestedMutations": 2
+  }
+}

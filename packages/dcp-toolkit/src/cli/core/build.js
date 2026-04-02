@@ -3,6 +3,9 @@
  * Build DCP registry from configuration
  */
 
+import { jsonError } from '../output.js';
+import { missingDepMessage } from '../../utils/optionalImport.js';
+
 export default async function build(options) {
   try {
     const { runBuild } = await import('../../../src/commands/build.js');
@@ -26,8 +29,11 @@ export default async function build(options) {
       console.log(`⚙️  Config: ${options.config}`);
     }
   } catch (error) {
+    const installHint = missingDepMessage(error, 'dcp build', ['execa']);
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(installHint ? new Error(installHint) : error);
+    } else if (installHint) {
+      console.error(`❌ ${installHint}`);
     } else {
       console.error('❌ Build failed:', error.message);
     }

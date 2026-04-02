@@ -186,14 +186,27 @@ export class TSMorphExtractor {
       // Resolve prop type to individual properties
       const props = this.resolveTypeProperties(propType);
       
-      return props.map(prop => ({
+      // Format the props (prop.type is already formatted string from extractPropertyInfo)
+      const formattedProps = props.map(prop => ({
         name: prop.name,
-        type: this.formatType(prop.type),
+        type: typeof prop.type === 'string' ? prop.type : this.formatType(prop.type),
         description: prop.description || '',
         required: prop.required,
         defaultValue: prop.defaultValue,
         source: 'ts-morph'
       }));
+
+      // Extract CVA variants from the component source
+      const sourceFile = component.getSourceFile();
+      const sourceText = sourceFile.getText();
+      const cvaVariants = this.extractCVAVariants(sourceText);
+      
+      // Merge CVA variants with extracted props
+      // CVA variants should override type-based extraction if there's a conflict
+      const cvaVariantNames = new Set(cvaVariants.map(v => v.name));
+      const filteredProps = formattedProps.filter(p => !cvaVariantNames.has(p.name));
+      
+      return [...filteredProps, ...cvaVariants];
 
     } catch (error) {
       if (this.options.fallbackToUnknown) {
@@ -304,8 +317,21 @@ export class TSMorphExtractor {
     const initializer = component.getInitializer();
     if (!initializer || initializer.getKind() !== SyntaxKind.CallExpression) return null;
     
-    // Handle forwardRef((props: Props, ref) => {...})
     const callExpr = initializer;
+    
+    // FIRST: Try to get props from generic type arguments (React.forwardRef<HTMLElement, Props>)
+    // This is more reliable than parameter types
+    const typeArgs = callExpr.getTypeArguments();
+    if (typeArgs && typeArgs.length >= 2) {
+      // Second type argument is the props type
+      const propsTypeNode = typeArgs[1];
+      const propsType = this.typeChecker.getTypeAtLocation(propsTypeNode);
+      if (propsType) {
+        return propsType;
+      }
+    }
+    
+    // FALLBACK: Handle forwardRef((props: Props, ref) => {...})
     const args = callExpr.getArguments();
     if (args.length > 0) {
       const firstArg = args[0];
@@ -367,36 +393,35 @@ export class TSMorphExtractor {
       const typeText = type.getText();
       this.cacheStats.totalQueries++;
 
-      // React DOM fast-skip (don't waste time on built-in HTML attr bags)
-      // BUT be more careful - only skip if the ENTIRE type is DOM-related, not intersection types that CONTAIN DOM props
-      const REACT_DOM_SKIP = /^(React\.(?:\w+)?HTMLAttributes|DetailedHTMLProps<|ClassAttributes<|DOMAttributes<)/;
-      if (REACT_DOM_SKIP.test(typeText)) {
-        this.cacheStats.reactDomSkips++;
-        this.typeCache.set(typeText, []);
-        return [];
-      }
-
       // Check type cache first - massive performance gain
       if (this.typeCache.has(typeText)) {
         this.cacheStats.typeCacheHits++;
         return this.typeCache.get(typeText);
       }
 
-      // Skip React DOM built-in types - but only if the ENTIRE type is DOM-related
-      // Don't skip intersection types that happen to contain DOM properties  
-      const REACT_DOM_SKIP_PATTERNS = [
-        /^React\.ImgHTMLAttributes/,
-        /^React\.DivHTMLAttributes/,
+      // Extract common HTML attributes instead of skipping them entirely
+      // This allows us to capture onClick, className, disabled, etc.
+      const HTML_ATTRS_PATTERNS = [
         /^React\.ButtonHTMLAttributes/,
         /^React\.InputHTMLAttributes/,
+        /^React\.DivHTMLAttributes/,
+        /^React\.ImgHTMLAttributes/,
         /^React\.FormHTMLAttributes/,
         /^React\.HTMLAttributes/,
-        /^React\.ClassAttributes/,
         /^HTMLAttributes</,
         /^DetailedHTMLProps</
       ];
 
-      if (REACT_DOM_SKIP_PATTERNS.some(pattern => pattern.test(typeText))) {
+      if (HTML_ATTRS_PATTERNS.some(pattern => pattern.test(typeText))) {
+        // Instead of skipping, extract common useful HTML attributes
+        const commonHTMLProps = this.extractCommonHTMLAttributes(typeText);
+        this.typeCache.set(typeText, commonHTMLProps);
+        return commonHTMLProps;
+      }
+
+      // Skip React internals that are never useful
+      const REACT_INTERNAL_SKIP = /^(React\.ClassAttributes|React\.DOMAttributes|React\.Attributes)/;
+      if (REACT_INTERNAL_SKIP.test(typeText)) {
         this.cacheStats.reactDomSkips++;
         this.typeCache.set(typeText, []);
         return [];
@@ -418,7 +443,9 @@ export class TSMorphExtractor {
           return this.intersectionCache.get(intersectionKey);
         }
 
-        for (const intersectionType of type.getIntersectionTypes()) {
+        const intersectionTypes = type.getIntersectionTypes();
+
+        for (const intersectionType of intersectionTypes) {
           const intersectionProps = this.resolveTypeProperties(intersectionType, depth + 1);
           properties.push(...intersectionProps);
         }
@@ -466,6 +493,30 @@ export class TSMorphExtractor {
         }
       }
 
+      // CRITICAL: Resolve base types (extends clause)
+      // This handles: interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
+      // IMPORTANT: Props from base types (HTMLAttributes) should be optional unless redeclared
+      const baseTypes = type.getBaseTypes();
+      if (baseTypes && baseTypes.length > 0) {
+        const baseTypeTexts = baseTypes.map(bt => bt.getText()).join(' ');
+        const isFromHTMLAttributes = /React\.(HTMLAttributes|ButtonHTMLAttributes|InputHTMLAttributes|DivHTMLAttributes)/.test(baseTypeTexts);
+        
+        for (const baseType of baseTypes) {
+          const baseProps = this.resolveTypeProperties(baseType, depth + 1);
+          // Mark HTML attribute props as optional unless explicitly redeclared
+          if (isFromHTMLAttributes) {
+            baseProps.forEach(prop => {
+              // Check if this prop was redeclared in the current interface
+              const isRedeclared = properties.some(p => p.name === prop.name);
+              if (!isRedeclared) {
+                prop.required = false; // Inherited HTML attrs are optional
+              }
+            });
+          }
+          properties.push(...baseProps);
+        }
+      }
+
       // Cache the results
       this.symbolCache.set(symbolId, properties);
       this.typeCache.set(typeText, properties);
@@ -485,13 +536,31 @@ export class TSMorphExtractor {
       
       let type = 'unknown';
       let required = true;
+      let isFromHTMLAttributes = false;
       
       if (declarations && declarations.length > 0) {
         const declaration = declarations[0];
         const symbol = property;
         
-        // Check if property is optional
+        // Check if this property comes from HTMLAttributes base type
+        // HTML attributes should be optional by default unless explicitly redeclared
+        const parentDeclaration = declaration.getParent();
+        if (parentDeclaration) {
+          const parentText = parentDeclaration.getText();
+          if (/React\.(HTMLAttributes|ButtonHTMLAttributes|InputHTMLAttributes|DivHTMLAttributes)/.test(parentText)) {
+            isFromHTMLAttributes = true;
+            required = false; // HTML attributes are optional by default
+          }
+        }
+        
+        // Check if property is optional (TypeScript `?:` syntax)
         if (symbol.hasFlag && symbol.hasFlag(ts.SymbolFlags.Optional)) {
+          required = false;
+        }
+        
+        // Check for optional syntax in declaration (property?: type)
+        const declarationText = declaration.getText();
+        if (declarationText.includes('?:') || declarationText.includes('?')) {
           required = false;
         }
         
@@ -499,14 +568,22 @@ export class TSMorphExtractor {
         try {
           const typeAtLocation = this.typeChecker.getTypeOfSymbolAtLocation(symbol, declaration);
           if (typeAtLocation) {
-            type = typeAtLocation;
+            type = this.formatType(typeAtLocation);
           }
         } catch (typeError) {
           // Fallback to getting type from declaration
           if (declaration.getType) {
-            type = declaration.getType();
+            const declarationType = declaration.getType();
+            if (declarationType) {
+              type = this.formatType(declarationType);
+            }
           }
         }
+      }
+      
+      // Special handling for known HTML attributes
+      if (isFromHTMLAttributes || name === 'className' || name === 'style' || name === 'id') {
+        required = false;
       }
       
       return {
@@ -578,6 +655,7 @@ export class TSMorphExtractor {
 
   /**
    * Format type for display
+   * Maps `any` → `unknown`, infers primitive types, and simplifies complex types
    */
   formatType(type) {
     try {
@@ -586,9 +664,44 @@ export class TSMorphExtractor {
       // Get type text with appropriate detail level
       const typeText = type.getText();
       
+      // Map `any` to `unknown` (never show as "object")
+      if (typeText === 'any' || typeText.trim() === 'any') {
+        return 'unknown';
+      }
+      
+      // Handle `any` in union types
+      if (typeText.includes('any')) {
+        return typeText.replace(/\bany\b/g, 'unknown');
+      }
+      
+      // Infer primitive types from type flags
+      if (type.isString()) {
+        return 'string';
+      }
+      if (type.isNumber()) {
+        return 'number';
+      }
+      if (type.isBoolean()) {
+        return 'boolean';
+      }
+      if (type.isArray()) {
+        // Try to get element type
+        const elementType = type.getArrayElementType();
+        if (elementType) {
+          const elemType = this.formatType(elementType);
+          return `Array<${elemType}>`;
+        }
+        return 'Array<unknown>';
+      }
+      
       // Simplify complex types
       if (typeText.length > 100) {
         return this.simplifyType(typeText);
+      }
+      
+      // Map object types that are actually primitives
+      if (typeText === 'Object' || typeText === 'object') {
+        return 'unknown';
       }
       
       return typeText;
@@ -637,6 +750,101 @@ export class TSMorphExtractor {
     } catch {
       return 'unknown';
     }
+  }
+
+  /**
+   * Extract common HTML attributes that are actually useful
+   * Instead of skipping HTML attributes entirely, we extract the most common ones
+   */
+  extractCommonHTMLAttributes(typeText) {
+    // Common HTML attributes that are useful to document
+    const commonAttrs = [
+      { name: 'className', type: 'string', description: 'CSS class name', required: false },
+      { name: 'style', type: 'React.CSSProperties', description: 'Inline styles', required: false },
+      { name: 'id', type: 'string', description: 'Element ID', required: false },
+      { name: 'onClick', type: '(event: React.MouseEvent) => void', description: 'Click handler', required: false },
+      { name: 'onChange', type: '(event: React.ChangeEvent) => void', description: 'Change handler', required: false },
+      { name: 'onFocus', type: '(event: React.FocusEvent) => void', description: 'Focus handler', required: false },
+      { name: 'onBlur', type: '(event: React.FocusEvent) => void', description: 'Blur handler', required: false },
+      { name: 'disabled', type: 'boolean', description: 'Whether the element is disabled', required: false },
+      { name: 'aria-label', type: 'string', description: 'Accessible label', required: false },
+      { name: 'aria-describedby', type: 'string', description: 'Accessible description', required: false },
+      { name: 'role', type: 'string', description: 'ARIA role', required: false },
+      { name: 'tabIndex', type: 'number', description: 'Tab order', required: false }
+    ];
+
+    // Add button-specific attributes
+    if (typeText.includes('ButtonHTMLAttributes')) {
+      commonAttrs.push(
+        { name: 'type', type: '"button" | "submit" | "reset"', description: 'Button type', required: false },
+        { name: 'form', type: 'string', description: 'Associated form ID', required: false }
+      );
+    }
+
+    // Add input-specific attributes
+    if (typeText.includes('InputHTMLAttributes')) {
+      commonAttrs.push(
+        { name: 'type', type: 'string', description: 'Input type', required: false },
+        { name: 'value', type: 'string | number', description: 'Input value', required: false },
+        { name: 'placeholder', type: 'string', description: 'Placeholder text', required: false },
+        { name: 'required', type: 'boolean', description: 'Whether the input is required', required: false },
+        { name: 'readOnly', type: 'boolean', description: 'Whether the input is read-only', required: false }
+      );
+    }
+
+    return commonAttrs;
+  }
+
+  /**
+   * Extract CVA variant props from component source
+   * Looks for cva() calls and extracts variant definitions
+   */
+  extractCVAVariants(componentSource) {
+    const variants = [];
+
+    try {
+      // Find cva() call in source
+      const cvaMatch = componentSource.match(/const\s+\w+Variants\s*=\s*cva\s*\(/);
+      if (!cvaMatch) return variants;
+
+      // Extract the variants object
+      const variantsMatch = componentSource.match(/variants:\s*\{([^}]+(?:\{[^}]*\}[^}]*)*)\}/s);
+      if (!variantsMatch) return variants;
+
+      const variantsBlock = variantsMatch[1];
+
+      // Parse each variant key
+      const variantKeys = variantsBlock.match(/(\w+):\s*\{/g);
+      if (!variantKeys) return variants;
+
+      for (const keyMatch of variantKeys) {
+        const variantName = keyMatch.replace(/:\s*\{/, '').trim();
+        
+        // Extract the variant options
+        const variantRegex = new RegExp(`${variantName}:\\s*\\{([^}]+(?:\\{[^}]*\\}[^}]*)*)\\}`, 's');
+        const variantContent = variantsBlock.match(variantRegex);
+        
+        if (variantContent) {
+          const options = variantContent[1].match(/(\w+):/g);
+          if (options) {
+            const optionNames = options.map(opt => opt.replace(/:/, '').trim());
+            const typeString = optionNames.map(o => `"${o}"`).join(' | ');
+            
+            variants.push({
+              name: variantName,
+              type: typeString,
+              description: `Visual variant: ${optionNames.join(', ')}`,
+              required: false,
+              defaultValue: undefined
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`[TSMorphExtractor] Failed to extract CVA variants: ${error.message}`);
+    }
+
+    return variants;
   }
 
   /**

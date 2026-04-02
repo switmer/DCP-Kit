@@ -9,10 +9,11 @@
     "subComponents": []
   },
   "examples": [],
+  "source": "export const Component = () => <div />;",
   "extensions": {
     "filePath": "tests/unit/temp-security-trust/file-types/Component.tsx",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-08-28T15:12:36.676Z"
+    "extractedAt": "2026-04-02T17:54:18.603Z"
   }
 }

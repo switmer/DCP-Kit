@@ -3,6 +3,9 @@
  * Project validation for DCP extraction readiness
  */
 
+import chalk from 'chalk';
+import { jsonError } from '../output.js';
+
 export default async function validate(projectPath = '.', options) {
   try {
     const { ProjectValidator } = await import('../../../src/core/projectValidator.js');
@@ -36,12 +39,33 @@ export default async function validate(projectPath = '.', options) {
         suggestions: validation.suggestions,
         ...validation.summary
       }, null, 2));
+    } else {
+      const issueCount = validation.issues?.length || 0;
+      const warningCount = validation.warnings?.length || 0;
+
+      if (issueCount > 0) {
+        console.log(chalk.red(`❌ ${issueCount} issue(s) found:`));
+        validation.issues.forEach(i => console.log(chalk.red(`  - ${i.message || i}`)));
+      }
+      if (warningCount > 0) {
+        console.log(chalk.yellow(`⚠️  ${warningCount} warning(s):`));
+        validation.warnings.forEach(w => console.log(chalk.yellow(`  - ${w.message || w}`)));
+      }
+      if (validation.suggestions?.length > 0) {
+        console.log(chalk.gray(`💡 ${validation.suggestions.length} suggestion(s)`));
+      }
+
+      if (validation.canProceed) {
+        console.log(chalk.green('✅ Validation passed'));
+      } else {
+        console.log(chalk.red('❌ Validation failed'));
+      }
     }
-    
+
     process.exit(validation.canProceed ? 0 : 1);
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error('❌ Validation failed:', error.message);
     }

@@ -65,7 +65,7 @@ describe('Mutation CLI Commands', () => {
       
       // Run mutation command
       const { stdout } = await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${patchPath}" "${outputPath}" --undo "${undoPath}"`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${patchPath}" "${outputPath}" --undo "${undoPath}"`
       );
       
       expect(stdout).toContain('✅ Applied 1 mutations');
@@ -92,7 +92,7 @@ describe('Mutation CLI Commands', () => {
       await fs.writeFile(patchPath, JSON.stringify(patch));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${patchPath}" "${outputPath}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${patchPath}" "${outputPath}" --json`
       );
       
       const result = JSON.parse(stdout);
@@ -113,7 +113,7 @@ describe('Mutation CLI Commands', () => {
       await fs.writeFile(patchPath, JSON.stringify(patch));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${patchPath}" "${outputPath}" --dry-run --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${patchPath}" "${outputPath}" --dry-run --json`
       );
       
       const result = JSON.parse(stdout);
@@ -160,7 +160,7 @@ describe('Mutation CLI Commands', () => {
       
       // Run rollback command
       const { stdout } = await execAsync(
-        `node "${cliPath}" rollback "${mutatedPath}" "${undoPath}" --backup`
+        `node "${cliPath}" workflow rollback "${mutatedPath}" "${undoPath}" --backup`
       );
       
       expect(stdout).toContain('✅ Rollback complete');
@@ -182,7 +182,7 @@ describe('Mutation CLI Commands', () => {
       await fs.writeFile(undoPath, JSON.stringify(undoPatch));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" rollback "${mutatedPath}" "${undoPath}" --json`
+        `node "${cliPath}" workflow rollback "${mutatedPath}" "${undoPath}" --json`
       );
       
       const result = JSON.parse(stdout);
@@ -195,7 +195,7 @@ describe('Mutation CLI Commands', () => {
   describe('dcp agent command', () => {
     it('should accept natural language prompts', async () => {
       const { stdout } = await execAsync(
-        `node "${cliPath}" agent "Make all buttons ghost variant" --json`
+        `node "${cliPath}" workflow agent "Make all buttons ghost variant" --json`
       );
       
       const result = JSON.parse(stdout);
@@ -209,7 +209,7 @@ describe('Mutation CLI Commands', () => {
 
     it('should support --plan-only flag', async () => {
       const { stdout } = await execAsync(
-        `node "${cliPath}" agent "Update colors" --plan-only --json`
+        `node "${cliPath}" workflow agent "Update colors" --plan-only --json`
       );
       
       const result = JSON.parse(stdout);
@@ -237,7 +237,7 @@ describe('Mutation CLI Commands', () => {
     it('should complete full extract → mutate → rollback cycle', async () => {
       // Step 1: Extract components
       const { stdout: extractOutput } = await execAsync(
-        `node "${cliPath}" extract "${path.join(__dirname, 'fixtures')}" --out "${testDir}" --json`
+        `node "${cliPath}" extract "${path.join(__dirname, 'fixtures')}" --output "${testDir}" --json`
       );
       
       const extractResult = JSON.parse(extractOutput.trim());
@@ -252,7 +252,7 @@ describe('Mutation CLI Commands', () => {
       await fs.writeFile(patchPath, JSON.stringify(patch, null, 2));
       
       const { stdout: mutateOutput } = await execAsync(
-        `node "${cliPath}" mutate "${extractResult.registryPath}" "${patchPath}" "${mutatedPath}" --undo "${undoPath}" --json`
+        `node "${cliPath}" workflow mutate "${extractResult.registryPath}" "${patchPath}" "${mutatedPath}" --undo "${undoPath}" --json`
       );
       
       const mutateResult = JSON.parse(mutateOutput);
@@ -261,7 +261,7 @@ describe('Mutation CLI Commands', () => {
       
       // Step 3: Rollback
       const { stdout: rollbackOutput } = await execAsync(
-        `node "${cliPath}" rollback "${mutatedPath}" "${undoPath}" --json`
+        `node "${cliPath}" workflow rollback "${mutatedPath}" "${undoPath}" --json`
       );
       
       const rollbackResult = JSON.parse(rollbackOutput);

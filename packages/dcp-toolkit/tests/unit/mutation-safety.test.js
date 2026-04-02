@@ -68,7 +68,7 @@ describe('🧪 Mutation Safety', () => {
       
       // Apply mutation
       const { stdout: mutateOutput } = await execAsync(
-        `node "${cliPath}" mutate "${originalPath}" "${mutationPath}" "${mutatedPath}" --undo "${undoPath}" --json`
+        `node "${cliPath}" workflow mutate "${originalPath}" "${mutationPath}" "${mutatedPath}" --undo "${undoPath}" --json`
       );
       
       const mutateResult = JSON.parse(mutateOutput);
@@ -76,7 +76,7 @@ describe('🧪 Mutation Safety', () => {
       
       // Use diff command to show changes
       const { stdout: diffOutput } = await execAsync(
-        `node "${cliPath}" diff "${originalPath}" "${mutatedPath}" --json`
+        `node "${cliPath}" workflow diff "${originalPath}" "${mutatedPath}" --json`
       );
       
       const diffResult = JSON.parse(diffOutput);
@@ -111,7 +111,7 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutation1Path, JSON.stringify(mutation1, null, 2));
       
       await execAsync(
-        `node "${cliPath}" mutate "${originalPath}" "${mutation1Path}" "${step1Path}" --json`
+        `node "${cliPath}" workflow mutate "${originalPath}" "${mutation1Path}" "${step1Path}" --json`
       );
       
       // Mutation 2: Add footer prop
@@ -122,12 +122,12 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutation2Path, JSON.stringify(mutation2, null, 2));
       
       await execAsync(
-        `node "${cliPath}" mutate "${step1Path}" "${mutation2Path}" "${step2Path}" --json`
+        `node "${cliPath}" workflow mutate "${step1Path}" "${mutation2Path}" "${step2Path}" --json`
       );
       
       // Check cumulative diff from original
       const { stdout: diffOutput } = await execAsync(
-        `node "${cliPath}" diff "${originalPath}" "${step2Path}" --json`
+        `node "${cliPath}" workflow diff "${originalPath}" "${step2Path}" --json`
       );
       
       const diffResult = JSON.parse(diffOutput);
@@ -179,7 +179,7 @@ describe('🧪 Mutation Safety', () => {
       
       // Apply mutation with undo generation
       await execAsync(
-        `node "${cliPath}" mutate "${originalPath}" "${mutationPath}" "${mutatedPath}" --undo "${undoPath}" --json`
+        `node "${cliPath}" workflow mutate "${originalPath}" "${mutationPath}" "${mutatedPath}" --undo "${undoPath}" --json`
       );
       
       // Verify mutation was applied
@@ -190,7 +190,7 @@ describe('🧪 Mutation Safety', () => {
       
       // Apply rollback
       const { stdout: rollbackOutput } = await execAsync(
-        `node "${cliPath}" rollback "${mutatedPath}" "${undoPath}" --json`
+        `node "${cliPath}" workflow rollback "${mutatedPath}" "${undoPath}" --json`
       );
       
       const rollbackResult = JSON.parse(rollbackOutput);
@@ -231,7 +231,7 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutation1Path, JSON.stringify(mutation1, null, 2));
       
       await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${mutation1Path}" "${step1Path}" --undo "${undo1Path}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${mutation1Path}" "${step1Path}" --undo "${undo1Path}" --json`
       );
       
       // Mutation 2: Modify nested property
@@ -248,11 +248,11 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutation2Path, JSON.stringify(mutation2, null, 2));
       
       await execAsync(
-        `node "${cliPath}" mutate "${step1Path}" "${mutation2Path}" "${step2Path}" --undo "${undo2Path}" --json`
+        `node "${cliPath}" workflow mutate "${step1Path}" "${mutation2Path}" "${step2Path}" --undo "${undo2Path}" --json`
       );
       
       // Rollback step 2
-      await execAsync(`node "${cliPath}" rollback "${step2Path}" "${undo2Path}" --json`);
+      await execAsync(`node "${cliPath}" workflow rollback "${step2Path}" "${undo2Path}" --json`);
       
       // Should be back to step 1 state
       const afterRollback1 = JSON.parse(await fs.readFile(step2Path, 'utf-8'));
@@ -260,7 +260,7 @@ describe('🧪 Mutation Safety', () => {
       expect(afterRollback1.components[0].props.style.properties.backgroundColor).toBeDefined();
       
       // Rollback step 1
-      await execAsync(`node "${cliPath}" rollback "${step2Path}" "${undo1Path}" --json`);
+      await execAsync(`node "${cliPath}" workflow rollback "${step2Path}" "${undo1Path}" --json`);
       
       // Should be back to original state
       const afterRollback2 = JSON.parse(await fs.readFile(step2Path, 'utf-8'));
@@ -307,7 +307,7 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutationPath, JSON.stringify(mutation, null, 2));
       
       await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
       );
       
       const mutatedRegistry = JSON.parse(await fs.readFile(mutatedPath, 'utf-8'));
@@ -361,7 +361,7 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutationPath, JSON.stringify(mutation, null, 2));
       
       await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
       );
       
       const mutatedRegistry = JSON.parse(await fs.readFile(mutatedPath, 'utf-8'));
@@ -412,7 +412,7 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutationPath, JSON.stringify(mutation, null, 2));
       
       const { stdout: mutateOutput } = await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
       );
       
       const mutateResult = JSON.parse(mutateOutput);
@@ -487,7 +487,7 @@ describe('🧪 Mutation Safety', () => {
       await fs.writeFile(mutationPath, JSON.stringify(mutation, null, 2));
       
       await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${mutationPath}" "${mutatedPath}" --json`
       );
       
       // Now validation should pass

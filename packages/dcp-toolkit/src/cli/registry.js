@@ -6,6 +6,7 @@
  */
 
 import { program } from 'commander';
+import { jsonError } from './output.js';
 
 // Create registry command group
 const registryCommand = program
@@ -247,7 +248,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ Build failed:', error.message);
       }
@@ -260,7 +261,7 @@ registryCommand
   .command('serve [packs-dir]')
   .description('Serve component packs via HTTP for development')
   .option('-p, --port <number>', 'server port', '7401')
-  .option('-h, --host <host>', 'server host', 'localhost')
+  .option('--host <host>', 'server host', 'localhost')
   .option('--no-cors', 'disable CORS')
   .option('--secret <secret>', 'JWT secret for private registries')
   .option('--base-url <url>', 'base URL for hosted files')
@@ -290,7 +291,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ Server failed:', error.message);
       }
@@ -340,7 +341,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ Publish failed:', error.message);
       }
@@ -391,7 +392,7 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+        jsonError(error);
       } else {
         console.error('❌ Installation failed:', error.message);
       }
@@ -453,8 +454,8 @@ Examples:
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ 
-          success: false, 
+        console.error(JSON.stringify({
+          success: false,
           valid: false,
           componentsValidated: 0,
           errors: [error.message],

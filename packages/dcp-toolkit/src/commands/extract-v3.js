@@ -4,6 +4,8 @@ import path from 'path';
 import { glob } from 'glob';
 import chalk from 'chalk';
 import { extractCssCustomProps } from '../tokens/legacyCssVarExtractor.js';
+import { formalizeThemes } from '../tokens/themes.js';
+import { AutoMapper } from '../tokens/autoMapper.js';
 import { adaptorRegistry, createAdaptor, autoDetectAdaptor } from '../adaptors/registry.js';
 import { extractThemeContext, enhanceComponentWithThemeContext, generateThemeContextSummary } from '../core/themeExtractor.js';
 import { ProjectIntelligenceScanner } from '../core/projectIntelligence.js';
@@ -25,7 +27,7 @@ import { UniversalTokenExtractor } from '../tokens/extractor.js';
  * Get optimized glob pattern based on project structure
  * Supports monorepos, custom layouts, and legacy codebases
  */
-async function getOptimizedGlob(sourceDir, userGlob) {
+async function getOptimizedGlob(sourceDir, userGlob, json = false) {
   // If user provided a specific glob, use it
   if (userGlob && userGlob !== '**/*.{tsx,jsx,ts,js}') {
     return userGlob;
@@ -60,7 +62,7 @@ async function getOptimizedGlob(sourceDir, userGlob) {
         const limitedSample = sampleFiles.slice(0, 5); // Just check first 5 files
         
         if (sampleFiles.length > 0) {
-          if (!process.env.DCP_MCP_SERVER) {
+          if (!json && !process.env.DCP_MCP_SERVER) {
             console.log(`🎯 Using directory: ${candidate}/ (found ${sampleFiles.length}+ component files)`);
           }
           return testGlob;
@@ -72,7 +74,7 @@ async function getOptimizedGlob(sourceDir, userGlob) {
   }
   
   // No specific directory found - scan root but with aggressive filtering
-  if (!process.env.DCP_MCP_SERVER) {
+  if (!json && !process.env.DCP_MCP_SERVER) {
     console.log('⚠️  No standard source directory found, scanning project root with aggressive filtering');
   }
   return '**/*.{tsx,jsx,ts,js}';
@@ -81,7 +83,7 @@ async function getOptimizedGlob(sourceDir, userGlob) {
 export async function runExtract(source, options = {}) {
   const {
     tokens: tokensPath,
-    out: outputDir = path.join(source, 'registry'),
+    output: outputDir = path.join(source, 'registry'),
     glob: userGlob = '**/*.{tsx,jsx,ts,js}',
     adaptor: adaptorName,
     includeStories = false,
@@ -94,7 +96,7 @@ export async function runExtract(source, options = {}) {
   } = options;
   
   // Get optimized glob pattern based on project structure
-  const globPattern = await getOptimizedGlob(source, userGlob);
+  const globPattern = await getOptimizedGlob(source, userGlob, json);
 
   // Only show console output if not in JSON mode and not running as MCP server
   const isMCP = process.env.DCP_MCP_SERVER === 'true' || options.silent;
@@ -395,7 +397,22 @@ class MultiFrameworkExtractor {
       metadata: this.metadata,
       lastModified: new Date().toISOString()
     };
-    
+
+    // Formalize themes from themeContext and auto-map role bindings
+    if (themeContext.cssVariables) {
+      registry.themes = formalizeThemes(themeContext);
+
+      const mapper = new AutoMapper({ verbose: this.verbose });
+      const { bindings, mappingReport } = mapper.map({
+        themes: registry.themes,
+        tokens: this.tokens || {},
+        utilityMappings: themeContext.utilityMappings || {},
+      });
+
+      registry.bindings = bindings;
+      registry.mappingReport = mappingReport;
+    }
+
     // Generate component schemas
     const schemas = this.generateSchemas();
     

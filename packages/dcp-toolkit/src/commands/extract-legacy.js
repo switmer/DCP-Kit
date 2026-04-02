@@ -37,4 +37,3 @@ export async function runExtractV2(source, options = {}) {
 
 // Keep the original exports but with deprecation warnings
 export { runExtractV1 as runExtract };
-export { runExtractV2 as runExtractV2 };

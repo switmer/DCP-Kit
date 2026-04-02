@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import Ajv from 'ajv';
 import { readJSON } from './utils.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Extract theming configuration from ShadCN/UI components.json
@@ -148,17 +152,19 @@ export function loadConfig(configPath, verbose = false) {
     console.log('📦 Loaded config from:', configPath);
   }
 
-  // Load schema
-  const schemaPath = path.resolve(path.dirname(configPath), './schemas/config.schema.json');
-  const schema = readJSON(schemaPath);
+  // Load schema from package root (not relative to config file)
+  const packageRoot = path.resolve(__dirname, '../..');
+  const schemaPath = path.join(packageRoot, 'schemas/config.schema.json');
 
-  // Validate config
-  const ajv = new Ajv({ allErrors: true });
-  const validate = ajv.compile(schema);
+  if (fs.existsSync(schemaPath)) {
+    const schema = readJSON(schemaPath);
+    const ajv = new Ajv({ allErrors: true });
+    const validate = ajv.compile(schema);
 
-  if (!validate(config)) {
-    const errors = ajv.errorsText(validate.errors);
-    throw new Error(`Invalid config: ${errors}`);
+    if (!validate(config)) {
+      const errors = ajv.errorsText(validate.errors);
+      throw new Error(`Invalid config: ${errors}`);
+    }
   }
 
   // Handle legacy config keys

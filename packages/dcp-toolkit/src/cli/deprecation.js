@@ -62,20 +62,20 @@ export const COMMAND_MIGRATIONS = {
   
   // Token commands moved to subcommands
   'radix-tokens': {
-    newCommand: 'tokens extract-radix',
-    reason: 'Moved to tokens command group for better organization'
+    newCommand: 'tokens extract',
+    reason: 'Radix token extraction is now handled by the universal token pipeline'
   },
   'export-tokens': {
-    newCommand: 'tokens export',
-    reason: 'Moved to tokens command group for better organization'
+    newCommand: 'tokens normalize',
+    reason: 'Token export is now handled via the normalize command'
   },
   'import-tokens': {
-    newCommand: 'tokens import',
-    reason: 'Moved to tokens command group for better organization'
+    newCommand: 'tokens detect',
+    reason: 'Token import is now handled via detect + extract pipeline'
   },
   'build-assets': {
-    newCommand: 'tokens build-assets',
-    reason: 'Moved to tokens command group for better organization'
+    newCommand: 'tokens normalize',
+    reason: 'Asset building is now handled via the normalize command'
   },
   
   // Workflow commands moved to subcommands  

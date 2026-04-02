@@ -44,7 +44,7 @@ describe('🧰 CLI Reliability', () => {
       const outputDir = path.join(testDir, 'output');
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --out "${outputDir}" --json`
+        `node "${cliPath}" extract "${componentDir}" --output "${outputDir}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -62,7 +62,7 @@ describe('🧰 CLI Reliability', () => {
       const outputDir = path.join(testDir, 'output with spaces');
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" extract "${spacedDir}" --out "${outputDir}" --json`
+        `node "${cliPath}" extract "${spacedDir}" --output "${outputDir}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -80,7 +80,7 @@ describe('🧰 CLI Reliability', () => {
       await fs.writeFile(path.join(deepPath, longFileName), component);
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" extract "${testDir}" --out "${testDir}/output" --json`
+        `node "${cliPath}" extract "${testDir}" --output "${testDir}/output" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -99,7 +99,7 @@ describe('🧰 CLI Reliability', () => {
       );
       
       const { stdout, stderr } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --out "${testDir}/output" --json`
+        `node "${cliPath}" extract "${componentDir}" --output "${testDir}/output" --json`
       );
       
       expect(stderr).toBe('');
@@ -172,7 +172,7 @@ describe('🧰 CLI Reliability', () => {
       await fs.writeFile(path2, JSON.stringify(registry2, null, 2));
       
       const { stdout, stderr } = await execAsync(
-        `node "${cliPath}" diff "${path1}" "${path2}" --json`
+        `node "${cliPath}" workflow diff "${path1}" "${path2}" --json`
       );
       
       expect(stderr).toBe('');
@@ -226,7 +226,7 @@ describe('🧰 CLI Reliability', () => {
     it('should validate required arguments', async () => {
       // Test missing required argument
       try {
-        await execAsync(`node "${cliPath}" mutate --json`);
+        await execAsync(`node "${cliPath}" workflow mutate --json`);
         expect(true).toBe(false); // Should not reach here
       } catch (error) {
         expect(error.code).toBeGreaterThan(0);
@@ -249,7 +249,7 @@ describe('🧰 CLI Reliability', () => {
       await fs.chmod(restrictedDir, 0o444);
       
       try {
-        await execAsync(`node "${cliPath}" extract "${testDir}" --out "${restrictedDir}" --json`);
+        await execAsync(`node "${cliPath}" extract "${testDir}" --output "${restrictedDir}" --json`);
         expect(true).toBe(false); // Should not reach here
       } catch (error) {
         expect(error.code).toBeGreaterThan(0);
@@ -281,7 +281,7 @@ describe('🧰 CLI Reliability', () => {
       const startTime = Date.now();
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" extract "${largeDir}" --out "${testDir}/large-output" --json`
+        `node "${cliPath}" extract "${largeDir}" --output "${testDir}/large-output" --json`
       );
       
       const endTime = Date.now();
@@ -332,7 +332,7 @@ describe('🧰 CLI Reliability', () => {
       const jsonOutput = path.join(testDir, 'output.json');
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --out "${jsonOutput}" --json`
+        `node "${cliPath}" extract "${componentDir}" --output "${jsonOutput}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -396,7 +396,7 @@ describe('🧰 CLI Reliability', () => {
       
       // Override input path via CLI
       const { stdout } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --config "${configPath}" --out "${testDir}/cli-output" --json`
+        `node "${cliPath}" extract "${componentDir}" --config "${configPath}" --output "${testDir}/cli-output" --json`
       );
       
       const result = JSON.parse(stdout.trim());

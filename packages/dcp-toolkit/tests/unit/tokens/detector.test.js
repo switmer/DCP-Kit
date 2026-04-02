@@ -101,20 +101,6 @@ describe('🎯 Universal Token Detector', () => {
 
   describe('CSS Variables Detection', () => {
     test('should detect CSS variables in common files', async () => {
-      await fs.promises.writeFile(
-        path.join(tempDir, 'src/globals.css'),
-        `
-        :root {
-          --primary-color: #000;
-          --secondary-color: #fff;
-          --spacing-sm: 8px;
-          --spacing-md: 16px;
-          --spacing-lg: 24px;
-          --font-size-base: 16px;
-        }
-        `
-      );
-
       // Create src directory first
       await fs.promises.mkdir(path.join(tempDir, 'src'), { recursive: true });
       await fs.promises.writeFile(

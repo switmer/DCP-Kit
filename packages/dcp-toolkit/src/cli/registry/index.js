@@ -44,7 +44,7 @@ Examples:
   registryGroup
     .command('build-packs <registry>')
     .description('Build static component packages for distribution')
-    .option('-o, --out <dir>', 'output directory for component packs', './dist/packs')
+    .option('-o, --output <dir>', 'output directory for component packs', './dist/packs')
     .option('--base-url <url>', 'base URL for hosted blobs', '')
     .option('--namespace <name>', 'component namespace/scope', 'ui')
     .option('--version <version>', 'package version', '1.0.0')
@@ -62,7 +62,7 @@ Examples:
     .command('serve [packs-dir]')
     .description('Serve component packs via HTTP for development')
     .option('-p, --port <number>', 'server port', '7401')
-    .option('-h, --host <host>', 'server host', 'localhost')
+    .option('--host <host>', 'server host', 'localhost')
     .option('--no-cors', 'disable CORS')
     .option('--secret <secret>', 'JWT secret for private registries')
     .option('--base-url <url>', 'base URL for hosted files')

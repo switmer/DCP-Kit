@@ -3,17 +3,18 @@
  * Merge multiple token files into unified collection
  */
 
+import chalk from 'chalk';
+
 export default async function merge(sourceFiles, options) {
   try {
     const { UniversalTokenExtractor } = await import('../../../src/tokens/extractor.js');
     const fs = await import('fs/promises');
     const path = await import('path');
-    const chalk = await import('chalk');
     
     if (!options.json && options.verbose) {
-      console.log(chalk.default.blue(`🔀 Merging ${sourceFiles.length} token files`));
-      console.log(chalk.default.gray(`Strategy: ${options.strategy}`));
-      console.log(chalk.default.gray(`Output: ${options.output}`));
+      console.log(chalk.blue(`🔀 Merging ${sourceFiles.length} token files`));
+      console.log(chalk.gray(`Strategy: ${options.strategy}`));
+      console.log(chalk.gray(`Output: ${options.output}`));
     }
     
     if (sourceFiles.length < 2) {
@@ -38,7 +39,7 @@ export default async function merge(sourceFiles, options) {
         });
         
         if (!options.json && options.verbose) {
-          console.log(chalk.default.gray(`✓ Loaded ${sourceFile} (${format})`));
+          console.log(chalk.gray(`✓ Loaded ${sourceFile} (${format})`));
         }
       } catch (error) {
         throw new Error(`Failed to load ${sourceFile}: ${error.message}`);
@@ -97,11 +98,11 @@ export default async function merge(sourceFiles, options) {
     
     // Interactive conflict resolution if requested
     if (options.resolveConflicts && conflicts.length > 0) {
-      console.log(chalk.default.yellow(`⚠️  Found ${conflicts.length} conflicts. Resolve interactively? (y/N)`));
+      console.log(chalk.yellow(`⚠️  Found ${conflicts.length} conflicts. Resolve interactively? (y/N)`));
       // Implementation would require readline for interactive prompts
       // For now, just log conflicts
       conflicts.forEach(conflict => {
-        console.log(chalk.default.yellow(`Conflict: ${conflict.token} (resolved: ${conflict.resolution})`));
+        console.log(chalk.yellow(`Conflict: ${conflict.token} (resolved: ${conflict.resolution})`));
       });
     }
     
@@ -127,27 +128,27 @@ export default async function merge(sourceFiles, options) {
         sources: sourceFiles
       }, null, 2));
     } else {
-      console.log(chalk.default.green(`✅ Merged ${totalTokens} tokens from ${sourceFiles.length} sources`));
-      console.log(chalk.default.gray(`📄 Output: ${options.output}`));
+      console.log(chalk.green(`✅ Merged ${totalTokens} tokens from ${sourceFiles.length} sources`));
+      console.log(chalk.gray(`📄 Output: ${options.output}`));
       
       if (conflicts.length > 0) {
-        console.log(chalk.default.yellow(`⚠️  Resolved ${conflicts.length} conflicts using "${options.strategy}" strategy`));
+        console.log(chalk.yellow(`⚠️  Resolved ${conflicts.length} conflicts using "${options.strategy}" strategy`));
       }
       
       if (options.verbose) {
         loadedSources.forEach(source => {
           const count = Array.isArray(source.tokens) ? source.tokens.length : Object.keys(source.tokens).length;
-          console.log(chalk.default.gray(`  • ${source.file}: ${count} tokens (${source.format})`));
+          console.log(chalk.gray(`  • ${source.file}: ${count} tokens (${source.format})`));
         });
       }
     }
     
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ 
-        success: false, 
+      console.error(JSON.stringify({
+        success: false,
         error: error.message,
-        sources: sourceFiles 
+        sources: sourceFiles
       }, null, 2));
     } else {
       console.error('❌ Token merge failed:', error.message);

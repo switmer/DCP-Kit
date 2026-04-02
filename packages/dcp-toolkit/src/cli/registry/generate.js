@@ -3,6 +3,8 @@
  * Generate ShadCN-compatible registry from component directory
  */
 
+import chalk from 'chalk';
+
 export default async function generate(source, options) {
   try {
     const { RegistryItemGenerator } = await import('../../../src/core/registryItemGenerator.js');
@@ -10,9 +12,8 @@ export default async function generate(source, options) {
     const { glob } = await import('glob');
     const fs = await import('fs/promises');
     const path = await import('path');
-    const chalk = await import('chalk');
     
-    console.log(chalk.default.blue(`🏗️  Generating ${options.format} registry from: ${source}`));
+    console.log(chalk.blue(`🏗️  Generating ${options.format} registry from: ${source}`));
     
     const generator = new RegistryItemGenerator();
     const registry = {
@@ -29,7 +30,7 @@ export default async function generate(source, options) {
     });
 
     if (options.verbose) {
-      console.log(chalk.default.gray(`Found ${componentFiles.length} component files`));
+      console.log(chalk.gray(`Found ${componentFiles.length} component files`));
     }
 
     // Process each component file
@@ -41,7 +42,7 @@ export default async function generate(source, options) {
         if (fileName.includes('.test.') || fileName.includes('.spec.') || 
             fileName.includes('.stories.') || fileName === 'index.tsx' || fileName === 'index.jsx') {
           if (options.verbose) {
-            console.log(chalk.default.gray(`Skipping: ${fileName}`));
+            console.log(chalk.gray(`Skipping: ${fileName}`));
           }
           continue;
         }
@@ -54,7 +55,7 @@ export default async function generate(source, options) {
         
         if (!dcpResult) {
           if (options.verbose) {
-            console.log(chalk.default.gray(`No components found in: ${fileName}`));
+            console.log(chalk.gray(`No components found in: ${fileName}`));
           }
           continue;
         }
@@ -70,12 +71,12 @@ export default async function generate(source, options) {
           processedCount++;
           
           if (options.verbose) {
-            console.log(chalk.default.green(`✓ Processed: ${registryItem.name}`));
+            console.log(chalk.green(`✓ Processed: ${registryItem.name}`));
           }
         }
         
       } catch (error) {
-        console.warn(chalk.default.yellow(`⚠️  Failed to process ${path.basename(filePath)}: ${error.message}`));
+        console.warn(chalk.yellow(`⚠️  Failed to process ${path.basename(filePath)}: ${error.message}`));
         
         if (options.verbose) {
           console.error(error.stack);
@@ -90,13 +91,12 @@ export default async function generate(source, options) {
     const registryPath = path.join(options.output, 'registry.json');
     await fs.writeFile(registryPath, JSON.stringify(registry, null, 2));
     
-    console.log(chalk.default.green(`✅ Registry generated: ${registryPath}`));
-    console.log(chalk.default.gray(`   Components: ${registry.items.length}`));
-    console.log(chalk.default.gray(`   Processed: ${processedCount}/${componentFiles.length} files`));
+    console.log(chalk.green(`✅ Registry generated: ${registryPath}`));
+    console.log(chalk.gray(`   Components: ${registry.items.length}`));
+    console.log(chalk.gray(`   Processed: ${processedCount}/${componentFiles.length} files`));
     
   } catch (error) {
-    const chalk = await import('chalk');
-    console.error(chalk.default.red('❌ Registry generation failed:'), error.message);
+    console.error(chalk.red('❌ Registry generation failed:'), error.message);
     if (options.verbose) {
       console.error(error.stack);
     }

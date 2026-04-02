@@ -16,11 +16,12 @@
     "subComponents": []
   },
   "examples": [],
+  "source": "\n        interface Props {\n          label: string;\n        }\n        \n        export const NormalComponent = ({ label }: Props) => {\n          return <button>{label}</button>;\n        };\n      ",
   "extensions": {
     "filePath": "tests/unit/temp-security-trust/obfuscated/Normal.tsx",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-08-28T15:12:38.243Z",
+    "extractedAt": "2026-04-02T17:54:19.542Z",
     "tsMorphAnalysis": true,
     "typescriptAnalysis": true
   }

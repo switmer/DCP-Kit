@@ -4,6 +4,7 @@
  */
 
 import chalk from 'chalk';
+import { jsonError } from '../output.js';
 
 export default async function buildPacks(registry, options = {}) {
   try {
@@ -27,7 +28,7 @@ export default async function buildPacks(registry, options = {}) {
     }
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(error);
     } else {
       console.error(chalk.red('❌ Build failed:'), error.message);
     }

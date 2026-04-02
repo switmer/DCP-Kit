@@ -5,8 +5,12 @@
  * Following patterns from GitHub CLI, Vercel CLI, and other professional tools
  */
 
+import { createRequire } from 'node:module';
 import { program } from 'commander';
 import chalk from 'chalk';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../../package.json');
 
 // Core command registrars
 import { registerCoreCommands } from './core/index.js';
@@ -20,7 +24,7 @@ import { registerDeprecatedCommands } from './deprecated/index.js';
 // Configure main program
 program
   .name('dcp')
-  .version('2.0.0')
+  .version(version)
   .description('Design Component Protocol - The Universal Design System Toolkit')
   .addHelpText('before', chalk.blue.bold('🎯 DCP: Design Component Protocol CLI'))
   .addHelpText('after', `
@@ -39,7 +43,7 @@ ${chalk.green('🏗️ Command Groups:')}
 
 ${chalk.green('📚 Examples:')}
   ${chalk.gray('$')} dcp registry generate ./src/components/ui
-  ${chalk.gray('$')} dcp tokens extract-radix ./node_modules/@radix-ui/themes
+  ${chalk.gray('$')} dcp tokens extract ./src --verbose
   ${chalk.gray('$')} dcp workflow agent "Make all buttons accessible"
   ${chalk.gray('$')} dcp dev watch ./src --out ./registry
 
@@ -158,7 +162,7 @@ program
   .command('migration-guide')
   .description('Show CLI migration guide for deprecated commands')
   .action(async () => {
-    const { generateMigrationGuide } = await import('./deprecated/migrationGuide.js');
+    const { generateMigrationGuide } = await import('./deprecation.js');
     generateMigrationGuide();
   });
 
@@ -212,11 +216,3 @@ program.configureOutput({
 });
 
 export { program };
-
-// Auto-run if called directly
-// Check if this file is being executed directly (not imported)
-const isMainModule = import.meta.url === `file://${process.argv[1]}` || 
-                      import.meta.url.endsWith(process.argv[1]);
-if (isMainModule) {
-  program.parse();
-}

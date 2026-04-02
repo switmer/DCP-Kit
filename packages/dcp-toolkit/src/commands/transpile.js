@@ -206,16 +206,19 @@ class DCPTranspiler {
   }
   
   buildPropTypes(component) {
-    if (!component.props || component.props.length === 0) {
+    const propsEntries = Array.isArray(component.props)
+      ? component.props.map(p => [p.name, p])
+      : Object.entries(component.props || {});
+    if (propsEntries.length === 0) {
       return '\\n  children?: React.ReactNode;';
     }
-    
-    const propLines = component.props.map(prop => {
+
+    const propLines = propsEntries.map(([name, prop]) => {
       const optional = !prop.required ? '?' : '';
       const type = this.mapPropType(prop);
       const comment = prop.description ? `\\n  /** ${prop.description} */` : '';
-      
-      return `${comment}\\n  ${prop.name}${optional}: ${type};`;
+
+      return `${comment}\\n  ${name}${optional}: ${type};`;
     });
     
     // Always include children for flexibility
@@ -383,9 +386,12 @@ ${defaultProps}`;
   buildDefaultProps(component) {
     if (!component.props) return '';
     
-    const defaults = component.props
-      .filter(prop => prop.default !== undefined)
-      .map(prop => `  ${prop.name}: ${JSON.stringify(prop.default)}`)
+    const propsEntries = Array.isArray(component.props)
+      ? component.props.map(p => [p.name, p])
+      : Object.entries(component.props);
+    const defaults = propsEntries
+      .filter(([, prop]) => prop.default !== undefined)
+      .map(([name, prop]) => `  ${name}: ${JSON.stringify(prop.default)}`)
       .join(',\\n');
     
     if (defaults) {
@@ -397,10 +403,13 @@ ${defaultProps}`;
   
   buildPropsDestructuring(component) {
     if (!component.props) return 'children, ...props';
-    
-    const propNames = component.props.map(prop => {
+
+    const propsEntries = Array.isArray(component.props)
+      ? component.props.map(p => [p.name, p])
+      : Object.entries(component.props);
+    const propNames = propsEntries.map(([name, prop]) => {
       const defaultValue = prop.default !== undefined ? ` = ${JSON.stringify(prop.default)}` : '';
-      return `${prop.name}${defaultValue}`;
+      return `${name}${defaultValue}`;
     });
     
     propNames.push('children');
@@ -504,9 +513,12 @@ ${this.buildVariantStories(component)}`;
     const args = ['children: "Example"'];
     
     if (component.props) {
-      component.props.forEach(prop => {
+      const propsEntries = Array.isArray(component.props)
+        ? component.props.map(p => [p.name, p])
+        : Object.entries(component.props);
+      propsEntries.forEach(([name, prop]) => {
         if (prop.default !== undefined) {
-          args.push(`${prop.name}: ${JSON.stringify(prop.default)}`);
+          args.push(`${name}: ${JSON.stringify(prop.default)}`);
         }
       });
     }

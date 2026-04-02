@@ -533,6 +533,9 @@ export class ReactTSXAdaptor {
       });
     }
 
+    // Extract JSDoc examples from source code
+    const examples = this.extractJSDocExamples(node, source, name);
+
     // DCP-compliant component format
     return {
       name,
@@ -544,7 +547,8 @@ export class ReactTSXAdaptor {
         slots: [],
         subComponents: []
       },
-      examples: [],
+      examples: examples, // Real examples from JSDoc @example tags
+      source: source, // Store actual source code for build-packs
       // Optional extensions for metadata we want to preserve
       extensions: {
         filePath: path.relative(process.cwd(), filePath),
@@ -622,10 +626,76 @@ export class ReactTSXAdaptor {
     if (node?.leadingComments?.length > 0) {
       const comment = node.leadingComments[node.leadingComments.length - 1];
       if (comment.type === 'CommentBlock') {
-        return comment.value.replace(/^\*+/gm, '').trim();
+        const jsdoc = comment.value;
+        // Extract description (everything before @example, @param, etc.)
+        const descriptionMatch = jsdoc.match(/^([^*@]+)/);
+        if (descriptionMatch) {
+          return descriptionMatch[1].replace(/^\*+/gm, '').trim();
+        }
       }
     }
     return '';
+  }
+
+  /**
+   * Extract @example tags from JSDoc comments
+   * Returns array of { title, code } objects
+   */
+  extractJSDocExamples(node, source, componentName) {
+    const examples = [];
+    
+    if (!node?.leadingComments?.length) {
+      return examples;
+    }
+
+    // Find JSDoc comment block
+    const jsdocComment = node.leadingComments.find(comment => 
+      comment.type === 'CommentBlock' && comment.value.includes('@example')
+    );
+
+    if (!jsdocComment) {
+      return examples;
+    }
+
+    const jsdoc = jsdocComment.value;
+    
+    // Match @example tags with optional title
+    // Format: @example Title\n code here
+    const examplePattern = /@example(?:\s+(.+?))?\s*\n([\s\S]*?)(?=@|\*\/|$)/g;
+    let match;
+    let index = 0;
+
+    while ((match = examplePattern.exec(jsdoc)) !== null) {
+      const title = match[1]?.trim() || `Example ${index + 1}`;
+      let code = match[2]?.trim() || '';
+      
+      // Clean up JSDoc formatting (* prefix, indentation)
+      code = code
+        .split('\n')
+        .map(line => line.replace(/^\s*\*\s?/, '').trim())
+        .filter(line => line.length > 0)
+        .join('\n');
+
+      // If code is empty, try to find JSX usage in the example block
+      if (!code || code.length < 10) {
+        // Look for JSX pattern in example
+        const jsxPattern = /<(\w+)([^>]*?)\/?>/;
+        const jsxMatch = code.match(jsxPattern);
+        if (jsxMatch && jsxMatch[1] === componentName) {
+          code = match[0].replace(/@example.*?\n/, '').trim();
+        }
+      }
+
+      if (code && code.length > 0) {
+        examples.push({
+          title,
+          code
+        });
+        index++;
+      }
+    }
+
+    return examples;
   }
 
   extractPropsFromFunction(node) {

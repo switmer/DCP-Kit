@@ -52,7 +52,7 @@ Examples:
     .command('preview <source>')
     .description('Preview extraction diff without writing to registry')
     .option('-r, --registry <dir>', 'existing registry directory', './registry')
-    .option('-o, --out <dir>', 'temporary output directory', './.dcp-preview')
+    .option('-o, --output <dir>', 'temporary output directory', './.dcp-preview')
     .option('--auto-detect-tokens', 'auto detect tokens from source')
     .option('--adaptor <name>', 'force adaptor', 'react-tsx')
     .option('--format <format>', 'diff format (unified, side-by-side)', 'unified')
@@ -86,7 +86,7 @@ Examples:
   // Agent-assisted mutations
   workflowGroup
     .command('agent')
-    .description('Interactive agent for component analysis and mutations')
+    .description('[preview] Interactive agent for component analysis and mutations')
     .option('--model <model>', 'AI model to use for analysis', 'claude-3-sonnet')
     .option('--temperature <temp>', 'model temperature (0.0-1.0)', '0.1')
     .option('--context <dir>', 'context directory for analysis', '.')

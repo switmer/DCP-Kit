@@ -566,7 +566,7 @@ describe('🔐 Security & Trust Validation', () => {
       await fs.writeFile(tamperedPath, JSON.stringify(tamperedRegistry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" diff "${originalPath}" "${tamperedPath}" --security-check --json`
+        `node "${cliPath}" workflow diff "${originalPath}" "${tamperedPath}" --security-check --json`
       );
       
       const result = JSON.parse(stdout.trim());

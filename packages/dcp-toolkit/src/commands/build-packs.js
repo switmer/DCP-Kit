@@ -19,7 +19,7 @@ import chalk from 'chalk';
 
 export async function runBuildPacks(registryPath, options = {}) {
   const {
-    out: outputDir = './dist/packs',
+    output: outputDir = './dist/packs',
     baseUrl = '',
     namespace = 'ui',
     version = '1.0.0',
@@ -104,7 +104,8 @@ export async function runBuildPacks(registryPath, options = {}) {
       description: pack.description,
       url: `/r/${namespace}/${pack.name}`,
       type: 'component',
-      tags: pack.tags || []
+      tags: pack.tags || [],
+      propsCount: pack.propsCount || 0
     })),
     tokens: tokens.map(token => ({
       name: token.name,
@@ -113,7 +114,9 @@ export async function runBuildPacks(registryPath, options = {}) {
       value: token.value,
       description: token.description,
       url: token.url
-    }))
+    })),
+    ...(registry.themes ? { themes: registry.themes } : {}),
+    ...(registry.bindings ? { bindings: registry.bindings } : {}),
   };
 
   await fs.writeFile(
@@ -188,9 +191,261 @@ class ComponentPackBuilder {
     this.blobCache = new Map(); // sha1 -> path mapping
   }
 
+  /**
+   * Normalize utility: Convert name to PascalCase
+   */
+  toPascal(name) {
+    if (!name) return 'Component';
+    return name
+      .split(/[-_\s]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('');
+  }
+
+  /**
+   * Normalize utility: Humanize component name
+   */
+  humanize(name) {
+    if (!name) return 'Component';
+    return name
+      .split(/(?=[A-Z])/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  /**
+   * Normalize props: Ensure object format, map any → unknown, ensure HTML attrs are optional
+   */
+  normalizeProps(props) {
+    if (!props) return {};
+    
+    // Handle array format (convert to object)
+    if (Array.isArray(props)) {
+      const propsObj = {};
+      props.forEach(prop => {
+        propsObj[prop.name] = {
+          type: this.normalizeType(prop.type),
+          required: prop.required !== false, // Default to required unless explicitly false
+          description: prop.description || '',
+          default: prop.defaultValue !== undefined ? prop.defaultValue : prop.default
+        };
+      });
+      return propsObj;
+    }
+    
+    // Already an object, normalize types
+    const normalized = {};
+    // Known HTML attributes that should always be optional
+    const htmlAttrs = new Set(['className', 'style', 'id', 'onClick', 'onChange', 'onFocus', 'onBlur', 'disabled', 'aria-label', 'aria-describedby', 'role', 'tabIndex']);
+    
+    for (const [name, prop] of Object.entries(props)) {
+      // HTML attrs are always optional unless explicitly marked required
+      const isHtmlAttr = htmlAttrs.has(name);
+      const required = isHtmlAttr 
+        ? false // HTML attrs default to optional
+        : (prop.required === true); // Otherwise use extracted value, default to false
+      
+      normalized[name] = {
+        type: this.normalizeType(prop.type || 'unknown'),
+        required,
+        description: prop.description || '',
+        default: prop.defaultValue !== undefined ? prop.defaultValue : prop.default,
+        // Preserve min/max if present (for numeric ranges)
+        ...(prop.min !== undefined && { min: prop.min }),
+        ...(prop.max !== undefined && { max: prop.max })
+      };
+    }
+    
+    return normalized;
+  }
+
+  /**
+   * Normalize type: Map any → unknown
+   */
+  normalizeType(type) {
+    if (!type || typeof type !== 'string') return 'unknown';
+    // Map any → unknown (never show as "object")
+    return type.replace(/\bany\b/g, 'unknown');
+  }
+
+  /**
+   * Normalize variants: Collapse CVA unions to string arrays
+   */
+  normalizeVariants(variants) {
+    if (!variants || typeof variants !== 'object') return {};
+    
+    const normalized = {};
+    for (const [key, value] of Object.entries(variants)) {
+      if (Array.isArray(value)) {
+        normalized[key] = value;
+      } else if (typeof value === 'string' && value.includes('|')) {
+        // Union type like "primary | secondary" → ["primary", "secondary"]
+        normalized[key] = value
+          .split('|')
+          .map(v => v.trim().replace(/['"]/g, ''))
+          .filter(Boolean);
+      } else if (typeof value === 'object' && value !== null) {
+        // Already an object with variants
+        normalized[key] = value;
+      } else {
+        // Single value → array
+        normalized[key] = [String(value)];
+      }
+    }
+    
+    return normalized;
+  }
+
+  /**
+   * Build usage examples from component
+   * PRIORITY 1: Use real examples from JSDoc @example tags (extracted during extraction)
+   * PRIORITY 2: Generate from schema if no examples found
+   */
+  buildExamples(component) {
+    // PRIORITY 1: Use real examples from source code (JSDoc @example tags)
+    if (component.examples && Array.isArray(component.examples) && component.examples.length > 0) {
+      return component.examples; // These come from actual component source code
+    }
+
+    // PRIORITY 2: Fallback - generate from schema (only if no real examples)
+    const examples = [];
+    const props = this.normalizeProps(component.props);
+    const variants = this.normalizeVariants(component.variants);
+    const jsxName = this.toPascal(component.title || component.displayName || component.name);
+    
+    // Basic example
+    const requiredProps = Object.entries(props)
+      .filter(([_, prop]) => prop.required)
+      .slice(0, 2); // Limit to 2 for readability
+    
+    if (requiredProps.length > 0) {
+      const propsStr = requiredProps
+        .map(([name, prop]) => {
+          const example = this.generateExampleValue(prop.type, prop.default);
+          return `${name}${example.includes('=') ? '' : '='}${example}`;
+        })
+        .join(' ');
+      examples.push({
+        title: 'Basic',
+        code: `<${jsxName} ${propsStr} />`
+      });
+    } else {
+      examples.push({
+        title: 'Basic',
+        code: `<${jsxName} />`
+      });
+    }
+    
+    // Variant example
+    const firstVariant = Object.entries(variants)[0];
+    if (firstVariant) {
+      const [variantKey, variantValues] = firstVariant;
+      const firstValue = Array.isArray(variantValues) ? variantValues[0] : variantValues;
+      examples.push({
+        title: `With ${variantKey}`,
+        code: `<${jsxName} ${variantKey}="${firstValue}" />`
+      });
+    }
+    
+    return examples;
+  }
+
+  /**
+   * Generate example value for prop type
+   */
+  generateExampleValue(type, defaultValue) {
+    if (defaultValue !== undefined && defaultValue !== null) {
+      if (typeof defaultValue === 'string') return `"${defaultValue}"`;
+      if (typeof defaultValue === 'boolean') return `{${defaultValue}}`;
+      if (typeof defaultValue === 'number') return `{${defaultValue}}`;
+      return `{${JSON.stringify(defaultValue)}}`;
+    }
+    
+    const examples = {
+      'string': '"example"',
+      'number': '{42}',
+      'boolean': '{true}',
+      'function': '{() => {}}',
+      'Array<unknown>': '{[]}',
+      'Array': '{[]}',
+      'unknown': '{{}}'
+    };
+    
+    return examples[type] || '"value"';
+  }
+
+  /**
+   * Null hygiene: Coerce null to undefined for cleaner JSON
+   */
+  cleanNulls(obj) {
+    if (obj === null) return undefined;
+    if (typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(item => this.cleanNulls(item));
+    
+    const cleaned = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const cleanedValue = this.cleanNulls(value);
+      if (cleanedValue !== null) {
+        cleaned[key] = cleanedValue;
+      }
+    }
+    return cleaned;
+  }
+
+  /**
+   * Validate required fields in meta.json
+   * Returns validation status for UI completeness badge
+   */
+  validateMetaFields(meta) {
+    const required = ['name', 'title', 'type', 'files', 'props', 'categories', 'namespace'];
+    const missing = [];
+    const warnings = [];
+
+    // Check required fields
+    for (const field of required) {
+      if (field === 'files' && (!meta.files || !Array.isArray(meta.files) || meta.files.length === 0)) {
+        missing.push(field);
+      } else if (field === 'props' && (!meta.props || typeof meta.props !== 'object')) {
+        missing.push(field);
+      } else if (field === 'categories' && (!meta.categories || !Array.isArray(meta.categories))) {
+        missing.push(field);
+      } else if (!meta[field] || meta[field] === '') {
+        missing.push(field);
+      }
+    }
+
+    // Check for quality issues (warnings, not errors)
+    const props = meta.props || {};
+    const propsWithoutDescriptions = Object.entries(props)
+      .filter(([_, prop]) => !prop.description || prop.description.trim() === '')
+      .length;
+    
+    if (propsWithoutDescriptions > 0) {
+      warnings.push(`${propsWithoutDescriptions} props missing descriptions`);
+    }
+
+    if (!meta.description || meta.description.trim() === '') {
+      warnings.push('Missing component description');
+    }
+
+    if (!meta.sourceFile) {
+      warnings.push('Missing source file path');
+    }
+
+    return { missing, warnings };
+  }
+
   async buildComponentPack(component, registry) {
     const componentDir = path.join(this.outputDir, component.name);
     await fs.mkdir(componentDir, { recursive: true });
+
+    // Normalize component data from extraction
+    // Map extensions.filePath -> filePath if needed
+    const filePath = component.filePath || component.extensions?.filePath || '';
+    // Map category (singular) -> categories (array)
+    const categories = component.categories || (component.category ? [component.category] : []);
+    // Ensure type is set
+    const componentType = component.type || component.extensions?.componentType || 'component';
 
     // Generate component files
     const sourceCode = await this.generateComponentSource(component);
@@ -235,22 +490,30 @@ class ComponentPackBuilder {
       });
     }
 
-    // Generate metadata
-    const meta = {
-      name: component.name.toLowerCase(),
+    // Generate metadata with defensive patterns
+    const jsxName = this.toPascal(component.title || component.displayName || component.name);
+    const humanizedTitle = this.humanize(component.title || component.displayName || component.name);
+    
+    const metaRaw = {
+      metaVersion: 1, // Schema version for future compatibility
+      name: component.name?.toLowerCase() || 'component',
+      jsxName: jsxName, // Canonical PascalCase name for JSX/examples
       version: this.version,
-      title: component.displayName || component.name,
-      description: component.description || `${component.name} component`,
+      title: component.displayName || component.name || humanizedTitle,
+      description: component.description ?? undefined, // Use ?? for null hygiene
       category: component.category || 'components',
-      type: 'registry:component',
+      categories: Array.isArray(component.categories)
+        ? component.categories
+        : component.category ? [component.category] : [],
+      type: componentType,
       namespace: this.namespace,
       
-      // File references (array format per DCP spec)
-      files,
+      // File references (array format per DCP spec) - REQUIRED
+      files: files.length > 0 ? files : [],
       
-      // Component schema
-      props: component.props || [],
-      variants: component.variants || {},
+      // Component schema (normalized)
+      props: this.normalizeProps(component.props),
+      variants: this.normalizeVariants(component.variants),
       defaultVariants: component.defaultVariants || {},
       
       // Dependencies
@@ -267,7 +530,30 @@ class ComponentPackBuilder {
       
       // Generation info
       generatedAt: new Date().toISOString(),
-      sourceFile: component.filePath
+      lastExtracted: component.extensions?.extractedAt || new Date().toISOString(), // When component was extracted
+      sourceFile: filePath || undefined, // Use normalized filePath, undefined not null
+      
+      // Usage examples (generated from schema)
+      examples: this.buildExamples(component),
+      
+      // Preserve extracted metadata if available (null hygiene)
+      extensions: component.extensions ?? undefined
+    };
+    
+    // Clean nulls before writing JSON
+    const meta = this.cleanNulls(metaRaw);
+    
+    // Validate required fields
+    const validation = this.validateMetaFields(meta);
+    if (validation.missing.length > 0 && this.verbose) {
+      console.warn(`  ⚠️  ${component.name}: Missing required fields: ${validation.missing.join(', ')}`);
+    }
+    
+    // Add validation status to meta (for UI completeness badge)
+    meta._validation = {
+      complete: validation.missing.length === 0,
+      missing: validation.missing,
+      warnings: validation.warnings
     };
 
     // Write component files to directory
@@ -287,6 +573,7 @@ class ComponentPackBuilder {
       description: meta.description,
       outputPath: componentDir,
       files: files.length,
+      propsCount: component.props ? Object.keys(component.props).length : 0,
       meta
     };
   }

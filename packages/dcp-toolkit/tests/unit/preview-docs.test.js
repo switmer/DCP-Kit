@@ -91,7 +91,7 @@ describe('🔍 Preview & Docs Generation', () => {
       
       // Test demo compilation
       const { stdout } = await execAsync(
-        `node "${cliPath}" demo "${path.join(componentDir, 'Button.demo.tsx')}" --render --json`
+        `node "${cliPath}" dev demo "${path.join(componentDir, 'Button.demo.tsx')}" --render --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -138,7 +138,7 @@ describe('🔍 Preview & Docs Generation', () => {
       
       try {
         await execAsync(
-          `node "${cliPath}" demo "${path.join(componentDir, 'Card.demo.tsx')}" --render --json`
+          `node "${cliPath}" dev demo "${path.join(componentDir, 'Card.demo.tsx')}" --render --json`
         );
         expect(true).toBe(false); // Should not reach here
       } catch (error) {
@@ -193,7 +193,7 @@ describe('🔍 Preview & Docs Generation', () => {
       await fs.writeFile(path.join(componentDir, 'Alert.demo.tsx'), alertDemo);
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" demo "${path.join(componentDir, 'Alert.demo.tsx')}" --validate-api --json`
+        `node "${cliPath}" dev demo "${path.join(componentDir, 'Alert.demo.tsx')}" --validate-api --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -267,7 +267,7 @@ describe('🔍 Preview & Docs Generation', () => {
       
       // Generate README
       const { stdout } = await execAsync(
-        `node "${cliPath}" docs "${componentDir}" --format markdown --json`
+        `node "${cliPath}" dev docs "${componentDir}" --format markdown --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -324,7 +324,7 @@ describe('🔍 Preview & Docs Generation', () => {
       
       // Generate initial README
       const { stdout: initialOutput } = await execAsync(
-        `node "${cliPath}" docs "${componentDir}" --format markdown --json`
+        `node "${cliPath}" dev docs "${componentDir}" --format markdown --json`
       );
       
       const initialResult = JSON.parse(initialOutput.trim());
@@ -362,7 +362,7 @@ describe('🔍 Preview & Docs Generation', () => {
       
       // Regenerate README
       const { stdout: updatedOutput } = await execAsync(
-        `node "${cliPath}" docs "${componentDir}" --format markdown --json`
+        `node "${cliPath}" dev docs "${componentDir}" --format markdown --json`
       );
       
       const updatedResult = JSON.parse(updatedOutput.trim());
@@ -415,7 +415,7 @@ describe('🔍 Preview & Docs Generation', () => {
       await fs.writeFile(path.join(componentDir, 'Button.tsx'), buttonComponent);
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" docs "${componentDir}" --include-examples --json`
+        `node "${cliPath}" dev docs "${componentDir}" --include-examples --json`
       );
       
       const result = JSON.parse(stdout.trim());

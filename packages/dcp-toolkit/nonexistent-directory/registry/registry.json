@@ -1,0 +1,207 @@
+{
+  "name": "nonexistent-directory",
+  "version": "1.0.0",
+  "description": "DCP registry extracted from nonexistent-directory",
+  "components": [],
+  "tokens": {},
+  "themeContext": {
+    "config": null,
+    "cssVariables": {
+      "light": {},
+      "dark": {},
+      "custom": {}
+    },
+    "summary": "Theme Configuration: None detected\n- No theme configuration file found\n- No CSS variables extracted\n"
+  },
+  "metadata": {
+    "extractedAt": "2026-04-02T17:58:17.297Z",
+    "sourceDir": "nonexistent-directory",
+    "transformedFrom": "multi-framework",
+    "version": "3.0.0",
+    "adaptorRegistry": [
+      "react-tsx",
+      "shadcn-react-tsx"
+    ]
+  },
+  "lastModified": "2026-04-02T17:58:17.298Z",
+  "themes": {},
+  "bindings": {
+    "contractVersion": "0.1.0",
+    "color": {},
+    "typography": {},
+    "spacing": {}
+  },
+  "mappingReport": {
+    "total": 0,
+    "autoBound": 0,
+    "suggested": 0,
+    "uncertain": 0,
+    "unmapped": 0,
+    "missingRoles": [
+      "bg.default",
+      "bg.muted",
+      "bg.elevated",
+      "bg.overlay",
+      "text.primary",
+      "text.muted",
+      "text.onAccent",
+      "text.disabled",
+      "border.default",
+      "border.muted",
+      "border.focus",
+      "accent.primary",
+      "accent.on",
+      "intent.danger",
+      "intent.warning",
+      "intent.success",
+      "intent.info",
+      "text.hero",
+      "text.h1",
+      "text.h2",
+      "text.h3",
+      "text.body",
+      "text.bodyStrong",
+      "text.label",
+      "text.caption",
+      "text.button",
+      "text.input",
+      "space.xs",
+      "space.sm",
+      "space.md",
+      "space.lg",
+      "space.xl"
+    ],
+    "reviewItems": [],
+    "unmappedTokens": []
+  },
+  "intelligence": {
+    "projectStructure": {
+      "detectedPaths": {
+        "lib": {
+          "path": "src/lib",
+          "count": 2,
+          "structure": [
+            "src/lib",
+            "src/lib/index.js"
+          ]
+        },
+        "utils": {
+          "path": "src/utils",
+          "count": 2,
+          "structure": [
+            "src/utils",
+            "src/utils/optionalImport.js"
+          ]
+        }
+      },
+      "aliases": [],
+      "conventions": {
+        "framework": "unknown",
+        "styling": [],
+        "testing": "Jest",
+        "bundler": "unknown",
+        "features": [
+          "TypeScript",
+          "Storybook"
+        ]
+      },
+      "recommendations": []
+    },
+    "environment": {
+      "configFiles": {
+        "package.json": {
+          "exists": true,
+          "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/package.json"
+        },
+        "tsconfig.json": {
+          "exists": true,
+          "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/tsconfig.json"
+        },
+        "vite.config.js": {
+          "exists": true,
+          "path": "/Users/stevewitmer/local_AI_Projects/DCP-Transformer/packages/dcp-toolkit/vite.config.js"
+        }
+      },
+      "missingFiles": [
+        "tailwind.config.js",
+        "tailwind.config.ts",
+        "components.json",
+        "next.config.js",
+        ".eslintrc.json",
+        "prettier.config.js"
+      ],
+      "nodeVersion": null,
+      "packageManager": "npm"
+    },
+    "dependencies": {
+      "required": [
+        "typescript"
+      ],
+      "missing": [
+        "react"
+      ],
+      "versions": {
+        "typescript": "^5.0.0"
+      },
+      "graph": {},
+      "suggestions": [
+        {
+          "package": "tailwindcss",
+          "reason": "For utility-first styling"
+        },
+        {
+          "package": "@radix-ui/react-slot",
+          "reason": "For flexible component composition"
+        },
+        {
+          "package": "class-variance-authority",
+          "reason": "For variant-driven components"
+        },
+        {
+          "package": "clsx",
+          "reason": "For conditional className composition"
+        },
+        {
+          "package": "lucide-react",
+          "reason": "For consistent iconography"
+        },
+        {
+          "package": "framer-motion",
+          "reason": "For smooth animations"
+        }
+      ]
+    },
+    "assets": {
+      "imageProps": [],
+      "iconUsage": [],
+      "missingAssets": [],
+      "recommendations": [
+        "Use consistent image sizing (32x32, 64x64, etc.)",
+        "Provide fallback images for missing avatars",
+        "Consider using next/image for optimized loading",
+        "Use SVG icons for better scalability"
+      ]
+    },
+    "setupInstructions": [
+      "Install missing dependencies: npm install react",
+      "Initialize ShadCN: npx shadcn-ui@latest init"
+    ],
+    "integrationChecklist": [
+      "❌ Create components directory structure",
+      "❌ Install React",
+      "✅ Package.json is present",
+      "⚠️ Verify all image assets are provided",
+      "⚠️ Test responsive behavior across breakpoints",
+      "⚠️ Validate accessibility requirements"
+    ],
+    "intelligence": {
+      "confidence": 30,
+      "readiness": "needs-setup",
+      "complexity": "high",
+      "recommendations": [
+        "Add path aliases to tsconfig.json for cleaner imports",
+        "Consider Tailwind CSS for utility-first styling"
+      ]
+    }
+  }
+}

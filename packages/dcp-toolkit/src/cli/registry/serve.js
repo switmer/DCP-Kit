@@ -4,6 +4,8 @@
  */
 
 import chalk from 'chalk';
+import { jsonError } from '../output.js';
+import { missingDepMessage } from '../../utils/optionalImport.js';
 
 export default async function serve(packsDir = './dist/packs', options = {}) {
   try {
@@ -23,8 +25,11 @@ export default async function serve(packsDir = './dist/packs', options = {}) {
       console.log(chalk.gray(`\nPress Ctrl+C to stop`));
     }
   } catch (error) {
+    const installHint = missingDepMessage(error, 'dcp registry serve', ['express', 'cors']);
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+      jsonError(installHint ? new Error(installHint) : error);
+    } else if (installHint) {
+      console.error(chalk.red(`❌ ${installHint}`));
     } else {
       console.error(chalk.red('❌ Server failed:'), error.message);
     }

@@ -1,4 +1,49 @@
 {
+  "SuspiciousComponent": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "const": "SuspiciousComponent"
+      },
+      "props": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "default": {}
+          },
+          "required": [
+            "name",
+            "type",
+            "required"
+          ]
+        }
+      },
+      "variants": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "required": [
+      "name",
+      "props"
+    ]
+  },
   "NormalComponent": {
     "type": "object",
     "properties": {
@@ -50,51 +95,6 @@
       "name": {
         "type": "string",
         "const": "ObfuscatedComponent"
-      },
-      "props": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
-            },
-            "required": {
-              "type": "boolean"
-            },
-            "default": {}
-          },
-          "required": [
-            "name",
-            "type",
-            "required"
-          ]
-        }
-      },
-      "variants": {
-        "type": "object",
-        "additionalProperties": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "required": [
-      "name",
-      "props"
-    ]
-  },
-  "SuspiciousComponent": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string",
-        "const": "SuspiciousComponent"
       },
       "props": {
         "type": "array",

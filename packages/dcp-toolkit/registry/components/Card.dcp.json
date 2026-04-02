@@ -12,19 +12,19 @@
     "description": {
       "type": "string",
       "description": "Optional description text",
-      "required": true,
+      "required": false,
       "source": "auto"
     },
     "variant": {
       "type": "enum",
       "description": "Visual style variant",
-      "required": true,
+      "required": false,
       "source": "auto"
     },
     "clickable": {
       "type": "boolean",
       "description": "Whether the card can be clicked",
-      "required": true,
+      "required": false,
       "source": "auto"
     },
     "children": {
@@ -36,7 +36,7 @@
     "onClick": {
       "type": "object",
       "description": "Callback when card is clicked",
-      "required": true,
+      "required": false,
       "source": "auto"
     }
   },
@@ -46,11 +46,12 @@
     "subComponents": []
   },
   "examples": [],
+  "source": "\n        interface CardProps {\n          /** The title displayed at the top of the card */\n          title: string;\n          /** Optional description text */\n          description?: string;\n          /** Visual style variant */\n          variant?: 'default' | 'outlined' | 'elevated';\n          /** Whether the card can be clicked */\n          clickable?: boolean;\n          /** Content to display in the card */\n          children: React.ReactNode;\n          /** Callback when card is clicked */\n          onClick?: (event: MouseEvent) => void;\n        }\n        \n        /**\n         * A flexible card component for displaying content\n         * \n         * @example\n         * <Card title=\"Example\" variant=\"outlined\">\n         *   <p>Card content here</p>\n         * </Card>\n         */\n        export const Card = ({ \n          title, \n          description, \n          variant = 'default', \n          clickable = false,\n          children,\n          onClick \n        }: CardProps) => {\n          return (\n            <div \n              className={`card card-${variant} ${clickable ? 'clickable' : ''}`}\n              onClick={clickable ? onClick : undefined}\n            >\n              <h3>{title}</h3>\n              {description && <p>{description}</p>}\n              {children}\n            </div>\n          );\n        };\n      ",
   "extensions": {
     "filePath": "tests/unit/temp-agent-compatibility/components/Card.tsx",
     "componentType": "arrow",
     "adaptor": "react-tsx",
-    "extractedAt": "2025-08-28T15:12:34.563Z",
+    "extractedAt": "2026-04-02T17:54:16.484Z",
     "tsMorphAnalysis": true,
     "typescriptAnalysis": true
   }

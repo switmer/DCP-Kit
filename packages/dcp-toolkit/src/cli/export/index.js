@@ -8,6 +8,7 @@ import adaptors from './adaptors.js';
 import codeConnect from './code-connect.js';
 import chalk from 'chalk';
 import path from 'path';
+import { jsonError } from '../output.js';
 
 export function registerExportCommands(exportGroup) {
   // Export MCP server configuration
@@ -132,7 +133,7 @@ Output Files:
 
       } catch (error) {
         if (options.json) {
-          console.log(JSON.stringify({ success: false, error: error.message }, null, 2));
+          jsonError(error);
         } else {
           console.error(chalk.red('❌ Figma token synchronization failed:'), error.message);
           if (options.verbose) {

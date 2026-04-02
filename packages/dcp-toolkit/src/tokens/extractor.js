@@ -410,6 +410,12 @@ export class UniversalTokenExtractor {
         // Extract typography from theme.fontSize or theme.extend.fontSize
         const fontSize = config.theme.extend?.fontSize || config.theme.fontSize || {};
         tokens.typography = this.normalizeTailwindTypography(fontSize);
+
+        // Extract fontFamily from theme.fontFamily or theme.extend.fontFamily
+        const fontFamily = config.theme.extend?.fontFamily || config.theme.fontFamily || {};
+        Object.entries(fontFamily).forEach(([key, value]) => {
+          tokens.typography[key] = value;
+        });
         
         console.log(`✅ Extracted Tailwind config: ${Object.keys(tokens.colors).length} colors, ${Object.keys(tokens.spacing).length} spacing values`);
       } else {
@@ -537,17 +543,18 @@ export class UniversalTokenExtractor {
       const variableMatches = content.match(/--[\w-]+\s*:\s*[^;]+/g);
       if (variableMatches) {
         variableMatches.forEach(match => {
-          const [name, value] = match.split(':').map(s => s.trim());
-          const cleanName = name.replace('--', '');
-          const cleanValue = value.replace(/;$/, '');
-          
-          // Categorize variables
-          if (cleanName.includes('color') || cleanName.includes('bg') || cleanValue.includes('#') || cleanValue.includes('rgb') || cleanValue.includes('hsl')) {
-            tokens.colors[cleanName] = cleanValue;
+          const [name, ...rest] = match.split(':');
+          const cleanName = name.trim().replace('--', '');
+          const cleanValue = rest.join(':').trim().replace(/;$/, '');
+
+          // Categorize variables (font/text check before spacing to avoid
+          // rem/px values in font vars being mis-categorized as spacing)
+          if (cleanName.includes('font') || cleanName.includes('text')) {
+            if (!tokens.typography[cleanName]) tokens.typography[cleanName] = cleanValue;
+          } else if (cleanName.includes('color') || cleanName.includes('bg') || cleanValue.includes('#') || cleanValue.includes('rgb') || cleanValue.includes('hsl')) {
+            if (!tokens.colors[cleanName]) tokens.colors[cleanName] = cleanValue;
           } else if (cleanName.includes('space') || cleanName.includes('margin') || cleanName.includes('padding') || cleanValue.includes('px') || cleanValue.includes('rem')) {
-            tokens.spacing[cleanName] = cleanValue;
-          } else if (cleanName.includes('font') || cleanName.includes('text')) {
-            tokens.typography[cleanName] = cleanValue;
+            if (!tokens.spacing[cleanName]) tokens.spacing[cleanName] = cleanValue;
           }
         });
       }
@@ -708,25 +715,26 @@ export class UniversalTokenExtractor {
   parseConfigFile(content) {
     // Basic config file parsing
     const tokens = { colors: {}, spacing: {}, typography: {} };
-    
-    // Look for object exports
-    const objectMatches = content.match(/\{[\s\S]*?\}/g);
-    if (objectMatches) {
-      objectMatches.forEach(obj => {
-        const props = obj.match(/(\w+)\s*:\s*['"`]([^'"`]+)['"`]/g);
-        if (props) {
-          props.forEach(prop => {
-            const [, name, value] = prop.match(/(\w+)\s*:\s*['"`]([^'"`]+)['"`]/);
-            if (name.includes('color')) {
-              tokens.colors[name] = value;
-            } else if (name.includes('space')) {
-              tokens.spacing[name] = value;
-            }
-          });
+
+    // Extract all key: 'value' pairs from the entire content
+    const props = content.match(/([\w-]+)\s*:\s*['"`]([^'"`]+)['"`]/g);
+    if (props) {
+      props.forEach(prop => {
+        const parsed = prop.match(/([\w-]+)\s*:\s*['"`]([^'"`]+)['"`]/);
+        if (!parsed) return;
+        const [, name, value] = parsed;
+
+        // Categorize by name or value
+        if (name.includes('color') || value.match(/^#[0-9a-fA-F]{3,8}$/) || value.includes('rgb') || value.includes('hsl')) {
+          tokens.colors[name] = value;
+        } else if (name.includes('space') || value.match(/^\d+px$/)) {
+          tokens.spacing[name] = value;
+        } else if (name.includes('font') || name.includes('text') || value.includes('sans-serif') || value.includes('monospace') || value.includes('serif')) {
+          tokens.typography[name] = value;
         }
       });
     }
-    
+
     return tokens;
   }
 

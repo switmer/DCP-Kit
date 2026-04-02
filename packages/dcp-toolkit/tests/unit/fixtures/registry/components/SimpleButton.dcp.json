@@ -1,0 +1,40 @@
+{
+  "name": "SimpleButton",
+  "description": "SimpleButton component",
+  "category": "actions",
+  "props": {
+    "variant": {
+      "type": "enum",
+      "description": "Button variant",
+      "required": false,
+      "source": "auto"
+    },
+    "children": {
+      "type": "object",
+      "description": "Button content",
+      "required": true,
+      "source": "auto"
+    },
+    "onClick": {
+      "type": "object",
+      "description": "Click handler",
+      "required": false,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "source": "import React from 'react';\n\n/**\n * Simple button component for testing basic extraction\n */\nexport interface SimpleButtonProps {\n  /** Button variant */\n  variant?: 'primary' | 'secondary';\n  /** Button content */\n  children: React.ReactNode;\n  /** Click handler */\n  onClick?: () => void;\n}\n\nexport const SimpleButton: React.FC<SimpleButtonProps> = ({\n  variant = 'primary',\n  children,\n  onClick\n}) => {\n  return (\n    <button\n      className={`btn btn--${variant}`}\n      onClick={onClick}\n    >\n      {children}\n    </button>\n  );\n};\n\nexport default SimpleButton;",
+  "extensions": {
+    "filePath": "tests/unit/fixtures/simple-button.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2026-04-02T17:58:17.346Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  }
+}

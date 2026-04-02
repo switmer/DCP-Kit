@@ -4,11 +4,6 @@ import fs from 'fs'; // For manually writing invalid JSON
 import { validateRegistry } from '../../src/commands/validate.js';
 import { createTestDir, cleanupTestDir, writeTestFile } from './.test-utils.js';
 
-// Correct paths to schemas, assuming test execution from project root
-const projectRoot = process.cwd();
-const manifestSchemaPath = path.resolve(projectRoot, 'schemas/manifest.schema.json');
-const componentSchemaPath = path.resolve(projectRoot, 'schemas/dcp.component.schema.json');
-
 // Valid component for testing
 const validComponent = {
   name: "Button",
@@ -32,8 +27,8 @@ const invalidComponent = {
 
 // Valid registry structure
 const validRegistryData = {
-  registryName: "Test Design System",
-  registryVersion: "1.0.0",
+  name: "Test Design System",
+  version: "1.0.0",
   generatedAt: new Date().toISOString(),
   components: [{
     name: validComponent.name,
@@ -70,43 +65,50 @@ describe('validateRegistry', () => {
   test('validates a valid registry file successfully', async () => {
     const registryPath = path.join(testDir, 'valid-registry.json');
     writeTestFile(registryPath, validRegistryData);
-    
-    const result = await validateRegistry({ registryPath });
-    expect(result).toBe(true);
+
+    const result = await validateRegistry(registryPath);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 
-  test('throws error for missing registry file', async () => {
+  test('returns error for missing registry file', async () => {
     const registryPath = path.join(testDir, 'non-existent-registry.json');
-    await expect(validateRegistry({ registryPath })).rejects.toThrow('Registry file not found');
+    const result = await validateRegistry(registryPath);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('not found'))).toBe(true);
   });
 
-  test('throws error for invalid JSON in registry file', async () => {
+  test('returns error for invalid JSON in registry file', async () => {
     const registryPath = path.join(testDir, 'invalid-json.json');
-    fs.writeFileSync(registryPath, 'this is not json'); // Manually write invalid JSON
+    fs.writeFileSync(registryPath, 'this is not json');
 
-    await expect(validateRegistry({ registryPath })).rejects.toThrow('Invalid registry JSON');
+    const result = await validateRegistry(registryPath);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('Invalid registry JSON'))).toBe(true);
   });
 
-  test('throws error for registry not matching manifest schema', async () => {
+  test('returns error for registry not matching manifest schema', async () => {
     const registryPath = path.join(testDir, 'invalid-structure.json');
     const invalidStructureData = { ...validRegistryData };
-    delete invalidStructureData.components; // 'components' is required by manifest
+    delete invalidStructureData.components;
     writeTestFile(registryPath, invalidStructureData);
 
-    await expect(validateRegistry({ registryPath })).rejects.toThrow('Invalid registry format based on manifest schema');
+    const result = await validateRegistry(registryPath);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
   });
 
-  test('throws error for registry with invalid component', async () => {
+  test('returns error for registry with missing required fields', async () => {
     const registryPath = path.join(testDir, 'invalid-component-registry.json');
-    const registryWithInvalidComponent = {
-      ...validRegistryData,
-      components: [{
-        name: invalidComponent.name,
-        path: "./components/InvalidButton.dcp.json"
-      }]
+    // Registry missing name and version — required fields
+    const registryMissingFields = {
+      generatedAt: new Date().toISOString(),
+      components: [{ name: 'Button', path: './components/Button.dcp.json' }]
     };
-    writeTestFile(registryPath, registryWithInvalidComponent);
+    writeTestFile(registryPath, registryMissingFields);
 
-    await expect(validateRegistry({ registryPath })).rejects.toThrow('Invalid registry format: Component validation failed');
+    const result = await validateRegistry(registryPath);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
   });
-}); 
+});

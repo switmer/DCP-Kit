@@ -1,0 +1,58 @@
+{
+  "name": "ProblematicComponent",
+  "description": "ProblematicComponent component",
+  "category": "components",
+  "props": {
+    "__index": {
+      "type": "object",
+      "description": "",
+      "required": true,
+      "source": "auto"
+    },
+    "id": {
+      "type": "string",
+      "description": "",
+      "required": false,
+      "source": "auto"
+    },
+    "variant": {
+      "type": "string",
+      "description": "",
+      "required": false,
+      "source": "auto"
+    },
+    "onComplexEvent": {
+      "type": "string",
+      "description": "",
+      "required": false,
+      "source": "auto"
+    },
+    "data": {
+      "type": "string",
+      "description": "",
+      "required": false,
+      "source": "auto"
+    },
+    "computed": {
+      "type": "string",
+      "description": "",
+      "required": false,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "source": "import React from 'react';\n\n// Component with edge cases that might break parsing\nexport interface ProblematicComponentProps {\n  // Dynamic prop types\n  [key: string]: any;\n  // Required props\n  id: string;\n  // Union with complex types\n  variant?: 'a' | 'b' | 'c' | string;\n  // Function prop with complex signature\n  onComplexEvent?: (data: { id: string; value: any }, meta?: Record<string, unknown>) => Promise<void>;\n  // Generic prop\n  data?: Record<string, any>;\n  // Computed prop with default\n  computed?: string;\n}\n\n// Arrow function component with destructuring\nexport const ProblematicComponent = ({\n  id,\n  variant = 'a',\n  onComplexEvent,\n  data = {},\n  computed = `computed-${Date.now()}`,\n  ...restProps\n}: ProblematicComponentProps) => {\n  // Complex logic that might confuse parsers\n  const derivedValue = React.useMemo(() => {\n    return Object.keys(data).length > 0 ? 'has-data' : 'no-data';\n  }, [data]);\n  \n  return (\n    <div \n      id={id}\n      className={`problematic problematic--${variant} problematic--${derivedValue}`}\n      {...restProps}\n    >\n      <span>{computed}</span>\n      {data && Object.keys(data).map(key => (\n        <div key={key}>{key}: {String(data[key])}</div>\n      ))}\n    </div>\n  );\n};\n\n// Class component for testing different patterns\nexport class ClassComponent extends React.Component<{ title: string; children?: React.ReactNode }> {\n  render() {\n    const { title, children } = this.props;\n    return (\n      <div className=\"class-component\">\n        <h1>{title}</h1>\n        {children}\n      </div>\n    );\n  }\n}\n\n// Component with no explicit props interface\nexport const NoPropsInterface = (props: any) => {\n  return <div {...props}>No explicit props</div>;\n};\n\n// Higher-order component\nexport const withHOC = <P extends object>(Component: React.ComponentType<P>) => {\n  return (props: P) => <Component {...props} />;\n};\n\nexport default ProblematicComponent;",
+  "extensions": {
+    "filePath": "tests/unit/fixtures/problematic-component.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2026-04-02T17:58:17.992Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  }
+}

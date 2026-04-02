@@ -30,8 +30,7 @@ describe('🧪 Regression Coverage', () => {
     }
   });
 
-  describe('Full Regression on Core Commands', () => {
-    const testComponents = {
+  const testComponents = {
       'Button.tsx': `
         interface ButtonProps {
           variant?: 'primary' | 'secondary' | 'danger';
@@ -109,23 +108,24 @@ describe('🧪 Regression Coverage', () => {
       `
     };
 
-    async function setupTestComponents() {
-      const componentDir = path.join(testDir, 'components');
-      await fs.mkdir(componentDir, { recursive: true });
-      
-      for (const [filename, content] of Object.entries(testComponents)) {
-        await fs.writeFile(path.join(componentDir, filename), content);
-      }
-      
-      return componentDir;
+  async function setupTestComponents() {
+    const componentDir = path.join(testDir, 'components');
+    await fs.mkdir(componentDir, { recursive: true });
+
+    for (const [filename, content] of Object.entries(testComponents)) {
+      await fs.writeFile(path.join(componentDir, filename), content);
     }
 
+    return componentDir;
+  }
+
+  describe('Full Regression on Core Commands', () => {
     it('should maintain extract command stability across versions', async () => {
       const componentDir = await setupTestComponents();
       
       // Extract components
       const { stdout: extractOutput } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --out "${testDir}/extracted.json" --json`
+        `node "${cliPath}" extract "${componentDir}" --output "${testDir}/extracted.json" --json`
       );
       
       const extractResult = JSON.parse(extractOutput.trim());
@@ -228,7 +228,7 @@ describe('🧪 Regression Coverage', () => {
       await fs.writeFile(mutationPath, JSON.stringify(mutation, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${mutationPath}" "${outputPath}" --undo "${undoPath}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${mutationPath}" "${outputPath}" --undo "${undoPath}" --json`
       );
       
       const result = JSON.parse(stdout);
@@ -273,7 +273,7 @@ describe('🧪 Regression Coverage', () => {
       await fs.writeFile(undoPath, JSON.stringify(undoPatch, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" rollback "${mutatedPath}" "${undoPath}" --json`
+        `node "${cliPath}" workflow rollback "${mutatedPath}" "${undoPath}" --json`
       );
       
       const result = JSON.parse(stdout);
@@ -314,7 +314,7 @@ describe('🧪 Regression Coverage', () => {
       await fs.writeFile(path2, JSON.stringify(registry2, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" diff "${path1}" "${path2}" --json`
+        `node "${cliPath}" workflow diff "${path1}" "${path2}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -365,11 +365,11 @@ describe('🧪 Regression Coverage', () => {
       
       // Generate diff twice
       const { stdout: diff1 } = await execAsync(
-        `node "${cliPath}" diff "${basePath}" "${modifiedPath1}" --json`
+        `node "${cliPath}" workflow diff "${basePath}" "${modifiedPath1}" --json`
       );
       
       const { stdout: diff2 } = await execAsync(
-        `node "${cliPath}" diff "${basePath}" "${modifiedPath2}" --json`
+        `node "${cliPath}" workflow diff "${basePath}" "${modifiedPath2}" --json`
       );
       
       const result1 = JSON.parse(diff1.trim());
@@ -435,7 +435,7 @@ describe('🧪 Regression Coverage', () => {
       await fs.writeFile(modifiedPath, JSON.stringify(modifiedRegistry, null, 2));
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" diff "${originalPath}" "${modifiedPath}" --json`
+        `node "${cliPath}" workflow diff "${originalPath}" "${modifiedPath}" --json`
       );
       
       const result = JSON.parse(stdout.trim());
@@ -478,7 +478,7 @@ describe('🧪 Regression Coverage', () => {
       const runs = [];
       for (let i = 0; i < 3; i++) {
         const { stdout } = await execAsync(
-          `node "${cliPath}" diff "${path1}" "${path2}" --json`
+          `node "${cliPath}" workflow diff "${path1}" "${path2}" --json`
         );
         runs.push(JSON.parse(stdout.trim()));
       }
@@ -496,7 +496,7 @@ describe('🧪 Regression Coverage', () => {
       
       // Initial extraction
       const { stdout: extract1 } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --out "${testDir}/build1.json" --json`
+        `node "${cliPath}" extract "${componentDir}" --output "${testDir}/build1.json" --json`
       );
       
       const result1 = JSON.parse(extract1.trim());
@@ -508,7 +508,7 @@ describe('🧪 Regression Coverage', () => {
       
       // Second extraction using saved meta
       const { stdout: extract2 } = await execAsync(
-        `node "${cliPath}" extract "${componentDir}" --meta "${metaPath}" --out "${testDir}/build2.json" --json`
+        `node "${cliPath}" extract "${componentDir}" --meta "${metaPath}" --output "${testDir}/build2.json" --json`
       );
       
       const result2 = JSON.parse(extract2.trim());
@@ -530,7 +530,7 @@ describe('🧪 Regression Coverage', () => {
       const builds = [];
       for (let i = 0; i < 3; i++) {
         const { stdout } = await execAsync(
-          `node "${cliPath}" extract "${componentDir}" --out "${testDir}/build-${i}.json" --json`
+          `node "${cliPath}" extract "${componentDir}" --output "${testDir}/build-${i}.json" --json`
         );
         
         const result = JSON.parse(stdout.trim());
@@ -573,7 +573,7 @@ describe('🧪 Regression Coverage', () => {
       
       try {
         const { stdout } = await execAsync(
-          `node "${cliPath}" extract "${componentDir}" --meta "${oldMetaPath}" --out "${testDir}/migrated.json" --json`
+          `node "${cliPath}" extract "${componentDir}" --meta "${oldMetaPath}" --output "${testDir}/migrated.json" --json`
         );
         
         const result = JSON.parse(stdout.trim());
@@ -627,7 +627,7 @@ describe('🧪 Regression Coverage', () => {
       const startTime = Date.now();
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" extract "${largeComponentDir}" --out "${testDir}/large-extract.json" --json`
+        `node "${cliPath}" extract "${largeComponentDir}" --output "${testDir}/large-extract.json" --json`
       );
       
       const endTime = Date.now();
@@ -675,7 +675,7 @@ describe('🧪 Regression Coverage', () => {
       const startTime = Date.now();
       
       const { stdout } = await execAsync(
-        `node "${cliPath}" mutate "${registryPath}" "${mutationPath}" "${outputPath}" --json`
+        `node "${cliPath}" workflow mutate "${registryPath}" "${mutationPath}" "${outputPath}" --json`
       );
       
       const endTime = Date.now();

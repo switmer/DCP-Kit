@@ -45,13 +45,18 @@ export class TokenDetector {
       this.detectFigmaTokens()
     ]);
 
+    // Log all detected sources
+    for (const source of this.detectedSources) {
+      this.logger.logDetectedSource(source);
+    }
+
     // Log detection performance
     const detectionTime = performance.now() - startTime;
     this.logger.logPerformance('detection', detectionTime);
 
     // Apply overrides
     const originalCount = this.detectedSources.length;
-    this.detectedSources = this.overrideManager.applyOverrides(this.detectedSources);
+    this.detectedSources = await this.overrideManager.applyOverrides(this.detectedSources);
     
     // Log override results
     if (this.detectedSources.length !== originalCount) {
@@ -88,7 +93,6 @@ export class TokenDetector {
           description: 'Radix UI theme tokens'
         };
         this.detectedSources.push(source);
-        this.logger.logDetectedSource(source);
         break;
       }
     }

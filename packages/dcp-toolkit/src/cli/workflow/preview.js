@@ -11,10 +11,11 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { diffLines, createTwoFilesPatch } from 'diff';
 import chalk from 'chalk';
+import { jsonError } from '../output.js';
 
 export default async function preview(source, options) {
   try {
-    const tmpDir = options.out ?? path.join(os.tmpdir(), 'dcp-preview-' + Date.now());
+    const tmpDir = options.output ?? path.join(os.tmpdir(), 'dcp-preview-' + Date.now());
 
     // Ensure temp dir exists
     fs.mkdirSync(tmpDir, { recursive: true });
@@ -28,7 +29,7 @@ export default async function preview(source, options) {
 
     // Run extraction. We suppress stdout by not passing verbose.
     const result = await runExtract(source, {
-      out: tmpDir,
+      output: tmpDir,
       adaptor: options.adaptor,
       autoDetectTokens: options.autoDetectTokens,
       // Force silent, json output we don't need.
@@ -73,14 +74,14 @@ export default async function preview(source, options) {
     }
 
     // Clean up temp dir unless user specified a path
-    if (!options.out) {
+    if (!options.output) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } else if (!options.json && !options.noColor) {
       console.log(chalk.gray(`🗑️  Preview output kept at ${tmpDir}`));
     }
   } catch (err) {
     if (options.json) {
-      console.log(JSON.stringify({ success: false, error: err.message }, null, 2));
+      jsonError(err);
     } else {
       console.error(chalk.red('❌ Preview failed:'), err.message);
     }

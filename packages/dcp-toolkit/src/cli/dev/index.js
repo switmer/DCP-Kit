@@ -75,7 +75,7 @@ Examples:
   // Generate interactive demo
   devGroup
     .command('demo [components]')
-    .description('Generate interactive component demos and playground')
+    .description('[preview] Generate interactive component demos and playground')
     .option('-o, --output <dir>', 'demo output directory', './demo')
     .option('--port <port>', 'development server port', '3000')
     .option('--template <template>', 'demo template (storybook, docusaurus, vite)', 'vite')
@@ -95,7 +95,7 @@ Examples:
   // Generate documentation
   devGroup
     .command('docs [source]')
-    .description('Generate comprehensive component documentation')
+    .description('[preview] Generate comprehensive component documentation')
     .option('-o, --output <dir>', 'documentation output directory', './docs')
     .option('--format <format>', 'documentation format (markdown, html, json)', 'markdown')
     .option('--template <template>', 'documentation template', 'default')
@@ -118,7 +118,7 @@ Examples:
     .command('api [registry]')
     .description('Start development API server for registry access')
     .option('-p, --port <port>', 'server port', '7400')
-    .option('-h, --host <host>', 'server host', 'localhost')
+    .option('--host <host>', 'server host', 'localhost')
     .option('--cors', 'enable CORS for all origins')
     .option('--auth <method>', 'authentication method (none, jwt, api-key)', 'none')
     .option('--rate-limit <requests>', 'requests per minute limit', '100')
@@ -136,7 +136,7 @@ Examples:
   // AI companion for development
   devGroup
     .command('companion')
-    .description('AI-powered development companion and assistant')
+    .description('[preview] AI-powered development companion and assistant')
     .option('--model <model>', 'AI model for assistance', 'claude-3-sonnet')
     .option('--mode <mode>', 'companion mode (interactive, watch, batch)', 'interactive')
     .option('--context <dir>', 'project context directory', '.')

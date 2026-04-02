@@ -39,8 +39,8 @@ export default async function validate(registry, options = {}) {
     }
   } catch (error) {
     if (options.json) {
-      console.log(JSON.stringify({ 
-        success: false, 
+      console.error(JSON.stringify({
+        success: false,
         valid: false,
         componentsValidated: 0,
         errors: [error.message],

@@ -137,15 +137,23 @@ class MCPExporter {
       description: component.description || '',
       
       // Props flattened for AI understanding
-      props: component.props?.map(prop => ({
-        name: prop.name,
-        type: prop.type,
-        required: prop.required || false,
-        default: prop.default,
-        description: prop.description || '',
-        // Add mutation hints
-        mutationPath: `/components/${component.name}/props/${prop.name}`
-      })) || [],
+      props: Array.isArray(component.props)
+        ? component.props.map(prop => ({
+            name: prop.name,
+            type: prop.type,
+            required: prop.required || false,
+            default: prop.default,
+            description: prop.description || '',
+            mutationPath: `/components/${component.name}/props/${prop.name}`
+          }))
+        : Object.entries(component.props || {}).map(([name, prop]) => ({
+            name,
+            type: prop.type,
+            required: prop.required || false,
+            default: prop.default,
+            description: prop.description || '',
+            mutationPath: `/components/${component.name}/props/${name}`
+          })),
       
       // Variants for AI to understand options
       variants: component.variants && typeof component.variants === 'object' 
@@ -233,8 +241,9 @@ class MCPExporter {
   shareProps(comp1, comp2) {
     if (!comp1.props || !comp2.props) return false;
     
-    const props1 = new Set(comp1.props.map(p => p.name));
-    const props2 = new Set(comp2.props.map(p => p.name));
+    const propNames = (props) => Array.isArray(props) ? props.map(p => p.name) : Object.keys(props);
+    const props1 = new Set(propNames(comp1.props));
+    const props2 = new Set(propNames(comp2.props));
     
     const intersection = new Set([...props1].filter(p => props2.has(p)));
     return intersection.size >= 2; // Threshold for "shared props"
@@ -245,16 +254,19 @@ class MCPExporter {
     
     // Prop-based mutations
     if (component.props) {
-      component.props.forEach(prop => {
+      const propsEntries = Array.isArray(component.props)
+        ? component.props.map(p => [p.name, p])
+        : Object.entries(component.props);
+      propsEntries.forEach(([propName, prop]) => {
         if (prop.type === 'union' || prop.type === 'string') {
-          mutations.push(`Change ${prop.name} value`);
+          mutations.push(`Change ${propName} value`);
         }
-        
-        if (prop.name.includes('variant')) {
-          mutations.push(`Switch to different ${prop.name}`);
+
+        if (propName.includes('variant')) {
+          mutations.push(`Switch to different ${propName}`);
         }
-        
-        if (prop.name.includes('size')) {
+
+        if (propName.includes('size')) {
           mutations.push(`Resize ${component.name}`);
         }
       });
@@ -551,8 +563,11 @@ class MCPExporter {
     };
     
     if (component.props) {
-      component.props.forEach(prop => {
-        paths.props[prop.name] = `/components/${component.name}/props/${prop.name}`;
+      const propNames = Array.isArray(component.props)
+        ? component.props.map(p => p.name)
+        : Object.keys(component.props);
+      propNames.forEach(name => {
+        paths.props[name] = `/components/${component.name}/props/${name}`;
       });
     }
     

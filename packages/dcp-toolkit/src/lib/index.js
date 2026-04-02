@@ -65,7 +65,7 @@ export class DCPTransformer {
       '--json'
     ].filter(Boolean).join(' ');
 
-    const cmd = `${this.cliPath} mutate ${registry} ${patchPath} ${output} ${flags}`;
+    const cmd = `${this.cliPath} workflow mutate ${registry} ${patchPath} ${output} ${flags}`;
     
     try {
       const { stdout } = await execAsync(cmd);
@@ -88,7 +88,7 @@ export class DCPTransformer {
       '--json'
     ].filter(Boolean).join(' ');
 
-    const cmd = `${this.cliPath} rollback ${registry} ${undo} ${flags}`;
+    const cmd = `${this.cliPath} workflow rollback ${registry} ${undo} ${flags}`;
     
     try {
       const { stdout } = await execAsync(cmd);
@@ -113,7 +113,7 @@ export class DCPTransformer {
       '--json'
     ].filter(Boolean).join(' ');
 
-    const cmd = `${this.cliPath} transpile ${registry} ${flags}`;
+    const cmd = `${this.cliPath} dev transpile ${registry} ${flags}`;
     
     try {
       const { stdout } = await execAsync(cmd);
@@ -137,7 +137,7 @@ export class DCPTransformer {
       '--json'
     ].filter(Boolean).join(' ');
 
-    const cmd = `${this.cliPath} export-mcp ${registry} ${flags}`;
+    const cmd = `${this.cliPath} export mcp ${registry} ${flags}`;
     
     try {
       const { stdout } = await execAsync(cmd);
@@ -162,7 +162,7 @@ export class DCPTransformer {
       '--json'
     ].filter(Boolean).join(' ');
 
-    const cmd = `${this.cliPath} agent "${prompt}" ${flags}`;
+    const cmd = `${this.cliPath} workflow agent "${prompt}" ${flags}`;
     
     try {
       const { stdout } = await execAsync(cmd);

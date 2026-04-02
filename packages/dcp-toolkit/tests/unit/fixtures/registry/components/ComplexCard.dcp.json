@@ -1,0 +1,94 @@
+{
+  "name": "ComplexCard",
+  "description": "ComplexCard component",
+  "category": "layout",
+  "props": {
+    "variant": {
+      "type": "enum",
+      "description": "Card variant with multiple options",
+      "required": false,
+      "source": "auto"
+    },
+    "size": {
+      "type": "enum",
+      "description": "Card size",
+      "required": false,
+      "source": "auto"
+    },
+    "interactive": {
+      "type": "boolean",
+      "description": "Whether card is interactive",
+      "required": false,
+      "source": "auto"
+    },
+    "className": {
+      "type": "string",
+      "description": "Custom styling",
+      "required": false,
+      "source": "auto"
+    },
+    "children": {
+      "type": "object",
+      "description": "Card content",
+      "required": true,
+      "source": "auto"
+    },
+    "header": {
+      "type": "object",
+      "description": "Optional header slot",
+      "required": false,
+      "source": "auto"
+    },
+    "footer": {
+      "type": "object",
+      "description": "Optional footer slot",
+      "required": false,
+      "source": "auto"
+    },
+    "actions": {
+      "type": "string",
+      "description": "Optional actions",
+      "required": false,
+      "source": "auto"
+    },
+    "loading": {
+      "type": "boolean",
+      "description": "Loading state",
+      "required": false,
+      "source": "auto"
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Disabled state",
+      "required": false,
+      "source": "auto"
+    },
+    "onClick": {
+      "type": "object",
+      "description": "Click handler for interactive cards",
+      "required": false,
+      "source": "auto"
+    },
+    "data-testid": {
+      "type": "string",
+      "description": "Additional data attributes",
+      "required": false,
+      "source": "auto"
+    }
+  },
+  "variants": {},
+  "composition": {
+    "slots": [],
+    "subComponents": []
+  },
+  "examples": [],
+  "source": "import React from 'react';\n\n/**\n * Complex card component for testing advanced extraction patterns\n */\nexport interface ComplexCardProps {\n  /** Card variant with multiple options */\n  variant?: 'default' | 'outlined' | 'filled' | 'elevated';\n  /** Card size */\n  size?: 'sm' | 'md' | 'lg' | 'xl';\n  /** Whether card is interactive */\n  interactive?: boolean;\n  /** Custom styling */\n  className?: string;\n  /** Card content */\n  children: React.ReactNode;\n  /** Optional header slot */\n  header?: React.ReactNode;\n  /** Optional footer slot */\n  footer?: React.ReactNode;\n  /** Optional actions */\n  actions?: Array<{\n    label: string;\n    onClick: () => void;\n    variant?: 'primary' | 'secondary';\n  }>;\n  /** Loading state */\n  loading?: boolean;\n  /** Disabled state */\n  disabled?: boolean;\n  /** Click handler for interactive cards */\n  onClick?: () => void;\n  /** Additional data attributes */\n  'data-testid'?: string;\n}\n\nexport const ComplexCard: React.FC<ComplexCardProps> = ({\n  variant = 'default',\n  size = 'md',\n  interactive = false,\n  className = '',\n  children,\n  header,\n  footer,\n  actions,\n  loading = false,\n  disabled = false,\n  onClick,\n  'data-testid': testId,\n  ...props\n}) => {\n  const baseClasses = 'card';\n  const variantClasses = {\n    default: 'card--default',\n    outlined: 'card--outlined',\n    filled: 'card--filled',\n    elevated: 'card--elevated'\n  };\n  \n  const sizeClasses = {\n    sm: 'card--sm',\n    md: 'card--md',\n    lg: 'card--lg',\n    xl: 'card--xl'\n  };\n  \n  const combinedClassName = [\n    baseClasses,\n    variantClasses[variant],\n    sizeClasses[size],\n    interactive && 'card--interactive',\n    loading && 'card--loading',\n    disabled && 'card--disabled',\n    className\n  ].filter(Boolean).join(' ');\n  \n  return (\n    <div\n      className={combinedClassName}\n      onClick={interactive && !disabled ? onClick : undefined}\n      data-testid={testId}\n      {...props}\n    >\n      {header && (\n        <div className=\"card__header\">\n          {header}\n        </div>\n      )}\n      \n      <div className=\"card__content\">\n        {loading ? (\n          <div className=\"card__loading\">Loading...</div>\n        ) : (\n          children\n        )}\n      </div>\n      \n      {actions && actions.length > 0 && (\n        <div className=\"card__actions\">\n          {actions.map((action, index) => (\n            <button\n              key={index}\n              className={`btn btn--${action.variant || 'secondary'}`}\n              onClick={action.onClick}\n              disabled={disabled}\n            >\n              {action.label}\n            </button>\n          ))}\n        </div>\n      )}\n      \n      {footer && (\n        <div className=\"card__footer\">\n          {footer}\n        </div>\n      )}\n    </div>\n  );\n};\n\nexport default ComplexCard;",
+  "extensions": {
+    "filePath": "tests/unit/fixtures/complex-card.tsx",
+    "componentType": "arrow",
+    "adaptor": "react-tsx",
+    "extractedAt": "2026-04-02T17:58:17.668Z",
+    "tsMorphAnalysis": true,
+    "typescriptAnalysis": true
+  }
+}
