@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ENV_FILE="${1:-.env.local}"
+
+echo "--- Validating $ENV_FILE"
+
+# Denylist: keys that must NEVER have real values in an agent environment
+DENIED_PATTERNS=(
+  "AWS_SECRET_ACCESS_KEY"
+  "OPENAI_API_KEY"
+  "GITHUB_TOKEN"
+  "SUPABASE_SERVICE_ROLE"
+  "_PROD_"
+  "PRODUCTION_DB"
+  "STRIPE_SECRET"
+  "STRIPE_LIVE"
+)
+
+if [ -f "$ENV_FILE" ]; then
+  for pattern in "${DENIED_PATTERNS[@]}"; do
+    if grep -v '^\s*#' "$ENV_FILE" | grep -q "$pattern" 2>/dev/null; then
+      VALUE=$(grep -v '^\s*#' "$ENV_FILE" | grep "$pattern" | head -1 | cut -d'=' -f2-)
+      if [ -n "$VALUE" ] && [ "$VALUE" != "" ] && [[ "$VALUE" != *"YOUR-"* ]] && [[ "$VALUE" != *"placeholder"* ]]; then
+        echo "BLOCKED: Found forbidden key pattern '$pattern' with a real value in $ENV_FILE"
+        echo "Remove this key or move it to your cloud agent dashboard secrets."
+        exit 1
+      fi
+    fi
+  done
+
+  # Check for AGENT_MODE
+  if ! grep -q "AGENT_MODE=true" "$ENV_FILE"; then
+    echo "WARNING: AGENT_MODE=true not found in $ENV_FILE"
+    echo "External service calls may not be mocked."
+  fi
+else
+  echo "INFO: No $ENV_FILE found — running without env file (OK for DCP)"
+fi
+
+echo "--- Env validation passed"

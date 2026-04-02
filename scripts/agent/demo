@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Cloud Agent Demo — DCP-Transformer"
+
+ARTIFACTS_DIR="artifacts/agent"
+mkdir -p "$ARTIFACTS_DIR"
+
+# 1. Extract components from the toolkit's own registry fixtures
+echo "--- Extracting registry components..."
+node packages/dcp-toolkit/bin/dcp.js validate \
+  --registry packages/dcp-toolkit/registry/registry.json \
+  --json > "$ARTIFACTS_DIR/validate-output.json" 2>&1 || true
+
+# 2. Query the registry
+echo "--- Querying registry..."
+node packages/dcp-toolkit/bin/dcp.js query \
+  --registry packages/dcp-toolkit/registry/registry.json \
+  --json > "$ARTIFACTS_DIR/query-output.json" 2>&1 || true
+
+# 3. Show CLI help as proof of life
+echo "--- CLI help output..."
+node packages/dcp-toolkit/bin/dcp.js --help > "$ARTIFACTS_DIR/cli-help.txt" 2>&1
+
+echo "--- Demo artifacts written to $ARTIFACTS_DIR/"
+ls -la "$ARTIFACTS_DIR/"
+
+echo "==> Demo complete"

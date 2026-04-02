@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Cloud Agent Bootstrap — DCP-Transformer"
+
+# 1. Verify runtime
+echo "--- Checking Node version..."
+NODE_VERSION=$(node --version)
+echo "    Node $NODE_VERSION"
+
+NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v\([0-9]*\).*/\1/')
+if [ "$NODE_MAJOR" -lt 18 ]; then
+  echo "ERROR: Node >= 18 required (got $NODE_VERSION)"
+  exit 1
+fi
+
+# 2. Install dependencies (prefer lockfile, fall back to install)
+echo "--- Installing dependencies..."
+npm ci || {
+  echo "--- npm ci failed (lockfile may be out of sync), falling back to npm install..."
+  npm install
+}
+
+# 3. Copy agent env if no .env.local exists
+if [ ! -f .env.local ] && [ -f .env.agent.example ]; then
+  echo "--- Copying .env.agent.example -> .env.local"
+  cp .env.agent.example .env.local
+fi
+
+# 4. No database setup needed — DCP is a CLI tool that processes local files
+
+# 5. Verify CLI is accessible
+echo "--- Verifying CLI entry point..."
+node packages/dcp-toolkit/bin/dcp.js --version
+
+echo "==> Bootstrap complete"
