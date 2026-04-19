@@ -1,0 +1,267 @@
+{
+  "name": "bungee-pro-experiment",
+  "version": "0.1.0",
+  "description": "Hand-authored registry modeled from observations of bungee-pro.webflow.io. See variant-rationale.md for human judgments made.",
+  "source": "https://bungee-pro.webflow.io/",
+  "components": [
+    {
+      "name": "Button",
+      "type": "component",
+      "category": "actions",
+      "description": "Primary CTA button. Two variants observed on bungee-pro: ghost (inline, no bg) and solid (filled dark).",
+      "props": [
+        {
+          "name": "variant",
+          "type": "union",
+          "required": false,
+          "default": "ghost",
+          "description": "Visual treatment"
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "description": "Button label"
+        },
+        {
+          "name": "onClick",
+          "type": "function",
+          "required": false,
+          "description": "Click handler"
+        }
+      ],
+      "variants": [
+        {
+          "name": "ghost",
+          "props": {
+            "backgroundColor": "transparent",
+            "textColor": "#1e1e1e",
+            "borderRadius": "0",
+            "padding": "0 0 4px 0"
+          }
+        },
+        {
+          "name": "solid",
+          "props": {
+            "backgroundColor": "#1e1e1e",
+            "textColor": "#ffffff",
+            "borderRadius": "12px",
+            "padding": "16px",
+            "height": "56px"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ProjectCard",
+      "type": "component",
+      "category": "layout",
+      "description": "Project showcase card: full-bleed image with 32px rounded corners, logo overlay, info row with title + date below.",
+      "props": [
+        {
+          "name": "image",
+          "type": "string",
+          "required": true,
+          "description": "Project cover image URL"
+        },
+        {
+          "name": "logo",
+          "type": "string",
+          "required": false,
+          "description": "Project logo URL (overlay on hover)"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "Project title"
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "required": true,
+          "description": "Project date label"
+        }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "imageHeight": "750px",
+            "imageRadius": "32px",
+            "textColor": "#1e1e1e",
+            "dateColor": "#5a6271"
+          }
+        }
+      ]
+    },
+    {
+      "name": "TestimonialCard",
+      "type": "component",
+      "category": "layout",
+      "description": "Testimonial card: light-gray bg, 32px radius, 2-column grid (image left, quote right).",
+      "props": [
+        {
+          "name": "image",
+          "type": "string",
+          "required": true,
+          "description": "Reviewer photo URL"
+        },
+        {
+          "name": "quote",
+          "type": "string",
+          "required": true,
+          "description": "Testimonial quote text"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": "Reviewer name"
+        },
+        {
+          "name": "role",
+          "type": "string",
+          "required": false,
+          "description": "Reviewer role/title"
+        }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "#eef0f6",
+            "borderRadius": "32px",
+            "layout": "grid-2col"
+          }
+        }
+      ]
+    }
+  ],
+  "tokens": {
+    "colors": {
+      "text-primary": {
+        "value": "#1e1e1e",
+        "type": "color"
+      },
+      "text-muted": {
+        "value": "#5a6271",
+        "type": "color"
+      },
+      "text-disabled": {
+        "value": "#8a919b",
+        "type": "color"
+      },
+      "bg-default": {
+        "value": "#ffffff",
+        "type": "color"
+      },
+      "bg-muted": {
+        "value": "#eef0f6",
+        "type": "color"
+      },
+      "border-default": {
+        "value": "#d0d8e4",
+        "type": "color"
+      }
+    },
+    "radius": {
+      "card": {
+        "value": "32px",
+        "type": "dimension"
+      },
+      "button": {
+        "value": "12px",
+        "type": "dimension"
+      }
+    }
+  },
+  "bindings": {
+    "contractVersion": "0.1.0",
+    "color": {
+      "bg.default": {
+        "token": "--site-bg-default",
+        "confidence": 0.95,
+        "source": "site-import",
+        "reason": "GSS: bungee-pro declares --colors--white: white and applies it to body background. Direct mapping."
+      },
+      "bg.muted": {
+        "token": "--site-bg-muted",
+        "confidence": 0.65,
+        "source": "site-import",
+        "reason": "GSS: AMBIGUOUS: chose bg.muted over border.muted because the hex appears as solid background on .testimonial-card and .footer (section-level treatment). However, it also appears as semi-transparent overlay (#eef0f64d) on .template-content-item, which is arguably a border-adjacent use. A style-signature pipeline without provenance would have to make this same call without the CSS context I had. Webflow's authors named this --colors--light-gray, avoiding either DCP role name entirely."
+      },
+      "text.primary": {
+        "token": "--site-text-primary",
+        "confidence": 0.95,
+        "source": "site-import",
+        "reason": "GSS: bungee-pro declares --colors--black: #1e1e1e and applies it as body { color: var(--colors--black) }. Direct mapping to DCP's text.primary."
+      },
+      "text.muted": {
+        "token": "--site-text-muted",
+        "confidence": 0.85,
+        "source": "site-import",
+        "reason": "GSS: bungee-pro declares --colors--text: #5a6271 and applies it to secondary text elements (project-card-date-block, template-content-item). Maps cleanly to text.muted."
+      },
+      "text.disabled": {
+        "token": "--site-text-disabled",
+        "confidence": 0.55,
+        "source": "site-import",
+        "reason": "GSS: AMBIGUOUS: chose text.disabled but could arguably be a second text.muted tone. bungee-pro declares --colors--gray: #8a919b as a distinct role from --colors--text (#5a6271); DCP's contract has only one text.muted slot. A human picked text.disabled as the closest-fit residual role; an automated pipeline would either collapse #8a919b and #5a6271 into text.muted (losing the author's two-tone intent) or pick differently from DCP's roster. This is the role contract forcing a decision where the source vocabulary is richer than the target vocabulary."
+      },
+      "border.default": {
+        "token": "--site-border-default",
+        "confidence": 0.9,
+        "source": "site-import",
+        "reason": "GSS: bungee-pro declares --colors--border: #d0d8e4 and uses it on border: 1px solid of .template-content-item. Direct mapping."
+      },
+      "intent.danger": {
+        "token": "--site-intent-danger",
+        "confidence": 0.6,
+        "source": "site-import",
+        "reason": "GSS: Observed as a standalone red hex in the stylesheet, not assigned to a --colors--* custom property. Most likely source is a form validation error state (bungee-pro has newsletter form). Intent is inferred, not declared — a style-signature pipeline would capture this hex but not know whether to call it intent.danger or accent.warm."
+      }
+    }
+  },
+  "themeContext": {
+    "cssVariables": {
+      "light": {
+        "--site-bg-default": {
+          "value": "#ffffff",
+          "computed": "#ffffff",
+          "colorSpace": "srgb"
+        },
+        "--site-bg-muted": {
+          "value": "#eef0f6",
+          "computed": "#eef0f6",
+          "colorSpace": "srgb"
+        },
+        "--site-text-primary": {
+          "value": "#1e1e1e",
+          "computed": "#1e1e1e",
+          "colorSpace": "srgb"
+        },
+        "--site-text-muted": {
+          "value": "#5a6271",
+          "computed": "#5a6271",
+          "colorSpace": "srgb"
+        },
+        "--site-text-disabled": {
+          "value": "#8a919b",
+          "computed": "#8a919b",
+          "colorSpace": "srgb"
+        },
+        "--site-border-default": {
+          "value": "#d0d8e4",
+          "computed": "#d0d8e4",
+          "colorSpace": "srgb"
+        },
+        "--site-intent-danger": {
+          "value": "#ea384c",
+          "computed": "#ea384c",
+          "colorSpace": "srgb"
+        }
+      }
+    }
+  }
+}

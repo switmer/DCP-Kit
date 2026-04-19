@@ -1,0 +1,34 @@
+{
+  "name": "@dcp/bungee-pro-experiment",
+  "version": "0.1.0",
+  "description": "Hand-authored registry modeled from observations of bungee-pro.webflow.io. See variant-rationale.md for human judgments made.",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "metadata": {
+    "generatedBy": "DCP Transformer",
+    "generatedAt": "2026-04-18T03:59:35.992Z",
+    "sourceRegistry": "bungee-pro-experiment"
+  }
+}

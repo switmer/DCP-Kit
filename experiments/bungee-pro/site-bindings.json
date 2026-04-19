@@ -1,0 +1,49 @@
+{
+  "contractVersion": "0.1.0",
+  "siteUrl": "https://bungee-pro.webflow.io/",
+  "extractedAt": "2026-04-17",
+  "provenance": "Hex values pulled from the site's compiled Webflow stylesheet at https://cdn.prod.website-files.com/6904c591abb4bd2b6a67271b/css/bungee-pro.webflow.shared.1f8392690.css, scoped to the --colors--* custom property block. Where the CSS author's semantic naming aligned with DCP's canonical role vocabulary, mapping was direct; the bg.muted vs border.muted call on #eef0f6 is the genuine ambiguity (see reason field).",
+  "bindings": {
+    "bg.default": {
+      "hex": "#ffffff",
+      "confidence": 0.95,
+      "reason": "bungee-pro declares --colors--white: white and applies it to body background. Direct mapping."
+    },
+    "bg.muted": {
+      "hex": "#eef0f6",
+      "confidence": 0.65,
+      "reason": "AMBIGUOUS: chose bg.muted over border.muted because the hex appears as solid background on .testimonial-card and .footer (section-level treatment). However, it also appears as semi-transparent overlay (#eef0f64d) on .template-content-item, which is arguably a border-adjacent use. A style-signature pipeline without provenance would have to make this same call without the CSS context I had. Webflow's authors named this --colors--light-gray, avoiding either DCP role name entirely."
+    },
+    "text.primary": {
+      "hex": "#1e1e1e",
+      "confidence": 0.95,
+      "reason": "bungee-pro declares --colors--black: #1e1e1e and applies it as body { color: var(--colors--black) }. Direct mapping to DCP's text.primary."
+    },
+    "text.muted": {
+      "hex": "#5a6271",
+      "confidence": 0.85,
+      "reason": "bungee-pro declares --colors--text: #5a6271 and applies it to secondary text elements (project-card-date-block, template-content-item). Maps cleanly to text.muted."
+    },
+    "text.disabled": {
+      "hex": "#8a919b",
+      "confidence": 0.55,
+      "reason": "AMBIGUOUS: chose text.disabled but could arguably be a second text.muted tone. bungee-pro declares --colors--gray: #8a919b as a distinct role from --colors--text (#5a6271); DCP's contract has only one text.muted slot. A human picked text.disabled as the closest-fit residual role; an automated pipeline would either collapse #8a919b and #5a6271 into text.muted (losing the author's two-tone intent) or pick differently from DCP's roster. This is the role contract forcing a decision where the source vocabulary is richer than the target vocabulary."
+    },
+    "border.default": {
+      "hex": "#d0d8e4",
+      "confidence": 0.9,
+      "reason": "bungee-pro declares --colors--border: #d0d8e4 and uses it on border: 1px solid of .template-content-item. Direct mapping."
+    },
+    "intent.danger": {
+      "hex": "#ea384c",
+      "confidence": 0.6,
+      "reason": "Observed as a standalone red hex in the stylesheet, not assigned to a --colors--* custom property. Most likely source is a form validation error state (bungee-pro has newsletter form). Intent is inferred, not declared — a style-signature pipeline would capture this hex but not know whether to call it intent.danger or accent.warm."
+    }
+  },
+  "report": {
+    "totalRolesMapped": 7,
+    "highConfidenceRoles": ["bg.default", "text.primary", "text.muted", "border.default"],
+    "ambiguousMappings": ["bg.muted", "text.disabled", "intent.danger"],
+    "note": "Four of seven mappings have high confidence because bungee-pro ships a declared semantic CSS variable layer that a DCP mapper can align against. Sites without that (pure utility-class Webflow templates, compiled Tailwind) would rely on value-based inference only and produce fewer high-confidence bindings."
+  }
+}

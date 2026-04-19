@@ -1,0 +1,99 @@
+{
+  "name": "bungee-pro-failure-case",
+  "version": "0.1.0",
+  "description": "DELIBERATE FAILURE CASE: three Button instances modeled as three separate components. This is what an automated style-signature clustering pipeline would produce if it could not make the judgment call that bungee-pro's .button-primary, .button-primary-v2, and three contextual usages are variants of one Button rather than three distinct components. The point is not that this framing is wrong — the point is that the judgment is required, and style-signature equivalence alone cannot make it.",
+  "source": "https://bungee-pro.webflow.io/",
+  "ambiguityNote": "On bungee-pro, .button-primary and .button-primary-v2 have identical declared styles in the CSS (see /tmp/bungee-pro.css lines 2455 and 2642). A style-signature-only clustering algorithm would merge them. A human can argue either framing has merit: (a) one Button with two variants + contextual usage, or (b) three distinct components serving three product surfaces (hero CTA, inline body CTA, persistent nav CTA). This registry takes framing (b) to show what the output looks like when the judgment goes the other way.",
+  "components": [
+    {
+      "name": "ButtonHero",
+      "type": "component",
+      "category": "actions",
+      "description": "Hero-position CTA button. Observed at top of homepage hero section.",
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "description": "Button label (observed: \"Let's Talk\")"
+        },
+        {
+          "name": "onClick",
+          "type": "function",
+          "required": false
+        }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "transparent",
+            "textColor": "#1e1e1e",
+            "gap": "16px",
+            "paddingBottom": "4px"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonInline",
+      "type": "component",
+      "category": "actions",
+      "description": "Inline body-flow CTA. Observed within copy sections.",
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "description": "Button label (observed: \"Get in touch\")"
+        },
+        {
+          "name": "onClick",
+          "type": "function",
+          "required": false
+        }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "transparent",
+            "textColor": "#1e1e1e",
+            "gap": "16px",
+            "paddingBottom": "4px"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonNav",
+      "type": "component",
+      "category": "actions",
+      "description": "Persistent navigation CTA. Observed in top nav bar.",
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "description": "Button label (observed: \"Let's talk\")"
+        },
+        {
+          "name": "onClick",
+          "type": "function",
+          "required": false
+        }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "transparent",
+            "textColor": "#1e1e1e",
+            "gap": "16px",
+            "paddingBottom": "4px"
+          }
+        }
+      ]
+    }
+  ]
+}
