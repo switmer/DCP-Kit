@@ -1,0 +1,34 @@
+{
+  "name": "@dcp/thefirestore-failure-case",
+  "version": "0.1.0",
+  "description": "DELIBERATE FAILURE CASE: nine Button modifiers modeled as nine separate components. This is the shape of output when an extraction pipeline observes .button--primary, .button--secondary, .button--tertiary, .button--accent, .button--large, .button--small, .button--slab, .button--icon, and .button--inputAction as sibling selectors and has no principled way to decide which are color-axis variants, which are size-axis variants, which are state modifiers, and which are distinct components entirely.",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "metadata": {
+    "generatedBy": "DCP Transformer",
+    "generatedAt": "2026-04-19T18:19:49.235Z",
+    "sourceRegistry": "thefirestore-failure-case"
+  }
+}

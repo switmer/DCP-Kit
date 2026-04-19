@@ -1,0 +1,62 @@
+{
+  "contractVersion": "0.1.0",
+  "siteUrl": "https://thefirestore.com/",
+  "extractedAt": "2026-04-19",
+  "provenance": "Hex values pulled from the compiled BigCommerce Stencil theme stylesheet. **Critical contrast with bungee-pro experiment: this site has NO CSS custom property definitions.** Every hex is referenced directly in component rule declarations. The author encoded semantics in class names (.button--primary, .button--accent) rather than in --custom-property names. That shifts the human mapping burden: we have to infer role from class+value, not from a declared --variable name that aligns with DCP vocabulary.",
+  "bindings": {
+    "bg.default": {
+      "hex": "#ffffff",
+      "confidence": 0.9,
+      "reason": "body { background: #fff } in the stencil theme. Direct mapping — the one unambiguous case on this site."
+    },
+    "text.primary": {
+      "hex": "#41423f",
+      "confidence": 0.75,
+      "reason": "body { color: #41423f } — the stencil theme uses a dark charcoal rather than pure black. Confidence dropped from bungee-pro's 0.95 because #41423f isn't a canonical 'black' hex; a value-based auto-mapper could plausibly bind it to text.muted instead of text.primary. The provenance (body selector) is what makes it primary."
+    },
+    "text.muted": {
+      "hex": "#757575",
+      "confidence": 0.7,
+      "reason": "Used on .card-text and similar secondary contexts. Medium-gray, clearly dimmer than body text. Confidence moderate because the site uses at least 8 distinct grays (#333, #41423f, #505050, #666, #757575, #8f8f8f, #909090, #999) and only one DCP text.muted slot — any automated mapping collapses most of these into one role, losing information."
+    },
+    "accent.primary": {
+      "hex": "#c12126",
+      "confidence": 0.85,
+      "reason": "Brand fire-engine red, used on .button--primary default state, category CTAs, and most action surfaces. Highest-signal brand color on the site. The role binding is defensible but not automatic — #c12126 on its own gives a value-based mapper no reason to prefer accent.primary over intent.danger (it IS a danger-red hex). Provenance (appears on primary action buttons, not on error states) is what disambiguates."
+    },
+    "intent.danger": {
+      "hex": "#c12126",
+      "confidence": 0.4,
+      "reason": "AMBIGUOUS: same hex as accent.primary. On most design systems, primary brand accent and error/danger signal are distinguished. On thefirestore — firefighter gear — the brand color IS danger-red by design. A human has to choose: (a) bind accent.primary, leave intent.danger unmapped, and note the collision; or (b) bind both roles to the same hex, accepting that the registry loses a semantic distinction the site itself has collapsed. Chose (b) with low confidence so the collision is visible in the registry rather than hidden."
+    },
+    "accent.on": {
+      "hex": "#ffffff",
+      "confidence": 0.85,
+      "reason": "Button primary and secondary variants both use color: #fff on top of colored backgrounds. Clean mapping to accent.on."
+    },
+    "border.muted": {
+      "hex": "#999999",
+      "confidence": 0.6,
+      "reason": "AMBIGUOUS: .card-image uses border: 1px solid #999. Could be border.default (the canonical 'neutral border' role) or border.muted (the dimmer variant). Picked border.muted because there's no lighter-toned border visible; #999 is effectively the site's only border treatment and it reads as dim, not structural. A value-based auto-mapper would likely bind this to border.default on lightness grounds alone — that would be a defensible different call."
+    }
+  },
+  "extensions": {
+    "--site-brand-red-hover": {
+      "hex": "#9b090d",
+      "confidence": 0.8,
+      "reason": "Darker red, used as .button--primary:hover. Not a canonical DCP role — hover states aren't in the color contract. Stored as a themeContext extension. Bungee-pro did not produce any role-vocabulary-gap extensions; thefirestore produces one immediately because the site encodes interaction state (hover) in the palette itself."
+    },
+    "--site-accent-gold": {
+      "hex": "#d2aa21",
+      "confidence": 0.7,
+      "reason": "Used on .button--accent. Warm gold, distinct from brand red. Could plausibly map to accent.primary (if you argue the site has two accent tones), but #c12126 is more broadly used, so this goes in extensions. Another judgment call where the DCP vocabulary is narrower than the site's expression."
+    }
+  },
+  "report": {
+    "totalRolesMapped": 7,
+    "extensionsCaptured": 2,
+    "highConfidenceRoles": ["bg.default", "accent.primary", "accent.on"],
+    "ambiguousMappings": ["text.primary", "text.muted", "intent.danger", "border.muted"],
+    "note": "Only 3 of 7 bindings landed at high confidence, vs bungee-pro's 4 of 7. The rest carried 0.4–0.75 confidence because (a) no semantic CSS variable layer exists — every role assignment is a human call, not a name match; (b) brand-red and intent-danger collide on the same hex; (c) the site's palette has more role-candidates than DCP's contract has slots (8 grays → 1 text.muted; 2 accents → 1 accent.primary + 1 extension). **This is what the live-site case looks like on a stencil/compiled-CSS target without author-provided semantic scaffolding.**"
+  }
+}

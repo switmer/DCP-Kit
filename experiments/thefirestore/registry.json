@@ -1,0 +1,316 @@
+{
+  "name": "thefirestore-experiment",
+  "version": "0.1.0",
+  "description": "Hand-authored registry modeled from observations of thefirestore.com (BigCommerce Stencil, firefighter gear e-commerce). Contrast target vs bungee-pro: no CSS custom property layer, raw-hex-only styling. See variant-rationale.md and FINDINGS.md for comparison.",
+  "source": "https://thefirestore.com/",
+  "platform": "BigCommerce Stencil",
+  "components": [
+    {
+      "name": "Button",
+      "type": "component",
+      "category": "actions",
+      "description": "Primary CTA button. Four color variants declared in the stencil theme: primary (brand red), secondary (black), tertiary (ghost/white), accent (gold). Sizing variants (large, small, slab, icon) exist separately.",
+      "props": [
+        {
+          "name": "variant",
+          "type": "union",
+          "required": false,
+          "default": "primary",
+          "description": "Color treatment"
+        },
+        {
+          "name": "size",
+          "type": "union",
+          "required": false,
+          "default": "default",
+          "description": "Size variant"
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "description": "Button label"
+        },
+        {
+          "name": "onClick",
+          "type": "function",
+          "required": false,
+          "description": "Click handler"
+        }
+      ],
+      "variants": [
+        {
+          "name": "primary",
+          "props": {
+            "backgroundColor": "#c12126",
+            "borderColor": "#c12126",
+            "textColor": "#ffffff",
+            "hoverBackgroundColor": "#9b090d"
+          }
+        },
+        {
+          "name": "secondary",
+          "props": {
+            "backgroundColor": "#1a1919",
+            "textColor": "#ffffff",
+            "hoverBackgroundColor": "#c12126"
+          }
+        },
+        {
+          "name": "tertiary",
+          "props": {
+            "backgroundColor": "#ffffff",
+            "textColor": "#1a1919",
+            "hoverBackgroundColor": "#c12126",
+            "hoverTextColor": "#ffffff"
+          }
+        },
+        {
+          "name": "accent",
+          "props": {
+            "backgroundColor": "transparent",
+            "textColor": "#d2aa21",
+            "hoverBackgroundColor": "#d2aa21",
+            "hoverTextColor": "#ffffff"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ProductCard",
+      "type": "component",
+      "category": "layout",
+      "description": "Product tile with image, caption overlay, and optional hover action. Two observable treatments: default (transparent card, figure bg white, gray border) and alternate (red hover border, red body on hover). Core e-commerce primitive.",
+      "props": [
+        {
+          "name": "variant",
+          "type": "union",
+          "required": false,
+          "default": "default",
+          "description": "default | alternate"
+        },
+        {
+          "name": "image",
+          "type": "string",
+          "required": true,
+          "description": "Product image URL"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "Product title"
+        },
+        {
+          "name": "price",
+          "type": "string",
+          "required": false,
+          "description": "Formatted price string"
+        }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "transparent",
+            "figureBackgroundColor": "#ffffff",
+            "imageBorder": "1px solid #999999",
+            "captionColor": "#757575",
+            "captionButtonBg": "rgba(255,255,255,0.9)",
+            "captionButtonColor": "#333333"
+          }
+        },
+        {
+          "name": "alternate",
+          "props": {
+            "border": "3px solid #ffffff",
+            "bodyBackground": "#ffffff",
+            "hoverBorderColor": "#c12126",
+            "hoverBodyBackgroundColor": "#c12126",
+            "hoverTextColor": "#ffffff"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CategoryTile",
+      "type": "component",
+      "category": "layout",
+      "description": "Category grid tile (Helmets, Boots, Gloves, etc.). Observable on homepage as a 16-tile grid. Image + category label + 'SHOP' link pattern.",
+      "props": [
+        {
+          "name": "image",
+          "type": "string",
+          "required": true,
+          "description": "Category hero image URL"
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": "Category label (e.g., 'HELMETS')"
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": true,
+          "description": "Category page URL"
+        }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "labelColor": "#1a1919",
+            "ctaColor": "#c12126",
+            "imageAspectRatio": "square"
+          }
+        }
+      ]
+    }
+  ],
+  "tokens": {
+    "colors": {
+      "body-text": {
+        "value": "#41423f",
+        "type": "color"
+      },
+      "body-bg": {
+        "value": "#ffffff",
+        "type": "color"
+      },
+      "brand-red": {
+        "value": "#c12126",
+        "type": "color"
+      },
+      "brand-red-hover": {
+        "value": "#9b090d",
+        "type": "color"
+      },
+      "secondary-black": {
+        "value": "#1a1919",
+        "type": "color"
+      },
+      "accent-gold": {
+        "value": "#d2aa21",
+        "type": "color"
+      },
+      "muted-text": {
+        "value": "#757575",
+        "type": "color"
+      },
+      "muted-border": {
+        "value": "#999999",
+        "type": "color"
+      }
+    }
+  },
+  "bindings": {
+    "contractVersion": "0.1.0",
+    "color": {
+      "bg.default": {
+        "token": "--site-bg-default",
+        "confidence": 0.9,
+        "source": "site-import",
+        "reason": "GSS: body { background: #fff } in the stencil theme. Direct mapping — the one unambiguous case on this site."
+      },
+      "text.primary": {
+        "token": "--site-text-primary",
+        "confidence": 0.75,
+        "source": "site-import",
+        "reason": "GSS: body { color: #41423f } — the stencil theme uses a dark charcoal rather than pure black. Confidence dropped from bungee-pro's 0.95 because #41423f isn't a canonical 'black' hex; a value-based auto-mapper could plausibly bind it to text.muted instead of text.primary. The provenance (body selector) is what makes it primary."
+      },
+      "text.muted": {
+        "token": "--site-text-muted",
+        "confidence": 0.7,
+        "source": "site-import",
+        "reason": "GSS: Used on .card-text and similar secondary contexts. Medium-gray, clearly dimmer than body text. Confidence moderate because the site uses at least 8 distinct grays (#333, #41423f, #505050, #666, #757575, #8f8f8f, #909090, #999) and only one DCP text.muted slot — any automated mapping collapses most of these into one role, losing information."
+      },
+      "accent.primary": {
+        "token": "--site-accent-primary",
+        "confidence": 0.85,
+        "source": "site-import",
+        "reason": "GSS: Brand fire-engine red, used on .button--primary default state, category CTAs, and most action surfaces. Highest-signal brand color on the site. The role binding is defensible but not automatic — #c12126 on its own gives a value-based mapper no reason to prefer accent.primary over intent.danger (it IS a danger-red hex). Provenance (appears on primary action buttons, not on error states) is what disambiguates."
+      },
+      "intent.danger": {
+        "token": "--site-intent-danger",
+        "confidence": 0.4,
+        "source": "site-import",
+        "reason": "GSS: AMBIGUOUS: same hex as accent.primary. On most design systems, primary brand accent and error/danger signal are distinguished. On thefirestore — firefighter gear — the brand color IS danger-red by design. A human has to choose: (a) bind accent.primary, leave intent.danger unmapped, and note the collision; or (b) bind both roles to the same hex, accepting that the registry loses a semantic distinction the site itself has collapsed. Chose (b) with low confidence so the collision is visible in the registry rather than hidden."
+      },
+      "accent.on": {
+        "token": "--site-accent-on",
+        "confidence": 0.85,
+        "source": "site-import",
+        "reason": "GSS: Button primary and secondary variants both use color: #fff on top of colored backgrounds. Clean mapping to accent.on."
+      },
+      "border.muted": {
+        "token": "--site-border-muted",
+        "confidence": 0.6,
+        "source": "site-import",
+        "reason": "GSS: AMBIGUOUS: .card-image uses border: 1px solid #999. Could be border.default (the canonical 'neutral border' role) or border.muted (the dimmer variant). Picked border.muted because there's no lighter-toned border visible; #999 is effectively the site's only border treatment and it reads as dim, not structural. A value-based auto-mapper would likely bind this to border.default on lightness grounds alone — that would be a defensible different call."
+      }
+    }
+  },
+  "themeContext": {
+    "cssVariables": {
+      "light": {
+        "--site-bg-default": {
+          "value": "#ffffff",
+          "computed": "#ffffff",
+          "colorSpace": "srgb"
+        },
+        "--site-text-primary": {
+          "value": "#41423f",
+          "computed": "#41423f",
+          "colorSpace": "srgb"
+        },
+        "--site-text-muted": {
+          "value": "#757575",
+          "computed": "#757575",
+          "colorSpace": "srgb"
+        },
+        "--site-accent-primary": {
+          "value": "#c12126",
+          "computed": "#c12126",
+          "colorSpace": "srgb"
+        },
+        "--site-intent-danger": {
+          "value": "#c12126",
+          "computed": "#c12126",
+          "colorSpace": "srgb"
+        },
+        "--site-accent-on": {
+          "value": "#ffffff",
+          "computed": "#ffffff",
+          "colorSpace": "srgb"
+        },
+        "--site-border-muted": {
+          "value": "#999999",
+          "computed": "#999999",
+          "colorSpace": "srgb"
+        }
+      }
+    }
+  },
+  "siteImport": {
+    "extensions": {
+      "--site-brand-red-hover": {
+        "hex": "#9b090d",
+        "confidence": 0.8,
+        "reason": "Darker red, used as .button--primary:hover. Not a canonical DCP role — hover states aren't in the color contract. Stored as a themeContext extension. Bungee-pro did not produce any role-vocabulary-gap extensions; thefirestore produces one immediately because the site encodes interaction state (hover) in the palette itself.",
+        "siteUrl": "https://thefirestore.com/",
+        "importedAt": "2026-04-19T18:19:53.851Z"
+      },
+      "--site-accent-gold": {
+        "hex": "#d2aa21",
+        "confidence": 0.7,
+        "reason": "Used on .button--accent. Warm gold, distinct from brand red. Could plausibly map to accent.primary (if you argue the site has two accent tones), but #c12126 is more broadly used, so this goes in extensions. Another judgment call where the DCP vocabulary is narrower than the site's expression.",
+        "siteUrl": "https://thefirestore.com/",
+        "importedAt": "2026-04-19T18:19:53.851Z"
+      }
+    },
+    "siteUrl": "https://thefirestore.com/",
+    "importedAt": "2026-04-19T18:19:53.851Z"
+  }
+}

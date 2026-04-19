@@ -1,0 +1,180 @@
+{
+  "name": "thefirestore-failure-case",
+  "version": "0.1.0",
+  "description": "DELIBERATE FAILURE CASE: nine Button modifiers modeled as nine separate components. This is the shape of output when an extraction pipeline observes .button--primary, .button--secondary, .button--tertiary, .button--accent, .button--large, .button--small, .button--slab, .button--icon, and .button--inputAction as sibling selectors and has no principled way to decide which are color-axis variants, which are size-axis variants, which are state modifiers, and which are distinct components entirely.",
+  "source": "https://thefirestore.com/",
+  "platform": "BigCommerce Stencil",
+  "ambiguityNote": "Contrast with bungee-pro's failure-case: there, the ambiguity was 'are .button-primary and .button-primary-v2 one component or two?' (identical styles, different names). Here, the ambiguity is 'which of these nine --modifier classes are axes of a single component, which are states, and which are distinct primitives?' (distinct styles, shared prefix). Both problems require semantic judgment. Neither is solved by style-signature equivalence. An automated pipeline running a clustering step would either (a) merge too aggressively into one Button component and lose the semantic distinctions, or (b) split too aggressively like this registry and produce a maintenance nightmare where 'make all primary buttons use rounded-lg' requires editing nine files.",
+  "components": [
+    {
+      "name": "ButtonPrimary",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--primary modifier, treated as its own component.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": true },
+        { "name": "onClick", "type": "function", "required": false }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "#c12126",
+            "borderColor": "#c12126",
+            "textColor": "#ffffff"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonSecondary",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--secondary modifier, treated as its own component.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": true },
+        { "name": "onClick", "type": "function", "required": false }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "#1a1919",
+            "textColor": "#ffffff"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonTertiary",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--tertiary modifier, treated as its own component.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": true },
+        { "name": "onClick", "type": "function", "required": false }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "#ffffff",
+            "textColor": "#1a1919"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonAccent",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--accent modifier, treated as its own component.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": true },
+        { "name": "onClick", "type": "function", "required": false }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "backgroundColor": "transparent",
+            "textColor": "#d2aa21"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonLarge",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--large modifier, treated as its own component. Note: this is a size modifier, not a color modifier — a clustering pipeline that can't distinguish axes merges it with the color variants.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": true }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": { "fontSize": "18px" }
+        }
+      ]
+    },
+    {
+      "name": "ButtonSmall",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--small modifier. Also a size-axis modifier.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": true }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "fontSize": "14px",
+            "padding": ".5625rem 1.5rem"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonSlab",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--slab modifier — full-width block button.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": true }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "display": "block",
+            "width": "100%",
+            "marginLeft": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonIcon",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--icon modifier. Square icon-only button.",
+      "props": [
+        { "name": "icon", "type": "ReactNode", "required": true }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "fontSize": "1rem",
+            "padding": ".75rem .75rem"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ButtonInputAction",
+      "type": "component",
+      "category": "actions",
+      "description": "The .button--inputAction modifier. Specialized component attached to input fields — declared style is transparent, borderless, with a negative margin to overlay the input. Semantically distinct from other Button modifiers despite sharing the .button-- prefix.",
+      "props": [
+        { "name": "children", "type": "ReactNode", "required": false }
+      ],
+      "variants": [
+        {
+          "name": "default",
+          "props": {
+            "background": "0 0",
+            "border": "0",
+            "borderRadius": "0",
+            "float": "left",
+            "height": "2.875rem",
+            "margin": ".0625rem 0 0 -2.9375rem",
+            "width": "2.875rem"
+          }
+        }
+      ]
+    }
+  ]
+}
