@@ -1,0 +1,38 @@
+[
+  {
+    "url": "http://www.vercel.com",
+    "hostname": "www.vercel.com",
+    "analyzedAt": "2026-04-20T23:31:24.141Z",
+    "runtimeMs": 4009
+  },
+  {
+    "url": "http://www.onroster.io",
+    "hostname": "www.onroster.io",
+    "analyzedAt": "2026-04-20T23:29:20.859Z",
+    "runtimeMs": 2811
+  },
+  {
+    "url": "http://thefirestore.com",
+    "hostname": "thefirestore.com",
+    "analyzedAt": "2026-04-20T23:17:10.275Z",
+    "runtimeMs": 3937
+  },
+  {
+    "url": "http://www.webflow.com",
+    "hostname": "www.webflow.com",
+    "analyzedAt": "2026-04-20T23:01:11.914Z",
+    "runtimeMs": 3087
+  },
+  {
+    "url": "https://vercel.com",
+    "hostname": "vercel.com",
+    "analyzedAt": "2026-04-20T22:44:35.349Z",
+    "runtimeMs": 4109
+  },
+  {
+    "url": "https://example.com",
+    "hostname": "example.com",
+    "analyzedAt": "2026-04-20T20:54:59.500Z",
+    "runtimeMs": 1801
+  }
+]

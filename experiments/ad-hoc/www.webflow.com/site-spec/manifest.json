@@ -1,27 +1,27 @@
 {
-  "hostname": "bungee-pro.webflow.io",
-  "source_url": "https://bungee-pro.webflow.io",
-  "generated_at": "2026-04-20T23:35:15.587Z",
-  "substrate_score": 0.84,
+  "hostname": "www.webflow.com",
+  "source_url": "http://www.webflow.com",
+  "generated_at": "2026-04-20T23:35:15.566Z",
+  "substrate_score": 0.87,
   "refusal_threshold": 0.55,
   "refused": false,
   "refuse_reason": null,
   "tier": "high",
   "files": {
     "CAVEATS.md": {
-      "bytes": 2149,
-      "lines": 43
+      "bytes": 2725,
+      "lines": 52
     },
     "DESIGN.md": {
-      "bytes": 4116,
-      "lines": 68
+      "bytes": 4616,
+      "lines": 72
     },
     "STRUCTURE.md": {
-      "bytes": 2592,
+      "bytes": 2699,
       "lines": 45
     },
     "IMPLEMENTATION.md": {
-      "bytes": 5242,
+      "bytes": 5214,
       "lines": 121
     }
   },

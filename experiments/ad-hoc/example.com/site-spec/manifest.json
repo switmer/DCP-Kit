@@ -1,0 +1,25 @@
+{
+  "hostname": "example.com",
+  "source_url": "https://example.com",
+  "generated_at": "2026-04-20T23:35:15.452Z",
+  "substrate_score": 0.07,
+  "refusal_threshold": 0.55,
+  "refused": true,
+  "refuse_reason": "role coverage 0.07 below hard floor 0.5",
+  "tier": "refused",
+  "files": {
+    "CAVEATS.md": {
+      "bytes": 2330,
+      "lines": 43
+    },
+    "REFUSAL.md": {
+      "bytes": 3139,
+      "lines": 59
+    }
+  },
+  "absent_files": [
+    "DESIGN.md",
+    "STRUCTURE.md",
+    "IMPLEMENTATION.md"
+  ]
+}

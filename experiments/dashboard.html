@@ -143,6 +143,61 @@
     { slug: 'thefirestore', label: 'thefirestore.com', target: 'BigCommerce Stencil, no semantic vars' },
   ];
 
+  // --- Mode detection: dynamic (local server) vs static (deploy) ---
+  // The static deploy has no Node server, so /api/* calls 404. On 404 we
+  // switch to direct file reads from the committed tree. The analyze form
+  // gets disabled in static mode with an explanatory notice.
+  let IS_STATIC = false;
+  try {
+    const probe = await fetch('/api/adhoc', { method: 'GET' });
+    if (!probe.ok) IS_STATIC = true;
+  } catch {
+    IS_STATIC = true;
+  }
+
+  async function listAdHocSites_staticFallback() {
+    try {
+      const r = await fetch('./ad-hoc-index.json');
+      if (!r.ok) return [];
+      return await r.json();
+    } catch { return []; }
+  }
+
+  async function fetchPackManifest(hostname) {
+    if (!IS_STATIC) return (await fetch('/api/pack/' + encodeURIComponent(hostname))).json();
+    // Static: the manifest was persisted alongside the pack files at site-spec/manifest.json
+    // Resolve the base dir for this hostname.
+    const bases = [
+      `./ad-hoc/${encodeURIComponent(hostname)}/site-spec`,
+      // Baseline experiment hostnames map onto slug directories
+      hostname === 'bungee-pro.webflow.io' ? `./bungee-pro/site-spec` : null,
+      hostname === 'thefirestore.com' ? `./thefirestore/site-spec` : null,
+    ].filter(Boolean);
+    for (const base of bases) {
+      try {
+        const r = await fetch(base + '/manifest.json');
+        if (r.ok) {
+          const m = await r.json();
+          m._staticBase = base;
+          return m;
+        }
+      } catch {}
+    }
+    throw new Error(`no static manifest found for ${hostname}`);
+  }
+
+  async function fetchPackFile(hostname, filename) {
+    if (!IS_STATIC) {
+      const r = await fetch(`/api/pack/${encodeURIComponent(hostname)}/${encodeURIComponent(filename)}`);
+      if (!r.ok) throw new Error(await r.text());
+      return r.text();
+    }
+    const m = await fetchPackManifest(hostname);
+    const r = await fetch(`${m._staticBase}/${filename}`);
+    if (!r.ok) throw new Error(`static fetch failed for ${filename}`);
+    return r.text();
+  }
+
   const confClass = (c) => c >= 0.85 ? 'conf-high' : c >= 0.65 ? 'conf-mid' : 'conf-low';
   const diffClass = (state) => state === 'agree' ? 'diff-ok' : state === 'partial' ? 'diff-warn' : 'diff-bad';
 
@@ -563,11 +618,9 @@
   // Renders a site-spec pack manifest in the given output element, with a
   // clickable list of present files and a muted list of absent ones.
   async function renderPackManifest(hostname, outputEl) {
-    outputEl.innerHTML = `<div class="muted" style="margin-top: 12px; font-size: 13px;">Generating pack…</div>`;
+    outputEl.innerHTML = `<div class="muted" style="margin-top: 12px; font-size: 13px;">${IS_STATIC ? 'Loading pre-built pack…' : 'Generating pack…'}</div>`;
     try {
-      const r = await fetch('/api/pack/' + encodeURIComponent(hostname));
-      const manifest = await r.json();
-      if (!r.ok) throw new Error(manifest.error || 'pack request failed');
+      const manifest = await fetchPackManifest(hostname);
       const tierColor = manifest.tier === 'refused' ? 'var(--bad)'
         : manifest.tier === 'high' ? 'var(--ok)'
         : 'var(--warn)';
@@ -610,9 +663,7 @@
           const viewer = outputEl.querySelector('.pack-file-viewer');
           viewer.innerHTML = `<div class="muted" style="font-size: 12px;">Loading ${filename}…</div>`;
           try {
-            const fr = await fetch(`/api/pack/${encodeURIComponent(host)}/${encodeURIComponent(filename)}`);
-            const text = await fr.text();
-            if (!fr.ok) throw new Error(text);
+            const text = await fetchPackFile(host, filename);
             viewer.innerHTML = `
               <details open>
                 <summary style="cursor: pointer; color: var(--muted); font-size: 12px; margin-bottom: 8px;">${filename} (${text.length.toLocaleString()} chars)</summary>
@@ -649,7 +700,9 @@
 
   async function loadAdHocList() {
     try {
-      const sites = await (await fetch('/api/adhoc')).json();
+      const sites = IS_STATIC
+        ? await listAdHocSites_staticFallback()
+        : await (await fetch('/api/adhoc')).json();
       const listEl = document.getElementById('adhoc-list');
       if (!sites.length) { listEl.innerHTML = ''; return; }
       listEl.innerHTML = `
@@ -668,9 +721,22 @@
           const statusEl = document.getElementById('analyze-status');
           statusEl.textContent = `Loading ${hostname}…`;
           try {
-            const r = await fetch('/api/adhoc/' + encodeURIComponent(hostname));
-            const data = await r.json();
-            if (!r.ok) throw new Error(data.error || 'load failed');
+            let data;
+            if (IS_STATIC) {
+              // Static mode: read ad-hoc/<host>/{meta,gss-bindings}.json directly
+              const [metaR, gssR] = await Promise.all([
+                fetch(`./ad-hoc/${encodeURIComponent(hostname)}/meta.json`),
+                fetch(`./ad-hoc/${encodeURIComponent(hostname)}/gss-bindings.json`),
+              ]);
+              if (!metaR.ok || !gssR.ok) throw new Error('static ad-hoc files not found');
+              const meta = await metaR.json();
+              const gss = await gssR.json();
+              data = { ...meta, bindings: gss.bindings?.bindings || {}, report: gss.bindings?.report || {}, tokens: gss.tokens || null };
+            } else {
+              const r = await fetch('/api/adhoc/' + encodeURIComponent(hostname));
+              data = await r.json();
+              if (!r.ok) throw new Error(data.error || 'load failed');
+            }
             renderAdHocResult({ ...data, hostname, url: data.url || `(${hostname})` }, document.getElementById('analyze-result'));
             statusEl.textContent = '';
           } catch (e) {
@@ -684,8 +750,25 @@
   }
 
   const form = document.getElementById('analyze-form');
+
+  if (IS_STATIC) {
+    // Static deploy: the analyze feature requires a Node server shelling out
+    // to Get-Site-Styles. Disable the form and explain.
+    const urlInput = document.getElementById('analyze-url');
+    const btn = document.getElementById('analyze-btn');
+    urlInput.disabled = true;
+    urlInput.placeholder = 'Analyze-new-site requires running locally';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    btn.title = 'Requires local Node server + GSS. Clone the repo and run ./experiments/serve-dashboard.sh to enable.';
+    const statusEl = document.getElementById('analyze-status');
+    statusEl.innerHTML = `<span class="muted">Static deploy — analyze-new-site requires the local backend (Get-Site-Styles subprocess). Clone <code>github.com/switmer/DCP-Kit</code> and run <code>node experiments/server.mjs</code> to enable. The previously-analyzed sites below are fully browsable.</span>`;
+  }
+
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
+    if (IS_STATIC) return; // belt + suspenders
     const urlInput = document.getElementById('analyze-url');
     const btn = document.getElementById('analyze-btn');
     const statusEl = document.getElementById('analyze-status');

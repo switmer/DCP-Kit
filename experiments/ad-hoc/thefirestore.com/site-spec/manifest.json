@@ -1,27 +1,27 @@
 {
-  "hostname": "bungee-pro.webflow.io",
-  "source_url": "https://bungee-pro.webflow.io",
-  "generated_at": "2026-04-20T23:35:15.587Z",
-  "substrate_score": 0.84,
+  "hostname": "thefirestore.com",
+  "source_url": "http://thefirestore.com",
+  "generated_at": "2026-04-20T23:35:15.485Z",
+  "substrate_score": 0.9,
   "refusal_threshold": 0.55,
   "refused": false,
   "refuse_reason": null,
   "tier": "high",
   "files": {
     "CAVEATS.md": {
-      "bytes": 2149,
-      "lines": 43
+      "bytes": 2544,
+      "lines": 50
     },
     "DESIGN.md": {
-      "bytes": 4116,
-      "lines": 68
+      "bytes": 4715,
+      "lines": 74
     },
     "STRUCTURE.md": {
-      "bytes": 2592,
+      "bytes": 2748,
       "lines": 45
     },
     "IMPLEMENTATION.md": {
-      "bytes": 5242,
+      "bytes": 5178,
       "lines": 121
     }
   },
