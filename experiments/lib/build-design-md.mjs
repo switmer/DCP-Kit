@@ -602,7 +602,8 @@ function buildStructureFile({ canonical, gss, substrate, context }) {
   lines.push(`answers_question: "What is it made of?"`);
   lines.push(`hostname: ${context.hostname}`);
   lines.push(`source_url: ${context.url || 'https://' + context.hostname}`);
-  lines.push(`readiness: weak`);
+  lines.push(`status: weak`);
+  lines.push(`readiness: partial — raw material only; no inferred structure`);
   lines.push('---');
   lines.push('');
   lines.push(`# STRUCTURE.md — ${context.hostname}`);
@@ -678,11 +679,15 @@ function buildImplementationFile({ canonical, gss, substrate, context, bindings 
   lines.push(`role_in_pack: adapter_and_defaults`);
   lines.push(`answers_question: "How do I build it?"`);
   lines.push(`hostname: ${context.hostname}`);
+  lines.push(`status: adapter-specific`);
+  lines.push(`evidence_preserving: false`);
+  lines.push(`lossy: true`);
+  lines.push(`warning: "Content is shadcn/ui-shaped. The scaffold loses information that DESIGN.md preserves (role vocabulary, confidence, validity). Do not treat shadcn values as source of truth."`);
   lines.push('---');
   lines.push('');
   lines.push(`# IMPLEMENTATION.md — ${context.hostname}`);
   lines.push('');
-  lines.push(`> Adapter output and agent guidance. **This is downstream of DESIGN.md / STRUCTURE.md** — use these defaults to bootstrap, then confirm against the evidence in the other pack files.`);
+  lines.push(`> **Adapter-specific, lossy, not evidence-preserving.** This file is downstream of DESIGN.md / STRUCTURE.md / CAVEATS.md and subordinate to all three. The CSS scaffold below is shaped for **shadcn/ui specifically** — its structure reflects that adapter's conventions, not the site's own design language. It drops role confidence, role validity, and provenance. Use it to bootstrap an implementation, then **always return to DESIGN.md for semantic reasoning and CAVEATS.md for trust calibration**. If you find yourself copying from this file into a PR without consulting the others, you're using it wrong.`);
   lines.push('');
 
   lines.push('## Agent prompt guide');
