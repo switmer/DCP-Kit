@@ -146,14 +146,173 @@ function confBand(c) {
   return 'low';
 }
 
+// ── Substrate quality scoring + refusal floor ──────────────────────────
+// Graceful degradation needs a refusal floor. Below a substrate threshold,
+// emitting a 9-section narrative misleads readers who don't reliably
+// downweight on "medium confidence" labels. Refusal is itself a useful
+// output — it gives a cleanly measurable working range.
+const REFUSAL_THRESHOLD = 0.55;
+const ROLE_COVERAGE_FLOOR = 0.50;  // hard floor: must have ≥ half the contract slots filled
+
+function scoreSubstrate(canonical, gss) {
+  const bindings = gss.bindings?.bindings || {};
+  const report = gss.bindings?.report || {};
+  const boundRoles = Object.keys(bindings).length;
+  const unmappedRoles = (report.unmappedRoles || []).length;
+  const totalContractRoles = boundRoles + unmappedRoles;
+
+  // Score components, each ∈ [0, 1].
+  const roleCoverage = totalContractRoles ? boundRoles / totalContractRoles : 0;
+  const fontSizeCoverage = Math.min(1, (canonical.fontSizes?.length || 0) / 8);
+  const spacingCoverage = Math.min(1, (
+    (canonical.spacingClassified?.scale?.length || 0) +
+    (canonical.spacingClassified?.section?.length || 0)
+  ) / 12);
+  const responsiveSignal = ((canonical.rawCss || '').match(/clamp\s*\(/g) || []).length > 0 ||
+                           ((canonical.rawCss || '').match(/@media[^{]*\{/g) || []).length > 0 ? 1 : 0;
+  const colorCandidateDepth = Math.min(1, (canonical.colorCandidates?.length || 0) / 10);
+
+  // Weighted sum. Role coverage dominates; responsive is a tiebreaker.
+  const score = (
+    roleCoverage       * 0.45 +
+    colorCandidateDepth * 0.20 +
+    fontSizeCoverage   * 0.15 +
+    spacingCoverage    * 0.10 +
+    responsiveSignal   * 0.10
+  );
+
+  // Refusal logic: weighted score OR hard floor on role coverage.
+  // Role coverage is the single most load-bearing signal for "is this
+  // reconstructable?" — if more than half the DCP contract's slots are empty,
+  // narrative synthesis is mostly invention regardless of how rich the palette
+  // or spacing happens to be. A smooth-mush case like a yellow-accent-only
+  // brand site (4/14 roles bound, no @media, no clamp) should refuse even if
+  // incidental signals (color saturation, spacing variety) are high.
+  const roleCoverageBelowFloor = roleCoverage < ROLE_COVERAGE_FLOOR;
+  const scoreBelowThreshold = score < REFUSAL_THRESHOLD;
+  const refuse = scoreBelowThreshold || roleCoverageBelowFloor;
+
+  return {
+    score,
+    components: {
+      roleCoverage: { value: roleCoverage, weight: 0.45, note: `${boundRoles} / ${totalContractRoles} DCP roles bound${roleCoverageBelowFloor ? ' — BELOW HARD FLOOR (' + ROLE_COVERAGE_FLOOR + ')' : ''}` },
+      colorCandidateDepth: { value: colorCandidateDepth, weight: 0.20, note: `${canonical.colorCandidates?.length || 0} usable color candidates` },
+      fontSizeCoverage: { value: fontSizeCoverage, weight: 0.15, note: `${canonical.fontSizes?.length || 0} font-size tokens` },
+      spacingCoverage: { value: spacingCoverage, weight: 0.10, note: `${(canonical.spacingClassified?.scale?.length || 0) + (canonical.spacingClassified?.section?.length || 0)} spacing tokens (scale+section)` },
+      responsiveSignal: { value: responsiveSignal, weight: 0.10, note: responsiveSignal ? 'clamp() or @media present' : 'no clamp() or @media rules observed' },
+    },
+    refusalThreshold: REFUSAL_THRESHOLD,
+    roleCoverageFloor: ROLE_COVERAGE_FLOOR,
+    refuse,
+    refuseReason: refuse
+      ? (roleCoverageBelowFloor
+          ? `role coverage ${roleCoverage.toFixed(2)} below hard floor ${ROLE_COVERAGE_FLOOR}`
+          : `substrate score ${score.toFixed(2)} below threshold ${REFUSAL_THRESHOLD}`)
+      : null,
+  };
+}
+
+function renderRefusal({ gss, hostname, url, canonical, substrate }) {
+  const bindings = gss.bindings?.bindings || {};
+  const report = gss.bindings?.report || {};
+  const now = new Date().toISOString();
+  const lines = [];
+
+  lines.push('---');
+  lines.push(`source_url: ${url || 'https://' + hostname}`);
+  lines.push(`hostname: ${hostname}`);
+  lines.push(`extracted_at: ${now}`);
+  lines.push(`extraction_mode: automatic`);
+  lines.push(`extractor: Get-Site-Styles (semantic-bindings v${gss.bindings?.contractVersion || '?'})`);
+  lines.push(`synthesizer: build-design-md.mjs (DCP live-site pipeline, refusal path)`);
+  lines.push(`substrate_quality_score: ${substrate.score.toFixed(2)}`);
+  lines.push(`refusal_threshold: ${substrate.refusalThreshold.toFixed(2)}`);
+  lines.push(`role_coverage_floor: ${substrate.roleCoverageFloor.toFixed(2)}`);
+  lines.push(`refuse_reason: ${substrate.refuseReason}`);
+  lines.push(`status: refused`);
+  lines.push('---');
+  lines.push('');
+  lines.push(`# DESIGN.md — ${hostname} *(refusal)*`);
+  lines.push('');
+  lines.push(`> **Reconstruction-grade narrative was NOT generated for this site.** Substrate quality score \`${substrate.score.toFixed(2)}\` is below the refusal threshold \`${substrate.refusalThreshold.toFixed(2)}\`. The authoring surface exposed does not carry enough evidence to reconstruct a design system with the fidelity a full DESIGN.md claims. Below you'll find the raw extraction — use it as material, not as a spec.`);
+  lines.push('');
+  lines.push('## Why this refusal');
+  lines.push('');
+  lines.push('Each dimension contributes to the substrate score. Weak dimensions explain the refusal:');
+  lines.push('');
+  lines.push('| Dimension | Value | Weight | Detail |');
+  lines.push('|---|---|---|---|');
+  for (const [name, c] of Object.entries(substrate.components)) {
+    lines.push(`| \`${name}\` | ${c.value.toFixed(2)} | ${c.weight.toFixed(2)} | ${c.note} |`);
+  }
+  lines.push('');
+  lines.push('Prose is sticky — a reader skimming a full 9-section narrative does not reliably downweight it based on confidence labels alone. The honest behavior at this substrate level is to emit the raw extraction and say so, rather than write smoother-than-warranted prose.');
+  lines.push('');
+
+  lines.push('## Raw extraction — use as material, not as spec');
+  lines.push('');
+  lines.push('### Color role bindings (what the auto-mapper did find)');
+  lines.push('');
+  if (Object.keys(bindings).length === 0) {
+    lines.push('*No role bindings produced.*');
+  } else {
+    for (const [roleId, b] of Object.entries(bindings).sort()) {
+      lines.push(`- **${roleId}** — \`${b.hex}\`  \n  *Confidence:* ${b.confidence.toFixed(2)} (${confBand(b.confidence)}) · *Reason:* ${b.reason || '—'}`);
+    }
+  }
+  lines.push('');
+  if ((report.unmappedRoles || []).length) {
+    lines.push(`**${report.unmappedRoles.length} of the DCP contract's roles were unmapped** on this site: ${report.unmappedRoles.map(r => `\`${r}\``).join(', ')}. That is the bulk of the refusal reason — with most semantic slots empty, narrative synthesis would be mostly invention.`);
+    lines.push('');
+  }
+
+  if (canonical.fontSizes?.length) {
+    lines.push('### Typography (raw only)');
+    lines.push('');
+    lines.push('```');
+    lines.push(canonical.fontSizes.join(', '));
+    lines.push('```');
+    lines.push('');
+  }
+  if (canonical.spacingClassified) {
+    const sp = canonical.spacingClassified;
+    const any = sp.scale.length || sp.section.length || sp.layout.length || sp.fluid.length;
+    if (any) {
+      lines.push('### Spacing (raw, classified)');
+      lines.push('');
+      if (sp.scale.length) lines.push(`- scale (≤64px / ≤4rem): ${sp.scale.slice(0, 12).map(x => `\`${x}\``).join(', ')}`);
+      if (sp.section.length) lines.push(`- section: ${sp.section.slice(0, 12).map(x => `\`${x}\``).join(', ')}`);
+      if (sp.layout.length) lines.push(`- layout: ${sp.layout.slice(0, 12).map(x => `\`${x}\``).join(', ')}`);
+      if (sp.fluid.length) lines.push(`- fluid: ${sp.fluid.slice(0, 12).map(x => `\`${x}\``).join(', ')}`);
+      lines.push('');
+    }
+  }
+
+  lines.push('## What would change this refusal');
+  lines.push('');
+  lines.push(`- **Bind more roles.** The extractor left ${(report.unmappedRoles || []).length} DCP roles unmapped. Adding site-crawl breadth (subpages beyond the homepage), running with \`--use-browser\` for JS-rendered sites, or improving role-detection heuristics are the three levers.`);
+  lines.push(`- **Broaden substrate.** Typography, spacing, and responsive signals score below threshold. A site that declares no \`@media\` and minimal \`clamp()\` inherently produces less extractable substrate than one that does.`);
+  lines.push(`- **Lower the threshold.** \`REFUSAL_THRESHOLD = ${substrate.refusalThreshold.toFixed(2)}\` in \`build-design-md.mjs\`. If you want narrative anyway on low-substrate sites, the system is willing — just at the explicit cost of readers reading smoother prose than evidence warrants.`);
+  lines.push('');
+  lines.push(`_Generated by DCP live-site pipeline (refusal path) · synthesizer \`experiments/lib/build-design-md.mjs\` · ${now}_`);
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 // Render a color binding entry for the palette section
 function renderBindingEntry(roleId, binding, provenance) {
   return `- **${roleId}** — \`${binding.hex}\`  \n  *Confidence:* ${binding.confidence.toFixed(2)} (${confBand(binding.confidence)}) · *Source:* ${provenance} · *Reason:* ${binding.reason || '—'}`;
 }
 
 // ── Main synthesis ────────────────────────────────────────────────────
-export function buildDesignMd({ gss, hostname, url }) {
+export function buildDesignMd({ gss, hostname, url, force = false }) {
   const c = extractCanonical(gss);
+  const substrate = scoreSubstrate(c, gss);
+  if (substrate.refuse && !force) {
+    return renderRefusal({ gss, hostname, url, canonical: c, substrate });
+  }
+
   const now = new Date().toISOString();
   const bindingRoles = Object.entries(c.bindings).sort((a, b) => a[0].localeCompare(b[0]));
   const report = gss.bindings?.report || {};
@@ -175,6 +334,8 @@ export function buildDesignMd({ gss, hostname, url }) {
   lines.push(`extraction_mode: automatic`);
   lines.push(`extractor: Get-Site-Styles (semantic-bindings v${gss.bindings?.contractVersion || '?'})`);
   lines.push(`synthesizer: build-design-md.mjs (DCP live-site pipeline)`);
+  lines.push(`substrate_quality_score: ${substrate.score.toFixed(2)}`);
+  lines.push(`refusal_threshold: ${substrate.refusalThreshold.toFixed(2)}`);
   lines.push(`confidence_summary: { high: ${highConfRoles}, medium: ${medConfRoles}, low: ${lowConfRoles}, unmapped_dcp_roles: ${unmapped.length} }`);
   lines.push('---');
   lines.push('');

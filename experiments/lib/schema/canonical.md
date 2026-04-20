@@ -18,7 +18,7 @@ The schema is deliberately small. Anything it doesn't specify is out of scope fo
 
 ```jsonc
 {
-  "schemaVersion": "0.1.0",
+  "schemaVersion": "0.2.0",
   "contractVersion": "0.1.0",          // DCP role contract the tokens will bind to
   "source": {
     "url": "https://bungee-pro.webflow.io/",
@@ -27,6 +27,11 @@ The schema is deliberately small. Anything it doesn't specify is out of scope fo
     "extractor": "Get-Site-Styles@v0.x.y",
     "substrateProfile": "webflow-semantic-vars",   // see §5
     "substrateConfidence": 0.85                    // how sure we are about the profile
+  },
+  "coverage": {                                    // §7 — what we actually sampled
+    "contextsSampled": ["https://bungee-pro.webflow.io/"],
+    "contextsNotSampled": "all non-homepage routes",
+    "sampleBias": "marketing-homepage-only"
   },
   "tokens": {
     "discrete":  [ ... ],   // §3.1
@@ -42,11 +47,16 @@ The schema is deliberately small. Anything it doesn't specify is out of scope fo
   },
   "graph": {                // §6 — alias graph over tokens
     "aliases": [ { "from": "--button-bg", "to": "--colors--primary-accent" } ]
+  },
+  "dictionaryFit": {        // §8 — how well DCP's 14-role contract fits this site
+    "unmappedSiteRoles": [   // things the site clearly role-binds, contract doesn't cover
+      { "siteRoleName": "hover-overlay", "value": "rgba(0,0,0,.5)", "evidence": [...] }
+    ]
   }
 }
 ```
 
-No narrative. No prose. No role assignments. Those are downstream layers.
+No narrative. No prose. No DCP role assignments. Those are downstream layers (semantic.json / DESIGN.md).
 
 ---
 
@@ -61,16 +71,36 @@ Every entry in any `tokens.*` array conforms to:
   "name": "--colors--primary-accent",    // the variable name if named-var; null if literal
   "value": "#146ef5",                    // the resolved value (hex, px, clamp(...), etc.)
 
-  "provenance": {
-    "source": "named-var",               // §5.1 — named-var | literal | alias-resolved | utility-class | inferred
-    "selectors": [":root", ".button-primary"],
-    "contexts": ["color", "border-color"],
-    "refCount": 117,                     // how often the value or name appears in rendered CSS
-    "aliasDepth": 0                      // 0 = direct; 1+ = resolved through var() chain
-  },
+  // Provenance is a DAG, not a flat field. A single token can have
+  // simultaneous, independent bases: named-var declaration PLUS
+  // literal-in-computed-styles PLUS alias-resolved PLUS convention-matched.
+  // Flattening to one source loses information for conflict resolution and
+  // confidence combination. Each basis carries its own evidence + weight.
+  "provenance": [
+    {
+      "basis": "named-var",              // §5.1 taxonomy
+      "weight": 1.0,
+      "evidence": { "selectors": [":root"], "declarations": 1 }
+    },
+    {
+      "basis": "alias-resolved",
+      "weight": 0.8,
+      "evidence": { "chain": ["--button-bg", "--colors--primary-accent"], "hops": 1 }
+    },
+    {
+      "basis": "convention-matched",
+      "weight": 0.6,
+      "evidence": { "pattern": "shadcn --primary", "matchConfidence": 0.9 }
+    }
+  ],
 
-  "confidence": 0.92,                    // §5.2 — how strongly the extractor supports this being a real token
-  "validity": 1.0                        // §5.3 — how canonical it is as a design-system member (separate from confidence)
+  "contexts": ["color", "border-color", "box-shadow"],
+  "refCount": 117,                       // how often the value or name appears
+  "aliasDepth": 0,                       // 0 = direct; 1+ = resolved through var() chain
+
+  // Two independent axes. See §5.2.
+  "saliency": 0.95,                      // measured: freq × alias-depth × context-diversity
+  "validity": 0.90                       // rule-based: canonical-membership (anti-noise filter)
 }
 ```
 
@@ -174,47 +204,65 @@ Composition is where component-family inference, variant-axis inference, and tem
 
 ## 5. Structural fields worth emphasizing
 
-### 5.1 `provenance.source`
+### 5.1 `provenance[].basis`
 
 One of:
 
-| Source | Meaning | Typical surface |
+| Basis | Meaning | Typical surface |
 |---|---|---|
 | `named-var` | Declared CSS custom property with a semantic-looking name | Webflow, Framer, hand-authored SCSS with naming discipline |
 | `alias-resolved` | Value reached through one or more `var()` chains; preserve the chain in `graph.aliases` | Anywhere using `--foo: var(--bar)` |
 | `literal` | Raw value, not tied to a declared variable | Tailwind-JIT, compiled CSS Modules, minified output |
 | `utility-class` | Value emitted by a utility class (`.bg-gray-500`) | Tailwind-JIT |
+| `convention-matched` | Matches a known naming convention (shadcn `--primary`, Tailwind brand scale) | Cross-site heuristic |
 | `inferred` | Extractor synthesized this from structural cues (e.g. "top color of buttons by vote") | GSS's `semanticAnalysis.buttonColors`, clustering output |
 
-Downstream weighting can key off this. The "named-var bias" critique dissolves when every consumer knows the profile of every token.
+A token can have multiple bases simultaneously, each with its own weight and evidence. Consumers combine weights (product, min, or domain-specific rule) into a final score; the canonical layer does not prescribe the combiner.
 
-### 5.2 `confidence`
+### 5.2 Two axes, not one — saliency vs. validity
 
-Scalar [0, 1]. How strongly the **extractor** supports this token being a real, load-bearing token on this site. Independent of whether the token belongs in the canonical design system.
+The single-scalar `confidence` field in the V0.1 schema conflated two distinct properties. Splitting them in V0.2:
 
-### 5.3 `validity`
+**`saliency` ∈ [0, 1]** — **measurable**. How load-bearing this token is on the observed surface. Computed from:
+- reference count (citation frequency)
+- alias depth (reached through how many `var()` hops)
+- context diversity (how many different CSS properties it appears on)
 
-Scalar [0, 1]. How canonical this token is as a design-system member. **Independent of confidence.**
+Saliency is a property of the artifact, not of any designer's intention. A hex cited across 400 rules through an alias chain of depth 3 is load-bearing regardless of whether someone intentionally picked it. This is what "intention" collapses to once you accept that intention is not recoverable from compiled output.
+
+**`validity` ∈ [0, 1]** — **rule-based**. How canonical this token is as a member of a design-system vocabulary. Computed from:
+- anti-noise filters (transparent values, alpha-only rgba, framework residue)
+- degeneracy checks (zero-length tokens, NaN lightness, structurally malformed values)
+- convention conformance (is this the kind of thing a design system would canonicalize?)
+
+Validity is what filters `rgba(0,0,0,.5)` out of `bg.default` candidacy even if it's highly salient.
 
 Examples:
 
-| Case | confidence | validity |
+| Case | saliency | validity |
 |---|---|---|
-| `--colors--primary-accent: #146ef5`, 117 refs | 0.95 | 0.95 |
-| `rgba(0,0,0,.5)` appearing on body overlay | 0.85 | 0.15 |
-| `#ff0000` used once in an error-state screenshot URL | 0.40 | 0.85 |
-| `100vw` appearing as a section width | 0.90 | 0.60 |
+| `--colors--primary-accent: #146ef5`, 117 refs through alias depth 2 | 0.95 | 0.95 |
+| `rgba(0,0,0,.5)` appearing on 80% of body-background overlays | 0.85 | 0.15 |
+| `#ff0000` used once in an error-state screenshot URL | 0.25 | 0.80 |
+| `100vw` appearing as a section width in 50 places | 0.90 | 0.55 |
 
-Low-validity tokens are still emitted. Downstream filters decide whether to promote them.
+Low-validity tokens are still emitted. Downstream filters decide whether to promote them. This is what makes `webflow.com`'s `bg.default = rgba(0,0,0,.5)` misbinding diagnosable rather than invisible: the binding was high-saliency and low-validity, and the schema carries both.
 
-### 5.4 Confidence propagation (out of scope of this schema, noted here)
+### 5.3 What happened to `confidence`?
 
-Consumers that derive claims from canonical tokens should propagate confidence multiplicatively (or min-join; implementation choice):
+**Removed from the schema.** It was conflating saliency (measured) and validity (rule-based) and sometimes a third thing (consumer policy — "should I treat this as fixed?") that belongs downstream, not in canonical.
 
-- A `semantic.json` role binding derived from a canonical token carries ≤ the token's confidence × validity.
-- A `DESIGN.md` "do/don't" synthesized from a role binding carries ≤ the role binding's confidence.
+Consumer-side tooling that wants a single scalar can compute one from `saliency × validity` or any combiner that fits the use case. The canonical layer does not prescribe.
 
-The schema doesn't enforce this; it names the contract.
+### 5.4 Saliency propagation
+
+Downstream consumers should propagate saliency multiplicatively (or min-join; implementation choice) when deriving claims:
+
+- A `semantic.json` role binding derived from a canonical token carries ≤ the token's `saliency × validity`.
+- A `DESIGN.md` "do/don't" synthesized from a role binding carries ≤ the role binding's propagated score.
+- A refusal (see §9) is itself a propagation signal: substrate-quality-below-threshold halts synthesis.
+
+The schema doesn't enforce propagation; it names the contract.
 
 ---
 
@@ -232,16 +280,91 @@ This is where the "token graph plus relationships" intuition from the other AI's
 
 ---
 
-## 7. What this schema deliberately excludes
+## 7. Coverage — the missing primitive
+
+A compiler sees all the source over a fixed grammar. This pipeline does not. We crawl a sampled surface, biased toward homepages. A site's checkout form, signed-in dashboard, and marketing page often use materially different token subsets — marketing surfaces over-sample bright accents, product surfaces over-sample neutrals.
+
+Without a coverage field, the canonical layer claims system-wide authority from a biased sample. This is the axis where the tool will most quietly mislead users who don't realize it only crawled one URL.
+
+```jsonc
+"coverage": {
+  "contextsSampled": [                    // required, non-empty
+    "https://bungee-pro.webflow.io/",
+    "https://bungee-pro.webflow.io/projects"
+  ],
+  "contextsNotSampled": "signed-in areas, checkout flows, non-public routes",
+  "sampleBias": "marketing-homepage-only",  // free-text honest description
+  "coverageConfidence": 0.40                // how system-wide the conclusions are
+}
+```
+
+Consumers reading this field adjust downstream claims. A `DESIGN.md` synthesizer should decline to make universal claims ("this site uses X") when `coverageConfidence` is low; it can still report what was *observed* ("on the homepage, X is dominant").
+
+## 8. Dictionary fit — what the DCP contract doesn't cover
+
+The DCP role contract has 14 color slots. Sites often semantically role-bind things the contract doesn't model. Without a place to put these, they vanish silently — "extraction succeeded, dictionary's too small for this site" becomes invisible instead of visible.
+
+```jsonc
+"dictionaryFit": {
+  "unmappedSiteRoles": [
+    {
+      "siteRoleName": "hover-overlay",      // what the site authors this as
+      "value": "rgba(0,0,0,.5)",
+      "evidence": {
+        "selectors": [".modal-overlay", ".backdrop"],
+        "occurrences": 12
+      },
+      "candidateDcpRoles": ["bg.overlay"]   // if any exist; empty array if none
+    },
+    {
+      "siteRoleName": "accent-tint",
+      "value": "#e6ff032b",                 // 17% alpha of brand color
+      "evidence": { "selectors": [".badge-soft"], "occurrences": 4 },
+      "candidateDcpRoles": []                // no contract slot fits
+    }
+  ],
+  "contractCoverage": 0.71                  // fraction of site roles the contract modeled
+}
+```
+
+This is the complement of `report.unmappedRoles` (contract slots the site didn't fill). `unmappedSiteRoles` is site roles the contract doesn't model. Both are legitimate and distinct.
+
+## 9. Refusal — graceful degradation needs a floor
+
+Every stage in this pipeline is lossy. The narrative stage (`DESIGN.md`) is uniquely risky because prose is sticky — readers don't reliably downweight on "medium confidence" labels, especially when the template fills the same sections whether the substrate was Webflow or a hashed-CSS-module React build.
+
+Consumers of canonical.json that synthesize prose (like `build-design-md.mjs`) **must** implement a substrate floor. Below the threshold, refuse to synthesize narrative; emit a structured refusal that explains *why* synthesis was refused and what the raw extraction contains.
+
+This is already implemented in `build-design-md.mjs` with:
+- Weighted substrate score (role coverage 0.45, color depth 0.20, type 0.15, spacing 0.10, responsive 0.10)
+- Refusal threshold 0.55
+- Hard floor on role coverage (< 0.50 → refuse regardless of other signals)
+
+The schema doesn't prescribe the threshold. It names the contract: **downstream synthesizers must carry a refusal option, and canonical.json must carry the coverage and dictionary-fit signals that make refusal computable.**
+
+## 10. What this schema deliberately excludes
 
 - **Role bindings.** Those live in `semantic.json`. Canonical is source-faithful; role assignment is interpretation.
 - **Narrative prose.** Every claim consumers write about this data belongs in DCP's synthesizers.
 - **Implementation adapter output.** `adapter.css` (shadcn theme) is a projection, not a source.
-- **Confidence calibration.** The extractor sets confidence; consumers may recalibrate against known-good corpora, but the calibration algorithm is not part of the schema.
+- **Consumer policy.** "Should I treat this token as fixed?" is a consumer decision, not a producer fact. The canonical layer reports saliency and validity; policy emerges at synthesis.
+- **Intention.** "What did the designer mean?" is unknowable from compiled artifacts. Saliency (§5.2) is the measurable proxy, and the one the schema commits to.
+
+## 11. V1 adapter warnings — don't bake GSS weirdness into the ontology
+
+For the current implementation, `canonical.json` will be produced by a DCP-side adapter on top of GSS's `shadcn.analysis.json` rather than emitted by GSS directly. That's fine for V1 but has a known trap: whatever weirdness exists in the current GSS blob will get baked into the contract if we aren't careful.
+
+Guidelines for the translation shim:
+
+- **Fields that map over temporarily:** GSS's `bindings.bindings` → canonical's `dictionaryFit` + role bindings in `semantic.json`. GSS's `tokens.*` arrays → canonical's `tokens.*` with envelope.
+- **Fields that are first-class in canonical regardless of GSS:** `saliency`, `validity`, `provenance[]`, `coverage`, `dictionaryFit.unmappedSiteRoles`, `composition`. If the V1 adapter can't populate these cleanly, it should emit empty arrays / null / zero — not degenerate stand-ins.
+- **Fields that exist only because GSS emits them:** `theme.light` / `theme.dark` (shadcn-formatted) should not leak into canonical. They belong in an `adapter/` output sibling to canonical.
+
+Commit the shim as a translation layer, not as the canonical emitter. When GSS grows native canonical-layer output, swap implementations without changing the schema.
 
 ---
 
-## 8. The two-producer story (Webflow-style vs. Tailwind-style)
+## 12. The two-producer story (Webflow-style vs. Tailwind-style)
 
 A `canonical.json` from a Webflow site will be:
 - high in `provenance.source === "named-var"`
@@ -257,22 +380,26 @@ Both are valid `canonical.json`. Downstream tools must not assume one profile. T
 
 ---
 
-## 9. Minimum viable implementation
+## 13. Minimum viable implementation
 
 For the current DCP pipeline, a first-cut emitter needs only:
 
 - `tokens.discrete` (colors) — already derivable from GSS's `colorAnalysis`
 - `tokens.scale` (font sizes, spacing, radii) — already in GSS's `tokens.*` after fix #1
-- `provenance.source` tagging — requires parsing the raw CSS for `var()` references (modest work)
-- `confidence` — reuse GSS's existing confidence
-- `validity` — new; simple rule-based first pass (reject `rgba(*,0)`, `transparent`, `NaN`, degenerate lengths)
-- `graph.aliases` — requires alias-chain resolution; can be empty at V1 for non-named-var sites
+- `provenance[]` with at least one basis per token. V1 can tag everything `literal` with weight 1.0 if alias resolution isn't wired yet. Richer bases land incrementally.
+- `saliency` — compute from `refCount × aliasDepth × contextDiversity`. V1 can use freq + context count as a stand-in.
+- `validity` — rule-based; simple first pass rejects `rgba(*,0)`, `transparent`, `NaN`, degenerate lengths. Returns 1.0 for anything that survives.
+- `coverage` — even if only one URL was crawled, populate `contextsSampled: [url]` and `coverageConfidence: 0.3` to make the sampling bias explicit.
+- `dictionaryFit.unmappedSiteRoles` — can be empty at V1. GSS doesn't produce these directly yet.
+- `graph.aliases` — requires alias-chain resolution; can be empty at V1 for non-named-var sites.
 
 `tokens.fluid`, `tokens.component`, `tokens.layout`, and all of `composition` can be empty arrays at V1. The schema accommodates their eventual arrival without a breaking change.
 
+Consumers (like `build-design-md.mjs`) must implement the §9 refusal floor. That's not optional — it's what keeps the narrative stage honest on low-substrate sites.
+
 ---
 
-## 10. One-line summary
+## 14. One-line summary
 
 **`canonical.json` is the smallest typed, provenanced, validity-tagged token graph that any downstream DCP consumer needs, and nothing else.**
 
