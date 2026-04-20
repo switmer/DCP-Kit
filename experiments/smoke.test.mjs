@@ -74,6 +74,15 @@ async function main() {
       resources: 'usable',
       pretendToBeVisual: true,
       virtualConsole,
+      beforeParse(w) {
+        // jsdom's built-in fetch doesn't reliably reach the spawned server;
+        // route the page's fetch calls through Node's fetch instead.
+        const nodeFetch = fetch;
+        w.fetch = (input, init) => {
+          const url = typeof input === 'string' && input.startsWith('/') ? BASE + input : input;
+          return nodeFetch(url, init);
+        };
+      },
     });
     const { window } = dom;
 
@@ -94,12 +103,20 @@ async function main() {
       'dashboard initial render',
     );
 
+    // loadAdHocList() runs async after main render — wait for pills to appear.
+    try {
+      await pollUntil(
+        () => window.document.querySelectorAll('.adhoc-pill').length > 0,
+        'ad-hoc pill list population',
+        3000,
+      );
+    } catch {
+      record('fixture', 'no ad-hoc pills rendered (expected ≥1 from experiments/ad-hoc/)');
+    }
+
     // Each ad-hoc fixture exercises renderAdHocResult. Click every pill and
     // confirm #analyze-result gets populated without throwing.
     const pills = [...window.document.querySelectorAll('.adhoc-pill')];
-    if (pills.length === 0) {
-      record('fixture', 'no ad-hoc pills rendered (expected ≥1 from experiments/ad-hoc/)');
-    }
     for (const pill of pills) {
       const hostname = pill.dataset.hostname;
       const resultEl = window.document.getElementById('analyze-result');

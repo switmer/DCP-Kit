@@ -146,6 +146,155 @@ function confBand(c) {
   return 'low';
 }
 
+// ── Validity rules ─────────────────────────────────────────────────────
+// Validity is a rule-based plausibility score, independent of saliency
+// (frequency × alias-depth × context-diversity). A binding can be highly
+// salient and still low-validity — the canonical example is
+// bg.default = rgba(0,0,0,.5): the extractor found it frequently, but a
+// 50%-alpha black is shape-wrong for the role.
+//
+// The rules are explicit and documented. Adapters that disagree either
+// override specific rules or compute their own validity. The point is
+// that "validity" is not prose — it's a named prior.
+//
+// Each rule returns a penalty ∈ [0, 1] (how much to reduce validity by).
+// Rules compose multiplicatively on (1 - penalty).
+
+function parseColorForValidity(hex) {
+  if (!hex || typeof hex !== 'string') return null;
+  const s = hex.trim();
+  // 8-digit hex with alpha
+  const m8 = s.match(/^#([0-9a-f]{8})$/i);
+  if (m8) {
+    const alpha = parseInt(m8[1].slice(6, 8), 16) / 255;
+    return { kind: 'hex', alpha };
+  }
+  // 4-digit hex with alpha
+  const m4 = s.match(/^#([0-9a-f]{4})$/i);
+  if (m4) {
+    const a = m4[1][3];
+    const alpha = parseInt(a + a, 16) / 255;
+    return { kind: 'hex', alpha };
+  }
+  // rgba() / rgb()
+  const mr = s.match(/^rgba?\(([^)]+)\)$/i);
+  if (mr) {
+    const parts = mr[1].split(',').map(p => p.trim());
+    const alpha = parts.length === 4 ? parseFloat(parts[3]) : 1;
+    return { kind: 'rgba', alpha };
+  }
+  // 3/6-digit hex, no alpha channel
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s)) return { kind: 'hex', alpha: 1 };
+  // `transparent`
+  if (s.toLowerCase() === 'transparent') return { kind: 'transparent', alpha: 0 };
+  return null;
+}
+
+/**
+ * Rule set for color-role validity. Each rule returns { penalty, reason } or null.
+ * Final validity = product of (1 - penalty) over all firing rules.
+ *
+ * These rules are the schema-level contract for validity. Documented, testable,
+ * replaceable. When a downstream consumer disagrees with a rule, they override
+ * that specific rule — not the whole concept of validity.
+ */
+const COLOR_VALIDITY_RULES = [
+  {
+    id: 'surface-role-needs-opaque',
+    applies: (role) => role.startsWith('bg.') || role === 'border.default' || role === 'border.muted',
+    evaluate: (hex) => {
+      const p = parseColorForValidity(hex);
+      if (!p) return null;
+      if (p.alpha < 0.95) {
+        return {
+          penalty: 0.75,
+          reason: `role ${'bg.*/border.*'} expects opaque fill; observed alpha ${p.alpha.toFixed(2)}`,
+        };
+      }
+      return null;
+    },
+  },
+  {
+    id: 'text-role-needs-substantial-opacity',
+    applies: (role) => role.startsWith('text.'),
+    evaluate: (hex) => {
+      const p = parseColorForValidity(hex);
+      if (!p) return null;
+      if (p.alpha < 0.5) {
+        return {
+          penalty: 0.70,
+          reason: `text role expects readable opacity; observed alpha ${p.alpha.toFixed(2)}`,
+        };
+      }
+      return null;
+    },
+  },
+  {
+    id: 'collision-shared-hex-across-semantic-roles',
+    // Populated by collision detector (not a per-token rule; applied at binding-set level).
+    applies: () => false,
+    evaluate: () => null,
+  },
+  {
+    id: 'degenerate-value',
+    applies: () => true,
+    evaluate: (hex) => {
+      if (typeof hex !== 'string') return { penalty: 1.0, reason: 'non-string color value' };
+      const s = hex.trim();
+      if (!s) return { penalty: 1.0, reason: 'empty color value' };
+      if (/nan/i.test(s)) return { penalty: 1.0, reason: 'NaN in color value' };
+      return null;
+    },
+  },
+];
+
+function computeColorValidity(role, hex) {
+  let validity = 1.0;
+  const appliedRules = [];
+  for (const rule of COLOR_VALIDITY_RULES) {
+    if (!rule.applies(role)) continue;
+    const result = rule.evaluate(hex);
+    if (!result) continue;
+    validity *= (1 - result.penalty);
+    appliedRules.push({ ruleId: rule.id, penalty: result.penalty, reason: result.reason });
+  }
+  return { validity, appliedRules };
+}
+
+/**
+ * Detect cross-role hex collisions — same hex bound to two different semantic
+ * roles on the same site. Each role in the collision takes a validity hit
+ * scaled by how divergent the semantic intents are. This is what the
+ * #c12126 accent.primary + intent.danger case needs.
+ */
+function applyCollisionPenalties(bindingsWithValidity) {
+  const byHex = new Map();
+  for (const [role, entry] of Object.entries(bindingsWithValidity)) {
+    const key = (entry.hex || '').toLowerCase();
+    if (!key) continue;
+    if (!byHex.has(key)) byHex.set(key, []);
+    byHex.get(key).push(role);
+  }
+  for (const [hex, roles] of byHex) {
+    if (roles.length < 2) continue;
+    // Cross-category collisions (e.g., accent.* and intent.*) are higher-penalty
+    // than intra-category (e.g., two text.* roles) because the semantic distance
+    // is larger.
+    const categories = new Set(roles.map(r => r.split('.')[0]));
+    const crossCategory = categories.size > 1;
+    const penalty = crossCategory ? 0.45 : 0.20;
+    for (const role of roles) {
+      const e = bindingsWithValidity[role];
+      e.validity *= (1 - penalty);
+      e.appliedRules.push({
+        ruleId: 'collision-shared-hex-across-semantic-roles',
+        penalty,
+        reason: `${hex} also bound to ${roles.filter(r => r !== role).join(', ')}${crossCategory ? ' (cross-category)' : ''}`,
+      });
+    }
+  }
+}
+
 // ── Substrate quality scoring + refusal floor ──────────────────────────
 // Graceful degradation needs a refusal floor. Below a substrate threshold,
 // emitting a 9-section narrative misleads readers who don't reliably
@@ -302,7 +451,25 @@ function renderRefusal({ gss, hostname, url, canonical, substrate }) {
 
 // Render a color binding entry for the palette section
 function renderBindingEntry(roleId, binding, provenance) {
-  return `- **${roleId}** — \`${binding.hex}\`  \n  *Confidence:* ${binding.confidence.toFixed(2)} (${confBand(binding.confidence)}) · *Source:* ${provenance} · *Reason:* ${binding.reason || '—'}`;
+  const validityPart = typeof binding._validity === 'number'
+    ? ` · *Validity:* ${binding._validity.toFixed(2)}${binding._validityRules?.length ? ` (${binding._validityRules.map(r => r.ruleId).join(', ')})` : ''}`
+    : '';
+  return `- **${roleId}** — \`${binding.hex}\`  \n  *Saliency:* ${binding.confidence.toFixed(2)} (${confBand(binding.confidence)})${validityPart} · *Source:* ${provenance} · *Reason:* ${binding.reason || '—'}`;
+}
+
+/**
+ * Compute validity for every role binding in place, then apply collision
+ * penalties across the set. Mutates the bindings object with _validity
+ * and _validityRules fields.
+ */
+function annotateBindingsWithValidity(bindings) {
+  const annotated = {};
+  for (const [role, entry] of Object.entries(bindings)) {
+    const { validity, appliedRules } = computeColorValidity(role, entry.hex);
+    annotated[role] = { ...entry, _validity: validity, _validityRules: appliedRules };
+  }
+  applyCollisionPenalties(annotated);
+  return annotated;
 }
 
 // ── Main synthesis ────────────────────────────────────────────────────
@@ -314,9 +481,11 @@ export function buildDesignMd({ gss, hostname, url, force = false }) {
   }
 
   const now = new Date().toISOString();
-  const bindingRoles = Object.entries(c.bindings).sort((a, b) => a[0].localeCompare(b[0]));
+  const bindingsWithValidity = annotateBindingsWithValidity(c.bindings);
+  const bindingRoles = Object.entries(bindingsWithValidity).sort((a, b) => a[0].localeCompare(b[0]));
   const report = gss.bindings?.report || {};
   const unmapped = report.unmappedRoles || [];
+  const suspiciousRoles = bindingRoles.filter(([, b]) => b._validity < 0.5);
   const highConfRoles = bindingRoles.filter(([, v]) => v.confidence >= 0.85).length;
   const medConfRoles = bindingRoles.filter(([, v]) => v.confidence >= 0.65 && v.confidence < 0.85).length;
   const lowConfRoles = bindingRoles.filter(([, v]) => v.confidence < 0.65).length;
@@ -531,7 +700,14 @@ export function buildDesignMd({ gss, hostname, url, force = false }) {
   // ── 8. Ambiguity & caveats ──────────────────────────────────────────
   lines.push('## 8. Ambiguity & caveats');
   lines.push('');
-  lines.push(`- **${bindingRoles.length} color roles** were auto-bound. Of those, **${highConfRoles}** crossed 0.85 confidence, **${medConfRoles}** landed in the 0.65–0.85 band, **${lowConfRoles}** below 0.65. Every binding below 0.85 warrants human review.`);
+  lines.push(`- **${bindingRoles.length} color roles** were auto-bound. Of those, **${highConfRoles}** crossed 0.85 saliency, **${medConfRoles}** landed in the 0.65–0.85 band, **${lowConfRoles}** below 0.65. Every binding below 0.85 warrants human review.`);
+  if (suspiciousRoles.length) {
+    lines.push(`- **⚠ ${suspiciousRoles.length} binding(s) with validity < 0.5** — the extractor found these, but rule-based validity checks flag them as likely-wrong for the role regardless of how confident the extractor was:`);
+    for (const [role, b] of suspiciousRoles) {
+      lines.push(`  - \`${role}\` = \`${b.hex}\` — validity ${b._validity.toFixed(2)}. Failed rules: ${b._validityRules.map(r => `*${r.ruleId}* (${r.reason})`).join('; ')}`);
+    }
+    lines.push(`  These are the bindings where saliency (measured) and validity (rule-based plausibility) disagree. Treat them as extraction noise to review, not as canonical design decisions.`);
+  }
   if (unmapped.length) {
     lines.push(`- **${unmapped.length} DCP roles unmapped**: ${unmapped.map(r => `\`${r}\``).join(', ')}. Unmapped means the mapper did not find a confident candidate, not that the role is absent from the site.`);
   }

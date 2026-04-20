@@ -40,11 +40,6 @@ The schema is deliberately small. Anything it doesn't specify is out of scope fo
     "component": [ ... ],   // §3.4
     "layout":    [ ... ]    // §3.5
   },
-  "composition": {          // §4 — templates/slots/nesting. May be empty for V1.
-    "templates": [ ],
-    "slots":     [ ],
-    "nesting":   [ ]
-  },
   "graph": {                // §6 — alias graph over tokens
     "aliases": [ { "from": "--button-bg", "to": "--colors--primary-accent" } ]
   },
@@ -180,25 +175,20 @@ Extra fields:
 
 ---
 
-## 4. Composition (parallel to tokens)
+## 4. Composition is NOT in canonical — it lives in `structure.json` (sibling)
 
-V1 may emit empty arrays. Named here so the schema doesn't require a breaking change when inference is added.
+The earlier V0.1 draft of this schema reserved a `composition` namespace inside canonical for templates, slots, and nesting. **Removed in V0.2.**
 
-```jsonc
-"composition": {
-  "templates": [
-    { "id": "tpl-hero-split", "signature": "...", "instances": 3, "confidence": 0.6 }
-  ],
-  "slots": [
-    { "id": "slot-hero-left", "templateId": "tpl-hero-split", "accepts": ["heading", "cta"] }
-  ],
-  "nesting": [
-    { "parent": "ProductCard", "child": "Button", "variant": "primary", "contexts": ["product-grid"] }
-  ]
-}
-```
+Reason: composition recovery is expensive, lossy, and substrate-dependent. Webflow and Framer ship enough information to make template inference plausible. Compiled CSS Modules, hashed React class names, and Tailwind-JIT outputs do not. Putting `composition` inside canonical forces one of two dishonest shapes:
 
-Composition is where component-family inference, variant-axis inference, and template/layout inference will live. It is deliberately under-specified here — the schema reserves the namespace without committing to semantics.
+1. The fields are mostly-null on most sites → canonical.json lies about parity across sites. Every consumer has to know "composition is only populated when the substrate is cooperative."
+2. The fields are present or absent based on substrate → canonical.json violates schema uniformity. Some sites have the key, some don't; downstream code becomes a maze of conditionals.
+
+Both outcomes make canonical a "second design tool" instead of a typed token graph, which is the exact anti-pattern §14 warns against.
+
+**Composition gets its own sibling schema:** `structure.json`. It has its own refusal semantics (below a substrate-quality floor distinct from canonical's, emit a refusal with raw evidence and no inferred composition). It is produced and consumed independently of canonical. Consumers that need both read both; consumers that only care about tokens + roles ignore structure.json entirely.
+
+A separate `experiments/lib/schema/structure.md` will formalize the composition schema when that sibling ships. For now, canonical is typed tokens + graph + coverage + dictionary-fit. Nothing else.
 
 ---
 
@@ -230,12 +220,22 @@ The single-scalar `confidence` field in the V0.1 schema conflated two distinct p
 
 Saliency is a property of the artifact, not of any designer's intention. A hex cited across 400 rules through an alias chain of depth 3 is load-bearing regardless of whether someone intentionally picked it. This is what "intention" collapses to once you accept that intention is not recoverable from compiled output.
 
-**`validity` ∈ [0, 1]** — **rule-based**. How canonical this token is as a member of a design-system vocabulary. Computed from:
-- anti-noise filters (transparent values, alpha-only rgba, framework residue)
-- degeneracy checks (zero-length tokens, NaN lightness, structurally malformed values)
-- convention conformance (is this the kind of thing a design system would canonicalize?)
+**`validity` ∈ [0, 1]** — **rule-based prior**. How canonical this token is as a member of a design-system vocabulary, computed from an explicit named prior. Validity is not a vibe; it's a documented rule set. Leaving it undefined means every adapter re-opens "what does validity mean" and the field becomes prose, not contract.
 
-Validity is what filters `rgba(0,0,0,.5)` out of `bg.default` candidacy even if it's highly salient.
+The minimum V0.2 rule set — what's currently implemented in `build-design-md.mjs:computeColorValidity`:
+
+| Rule ID | Applies to | Penalty | Evidence |
+|---|---|---|---|
+| `surface-role-needs-opaque` | `bg.*`, `border.default`, `border.muted` | 0.75 | alpha < 0.95 |
+| `text-role-needs-substantial-opacity` | `text.*` | 0.70 | alpha < 0.5 |
+| `collision-shared-hex-across-semantic-roles` | set-level, any role | 0.45 cross-category, 0.20 intra-category | same hex bound to two roles |
+| `degenerate-value` | any role | 1.0 | non-string, empty, or contains `NaN` |
+
+Rules compose multiplicatively on `(1 - penalty)`. Each rule is named, testable, and replaceable — adapters that disagree override a specific rule, not the whole concept. Additional rule IDs belong in a dedicated section of this schema (future sections for typography, spacing, layout validity) rather than inline in implementations.
+
+**Contract obligation**: any field in canonical.json that a consumer would read for validity must be supported by a named rule in this schema. No rules, no field. This is the discipline that keeps `validity` from drifting back into prose.
+
+Validity is what filters `rgba(0,0,0,.5)` out of `bg.default` candidacy even if it's highly salient. The rule that does it is `surface-role-needs-opaque` — named, documented, not vibes.
 
 Examples:
 
@@ -350,21 +350,74 @@ The schema doesn't prescribe the threshold. It names the contract: **downstream 
 - **Consumer policy.** "Should I treat this token as fixed?" is a consumer decision, not a producer fact. The canonical layer reports saliency and validity; policy emerges at synthesis.
 - **Intention.** "What did the designer mean?" is unknowable from compiled artifacts. Saliency (§5.2) is the measurable proxy, and the one the schema commits to.
 
-## 11. V1 adapter warnings — don't bake GSS weirdness into the ontology
+## 11. Shim-vs-contract separation — the `_provisional` flag
 
-For the current implementation, `canonical.json` will be produced by a DCP-side adapter on top of GSS's `shadcn.analysis.json` rather than emitted by GSS directly. That's fine for V1 but has a known trap: whatever weirdness exists in the current GSS blob will get baked into the contract if we aren't careful.
+Aspirational prose ("the contract should survive replacement of the shim") drifts in practice. A schema-level rule keeps the seam visible:
 
-Guidelines for the translation shim:
+**Rule:** Any field present in canonical.json only because the current GSS blob happens to emit it — with no independent justification from the contract itself — carries `_provisional: true`.
 
-- **Fields that map over temporarily:** GSS's `bindings.bindings` → canonical's `dictionaryFit` + role bindings in `semantic.json`. GSS's `tokens.*` arrays → canonical's `tokens.*` with envelope.
-- **Fields that are first-class in canonical regardless of GSS:** `saliency`, `validity`, `provenance[]`, `coverage`, `dictionaryFit.unmappedSiteRoles`, `composition`. If the V1 adapter can't populate these cleanly, it should emit empty arrays / null / zero — not degenerate stand-ins.
-- **Fields that exist only because GSS emits them:** `theme.light` / `theme.dark` (shadcn-formatted) should not leak into canonical. They belong in an `adapter/` output sibling to canonical.
+Fields without `_provisional` are first-class: part of the durable canonical contract. When the shim is replaced by native canonical-layer output from the extractor, provisionals must either earn promotion (explicit justification added to this schema document) or be dropped. The drift becomes visible in the schema file itself, not hidden in PR descriptions.
 
-Commit the shim as a translation layer, not as the canonical emitter. When GSS grows native canonical-layer output, swap implementations without changing the schema.
+```jsonc
+{
+  "id": "token-0042",
+  "class": "discrete",
+  "name": "--colors--primary-accent",
+  "value": "#146ef5",
+  "saliency": 0.95,
+  "validity": 0.95,
+  "provenance": [...],
+
+  "_gssRawHsl": "216 92% 52%",       // _provisional
+  "_provisional": ["_gssRawHsl"]      // fields on THIS token that are shim-only
+}
+```
+
+At the top level:
+
+```jsonc
+{
+  "schemaVersion": "0.2.0",
+  "_provisionalFields": [
+    "tokens.discrete[].gssRawHsl",    // carried for debug parity with current GSS blob; not contract
+    "source.extractorBlob"             // adapter-side only
+  ],
+  ...
+}
+```
+
+Contract obligation: a release checklist item is "`_provisionalFields` is empty or each entry has a justification line in this schema." If the list grows without documentation, the shim is defining the ontology — the exact anti-pattern this rule prevents.
+
+Concrete guidelines for the V1 adapter:
+
+- **First-class in canonical regardless of GSS:** `saliency`, `validity`, `provenance[]`, `coverage`, `dictionaryFit.unmappedSiteRoles`. If the V1 adapter can't populate these cleanly, emit empty arrays / null / zero — not degenerate stand-ins, and not `_provisional` placeholders.
+- **Fields that belong in an `adapter/` sibling, not canonical:** GSS's `theme.light` / `theme.dark` (shadcn-formatted). These are projections, not source.
+- **Fields on the border:** anything GSS emits that canonical consumers currently read but wasn't independently contract-justified goes into `_provisional` until reviewed.
+
+When GSS grows native canonical-layer output, the V1 shim gets deleted and every `_provisional` entry must have been either promoted (with justification) or dropped. The schema is the audit trail.
+
+## 12. Contract derivation — from consumer need, not extractor convenience
+
+The test for whether a field belongs in canonical.json is not "the extractor emits it" or "it would be nice to have." The test is:
+
+> Does a downstream consumer — specifically, a hand-authored DESIGN.md for this site — reference it?
+
+**Concrete method, borrowed from compiler design:**
+
+1. Pick three substrate-different sites (a cooperative Webflow, a Tailwind-JIT app, a hashed-CSS-module React SPA).
+2. Hand-author a DESIGN.md for each, without consulting the extractor.
+3. Enumerate every field the prose references: "the primary accent is X," "the card radius is Y," "the button padding uses tokens Z1 and Z2."
+4. That enumerated list is the minimum viable canonical contract.
+5. Anything outside the list is bloat. Prune.
+6. Anything inside the list the extractor can't supply is the **substrate floor**, exposed cleanly — it's what goes into the refusal report when evidence is too thin.
+
+This is the same discipline compilers use: IR shape is dictated by codegen need, not parser convenience. Building canonical from the extractor side first (and trying to match consumers later) is how schemas end up with 40 fields and inconsistent downstream usage.
+
+**V0.2 audit status:** the fields currently in this schema were not derived from this method. They were backfilled from the `build-design-md.mjs` synthesis output + the concept-model discussion. That's acceptable for a V0.2 draft; it is not acceptable for a V1.0 freeze. A V0.3 pass must perform the consumer-prose audit and prune any field it does not find cited.
 
 ---
 
-## 12. The two-producer story (Webflow-style vs. Tailwind-style)
+## 13. The two-producer story (Webflow-style vs. Tailwind-style)
 
 A `canonical.json` from a Webflow site will be:
 - high in `provenance.source === "named-var"`
@@ -380,7 +433,7 @@ Both are valid `canonical.json`. Downstream tools must not assume one profile. T
 
 ---
 
-## 13. Minimum viable implementation
+## 14. Minimum viable implementation
 
 For the current DCP pipeline, a first-cut emitter needs only:
 
@@ -399,7 +452,7 @@ Consumers (like `build-design-md.mjs`) must implement the §9 refusal floor. Tha
 
 ---
 
-## 14. One-line summary
+## 15. One-line summary
 
 **`canonical.json` is the smallest typed, provenanced, validity-tagged token graph that any downstream DCP consumer needs, and nothing else.**
 
