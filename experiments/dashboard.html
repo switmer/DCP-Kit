@@ -96,6 +96,25 @@
   </div>
 </header>
 
+<section id="analyze-new">
+  <h2>Analyze a new site</h2>
+  <p class="muted" style="font-size: 13px; margin-top: 0;">
+    Paste a URL. Runs <a href="https://github.com/switmer/Get-Site-Styles" target="_blank">Get-Site-Styles</a> against it and renders the DCP role bindings it produces (same format as the two baseline experiments below). Takes 30–90 seconds per site.
+    Results persist under <code>experiments/ad-hoc/&lt;hostname&gt;/</code> and reappear in the "Previously analyzed" list on reload.
+  </p>
+  <form id="analyze-form" style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+    <input id="analyze-url" type="url" placeholder="https://vercel.com" required
+      style="flex: 1; min-width: 300px; padding: 10px 14px; border: 1px solid var(--border); background: var(--panel-alt); color: var(--text); border-radius: 6px; font-family: var(--mono); font-size: 14px;">
+    <button id="analyze-btn" type="submit"
+      style="padding: 10px 20px; border: 1px solid rgba(106,166,255,0.4); background: rgba(106,166,255,0.12); color: var(--accent); border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 500;">
+      Analyze
+    </button>
+  </form>
+  <div id="analyze-status" style="margin-top: 12px; font-size: 13px; color: var(--muted);"></div>
+  <div id="analyze-result"></div>
+  <div id="adhoc-list" style="margin-top: 20px;"></div>
+</section>
+
 <section id="summary">
   <h2>Summary comparison</h2>
   <div id="summary-body"></div>
@@ -185,26 +204,28 @@
   }
 
   function renderBindingsTable(handBindings, gssBindings) {
-    // Union of roles
-    const roleSet = new Set([...Object.keys(handBindings || {}), ...Object.keys(gssBindings?.bindings || {})]);
+    // Both args are flat role maps: { 'bg.default': {hex, confidence, ...}, ... }
+    const roleSet = new Set([...Object.keys(handBindings || {}), ...Object.keys(gssBindings || {})]);
     const roles = [...roleSet].sort();
 
     const rows = roles.map(role => {
       const h = (handBindings || {})[role];
-      const g = (gssBindings?.bindings || {})[role];
+      const g = (gssBindings || {})[role];
       let state = 'bad';
       if (h && g) {
         state = (h.hex || '').toLowerCase() === (g.hex || '').toLowerCase() ? 'agree' : 'partial';
       }
       const highlight = state !== 'agree' ? 'class="comparison-highlight"' : '';
 
+      const fmtConf = (b) => (b && typeof b.confidence === 'number') ? b.confidence.toFixed(2) : '';
+      const fmtHex  = (b) => (b && b.hex) ? (swatch(b.hex) + `<span class="hex">${b.hex}</span>`) : '<span class="empty">—</span>';
       return `
         <tr ${highlight}>
           <td class="role">${role}</td>
-          <td>${h ? swatch(h.hex) + `<span class="hex">${h.hex}</span>` : '<span class="empty">—</span>'}</td>
-          <td><span class="conf ${h ? confClass(h.confidence) : ''}">${h ? h.confidence.toFixed(2) : ''}</span></td>
-          <td>${g ? swatch(g.hex) + `<span class="hex">${g.hex}</span>` : '<span class="empty">—</span>'}</td>
-          <td><span class="conf ${g ? confClass(g.confidence) : ''}">${g ? g.confidence.toFixed(2) : ''}</span></td>
+          <td>${fmtHex(h)}</td>
+          <td><span class="conf ${h && typeof h.confidence === 'number' ? confClass(h.confidence) : ''}">${fmtConf(h)}</span></td>
+          <td>${fmtHex(g)}</td>
+          <td><span class="conf ${g && typeof g.confidence === 'number' ? confClass(g.confidence) : ''}">${fmtConf(g)}</span></td>
           <td class="${diffClass(state)}">${state === 'agree' ? '✓ agree' : state === 'partial' ? '⚠ diff hex' : '✗ one-side only'}</td>
         </tr>
       `;
@@ -324,7 +345,10 @@
   for (const ex of experiments) {
     const d = data[ex.slug];
     const hand = d.site?.bindings || {};
-    const gss = d.gss?.bindings || {};
+    // gss-bindings.json wraps the role map one level deeper than site-bindings.json:
+    //   site-bindings.json → { bindings: {<role map>} }
+    //   gss-bindings.json  → { bindings: { contractVersion, bindings: {<role map>}, report } }
+    const gss = d.gss?.bindings?.bindings || {};
     const sectionId = ex.slug === 'bungee-pro' ? 'site-bungee' : 'site-firestore';
 
     const html = `
@@ -370,17 +394,51 @@
 
       <div style="margin-top: 20px;">
         <h3>Hand-authored vs GSS measured — role-by-role</h3>
-        ${renderBindingsTable(hand, { bindings: gss })}
+        ${renderBindingsTable(hand, gss)}
       </div>
+      <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="baseline-design-md-btn" data-hostname="${ex.slug === 'bungee-pro' ? 'bungee-pro.webflow.io' : 'thefirestore.com'}" data-slug="${ex.slug}"
+          style="padding: 8px 16px; border: 1px solid rgba(78,201,176,0.4); background: rgba(78,201,176,0.10); color: var(--ok); border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500;">
+          Generate DESIGN.md for this site
+        </button>
+      </div>
+      <div class="baseline-design-md-output" data-slug="${ex.slug}"></div>
     `;
     document.getElementById(sectionId).innerHTML = html;
   }
+
+  // Wire baseline-site DESIGN.md buttons
+  document.querySelectorAll('.baseline-design-md-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const host = btn.dataset.hostname;
+      const slug = btn.dataset.slug;
+      const output = document.querySelector(`.baseline-design-md-output[data-slug="${slug}"]`);
+      btn.disabled = true;
+      btn.textContent = 'Generating…';
+      try {
+        const r = await fetch('/api/design/' + encodeURIComponent(host));
+        const text = await r.text();
+        if (!r.ok) throw new Error(text);
+        output.innerHTML = `
+          <details open style="margin-top: 16px;">
+            <summary style="cursor: pointer; color: var(--muted); font-size: 12px;">DESIGN.md — ${host} (${text.length.toLocaleString()} chars, saved to experiments/${slug}/DESIGN.md)</summary>
+            <pre style="margin-top: 12px; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: auto; max-height: 500px; font-size: 12px; line-height: 1.5; white-space: pre-wrap;">${text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
+          </details>
+        `;
+      } catch (e) {
+        output.innerHTML = `<div class="diff-bad" style="margin-top: 12px; font-size: 13px;">Generation failed: ${e.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate DESIGN.md for this site';
+      }
+    });
+  });
 
   // Render cross-site role disagreements
   const disagreements = [];
   for (const ex of experiments) {
     const hand = data[ex.slug].site?.bindings || {};
-    const gss = data[ex.slug].gss?.bindings || {};
+    const gss = data[ex.slug].gss?.bindings?.bindings || {};
     const allRoles = new Set([...Object.keys(hand), ...Object.keys(gss)]);
     for (const role of allRoles) {
       const h = hand[role];
@@ -416,10 +474,10 @@
           <tr>
             <td class="muted">${d.site}</td>
             <td class="role">${d.role}</td>
-            <td>${d.h ? swatch(d.h.hex) + `<span class="hex">${d.h.hex}</span>` : '<span class="empty">—</span>'}</td>
-            <td><span class="conf ${d.h ? confClass(d.h.confidence) : ''}">${d.h ? d.h.confidence.toFixed(2) : ''}</span></td>
-            <td>${d.g ? swatch(d.g.hex) + `<span class="hex">${d.g.hex}</span>` : '<span class="empty">—</span>'}</td>
-            <td><span class="conf ${d.g ? confClass(d.g.confidence) : ''}">${d.g ? d.g.confidence.toFixed(2) : ''}</span></td>
+            <td>${(d.h && d.h.hex) ? swatch(d.h.hex) + `<span class="hex">${d.h.hex}</span>` : '<span class="empty">—</span>'}</td>
+            <td><span class="conf ${d.h && typeof d.h.confidence === 'number' ? confClass(d.h.confidence) : ''}">${d.h && typeof d.h.confidence === 'number' ? d.h.confidence.toFixed(2) : ''}</span></td>
+            <td>${(d.g && d.g.hex) ? swatch(d.g.hex) + `<span class="hex">${d.g.hex}</span>` : '<span class="empty">—</span>'}</td>
+            <td><span class="conf ${d.g && typeof d.g.confidence === 'number' ? confClass(d.g.confidence) : ''}">${d.g && typeof d.g.confidence === 'number' ? d.g.confidence.toFixed(2) : ''}</span></td>
             <td class="${diffClass(d.state)}">${d.state === 'partial' ? '⚠ different hex, same role' : '✗ one side only'}</td>
           </tr>
         `).join('')}
@@ -430,6 +488,208 @@
     </p>
   `;
   document.getElementById('disagreements-body').innerHTML = disagreementsHtml;
+
+  // --- Ad-hoc analyzer ---
+  function renderAdHocResult(result, container) {
+    const bindings = result.bindings || {};
+    const report = result.report || {};
+    const roles = Object.keys(bindings).sort();
+    const confs = roles.map(r => bindings[r].confidence).filter(n => typeof n === 'number');
+    const mean = confs.length ? confs.reduce((a, b) => a + b, 0) / confs.length : 0;
+    const max = confs.length ? Math.max(...confs) : 0;
+    const highCount = confs.filter(c => c >= 0.85).length;
+    const runtime = result.runtimeMs ? `${(result.runtimeMs / 1000).toFixed(1)}s` : '—';
+
+    const unmapped = report.unmappedRoles || [];
+
+    const rows = roles.map(role => {
+      const b = bindings[role] || {};
+      const hasConf = typeof b.confidence === 'number';
+      return `
+        <tr>
+          <td class="role">${role}</td>
+          <td>${b.hex ? swatch(b.hex) + `<span class="hex">${b.hex}</span>` : '<span class="empty">—</span>'}</td>
+          <td><span class="conf ${hasConf ? confClass(b.confidence) : ''}">${hasConf ? b.confidence.toFixed(2) : ''}</span></td>
+          <td class="muted" style="font-size: 12px;">${(b.reason || '').slice(0, 90)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="card" style="margin-top: 16px;">
+        <h3 style="margin-bottom: 8px;">
+          ${result.hostname}
+          <span class="pill pill-gss" style="margin-left: 8px;">GSS measured</span>
+          <span class="muted" style="font-size: 12px; margin-left: 8px; font-weight: normal;">in ${runtime}</span>
+        </h3>
+        <div class="muted" style="font-size: 12px; margin-bottom: 16px;">
+          <code>${result.url}</code>
+        </div>
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="stat-label">Roles bound</div>
+            <div class="stat-value">${roles.length}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Mean conf</div>
+            <div class="stat-value">${mean.toFixed(2)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Max conf</div>
+            <div class="stat-value">${max.toFixed(2)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">≥0.85</div>
+            <div class="stat-value">${highCount}</div>
+          </div>
+        </div>
+        ${unmapped.length ? `
+          <div style="margin-top: 8px; margin-bottom: 12px; font-size: 13px;">
+            <span class="muted">GSS left unmapped:</span>
+            ${unmapped.map(r => `<code>${r}</code>`).join(' ')}
+          </div>
+        ` : ''}
+        <div style="margin-top: 12px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Hex</th>
+                <th>Conf</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="muted" style="margin-top: 16px; font-size: 12px;">
+          Against baseline: bungee-pro GSS mean 0.69 · thefirestore GSS mean 0.76
+          — this site lands at <strong style="color: ${mean >= 0.76 ? 'var(--ok)' : mean >= 0.69 ? 'var(--warn)' : 'var(--bad)'};">${mean.toFixed(2)}</strong>.
+        </div>
+        <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="design-md-btn" data-hostname="${result.hostname}"
+            style="padding: 8px 16px; border: 1px solid rgba(78,201,176,0.4); background: rgba(78,201,176,0.10); color: var(--ok); border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500;">
+            Generate DESIGN.md
+          </button>
+          <a class="pill" href="/api/design/${encodeURIComponent(result.hostname)}" target="_blank"
+            style="padding: 8px 14px; text-decoration: none;">
+            Open raw
+          </a>
+        </div>
+        <div class="design-md-output" data-hostname="${result.hostname}"></div>
+      </div>
+    `;
+
+    // Wire up the Generate DESIGN.md button(s) inside the rendered card
+    setTimeout(() => {
+      const btns = container.querySelectorAll('.design-md-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const host = btn.dataset.hostname;
+          const output = container.querySelector(`.design-md-output[data-hostname="${host}"]`);
+          btn.disabled = true;
+          btn.textContent = 'Generating…';
+          try {
+            const r = await fetch('/api/design/' + encodeURIComponent(host));
+            const text = await r.text();
+            if (!r.ok) throw new Error(text);
+            output.innerHTML = `
+              <details open style="margin-top: 16px;">
+                <summary style="cursor: pointer; color: var(--muted); font-size: 12px;">DESIGN.md — ${host} (${text.length.toLocaleString()} chars)</summary>
+                <pre style="margin-top: 12px; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: auto; max-height: 500px; font-size: 12px; line-height: 1.5; white-space: pre-wrap;">${text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
+              </details>
+            `;
+          } catch (e) {
+            output.innerHTML = `<div class="diff-bad" style="margin-top: 12px; font-size: 13px;">Generation failed: ${e.message}</div>`;
+          } finally {
+            btn.disabled = false;
+            btn.textContent = 'Generate DESIGN.md';
+          }
+        });
+      });
+    }, 0);
+  }
+
+  async function loadAdHocList() {
+    try {
+      const sites = await (await fetch('/api/adhoc')).json();
+      const listEl = document.getElementById('adhoc-list');
+      if (!sites.length) { listEl.innerHTML = ''; return; }
+      listEl.innerHTML = `
+        <h3 style="margin-top: 20px;">Previously analyzed</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          ${sites.map(s => `
+            <button class="pill adhoc-pill" data-hostname="${s.hostname}" style="cursor: pointer; border: 1px solid var(--border); padding: 6px 12px; font-family: var(--mono); font-size: 12px;">
+              ${s.hostname} ${s.analyzedAt ? `<span class="dim" style="margin-left: 6px;">${s.analyzedAt.slice(0, 10)}</span>` : ''}
+            </button>
+          `).join('')}
+        </div>
+      `;
+      for (const btn of listEl.querySelectorAll('.adhoc-pill')) {
+        btn.addEventListener('click', async () => {
+          const hostname = btn.dataset.hostname;
+          const statusEl = document.getElementById('analyze-status');
+          statusEl.textContent = `Loading ${hostname}…`;
+          try {
+            const r = await fetch('/api/adhoc/' + encodeURIComponent(hostname));
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || 'load failed');
+            renderAdHocResult({ ...data, hostname, url: data.url || `(${hostname})` }, document.getElementById('analyze-result'));
+            statusEl.textContent = '';
+          } catch (e) {
+            statusEl.innerHTML = `<span class="diff-bad">Load failed: ${e.message}</span>`;
+          }
+        });
+      }
+    } catch {
+      // /api/adhoc only exists when served via server.mjs; silently ignore on static server
+    }
+  }
+
+  const form = document.getElementById('analyze-form');
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const urlInput = document.getElementById('analyze-url');
+    const btn = document.getElementById('analyze-btn');
+    const statusEl = document.getElementById('analyze-status');
+    const resultEl = document.getElementById('analyze-result');
+
+    const url = urlInput.value.trim();
+    if (!url) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    resultEl.innerHTML = '';
+    statusEl.innerHTML = `<span>Running Get-Site-Styles against <code>${url}</code>… this takes 30–90 seconds.</span>`;
+
+    const started = Date.now();
+    const tickInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - started) / 1000);
+      statusEl.innerHTML = `<span>Running Get-Site-Styles against <code>${url}</code>… <span class="mono">${elapsed}s</span></span>`;
+    }, 1000);
+
+    try {
+      const r = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await r.json();
+      clearInterval(tickInterval);
+      if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+      statusEl.textContent = '';
+      renderAdHocResult(data, resultEl);
+      await loadAdHocList();
+    } catch (e) {
+      clearInterval(tickInterval);
+      statusEl.innerHTML = `<span class="diff-bad">Failed: ${e.message}</span>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Analyze';
+    }
+  });
+
+  await loadAdHocList();
 
   // Render errors if any
   if (errors.length) {

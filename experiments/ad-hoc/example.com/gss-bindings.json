@@ -1,0 +1,142 @@
+{
+  "meta": {
+    "source": "https://example.com",
+    "extractedAt": "2026-04-20T20:54:59.477Z",
+    "semanticAnalysis": {
+      "totalElements": 0,
+      "buttonColors": [],
+      "brandColors": [],
+      "colorsByContext": {},
+      "highestWeightColors": []
+    },
+    "totalTokens": {
+      "customProperties": 0,
+      "colors": 2,
+      "fontSizes": 1,
+      "fontFamilies": 2,
+      "fontWeights": 0,
+      "lineHeights": 0,
+      "letterSpacings": 0,
+      "spacing": 1,
+      "radii": 0,
+      "shadows": 0,
+      "gradients": 0,
+      "breakpoints": 0,
+      "zIndices": 0,
+      "transitions": 0,
+      "opacity": 1,
+      "aspectRatios": 0,
+      "borderWidths": 0,
+      "borderStyles": 0
+    },
+    "format": "shadcn",
+    "colorAnalysis": [
+      {
+        "color": "#eee",
+        "role": "border",
+        "frequency": 2,
+        "lightness": 93,
+        "saturation": 0
+      }
+    ]
+  },
+  "css": ":root {\n  --background: 0 0% 100%;\n  --card: 0 0% 100%;\n  --popover: 0 0% 100%;\n  --foreground: 240 2% 14%;\n  --card-foreground: 240 2% 14%;\n  --popover-foreground: 240 2% 14%;\n  --secondary: 210 40% 96%;\n  --secondary-foreground: 240 2% 14%;\n  --accent: 210 40% 96%;\n  --accent-foreground: 240 2% 14%;\n  --muted: 210 40% 96%;\n  --muted-foreground: 240 6% 27%;\n  --destructive: 0 84% 60%;\n  --destructive-foreground: 0 0% 100%;\n  --border: 0 0% 93%;\n  --input: 0 0% 93%;\n  --chart-1: hsl(205 100% 50%);\n  --chart-2: hsl(120 100% 50%);\n  --chart-3: hsl(280 100% 50%);\n  --chart-4: hsl(60 100% 50%);\n  --chart-5: hsl(340 100% 50%);\n  --sidebar: hsl(0 0% 98%);\n  --sidebar-foreground: 240 2% 14%;\n  --sidebar-primary: undefined;\n  --sidebar-primary-foreground: undefined;\n  --sidebar-accent: hsl(0 0% 98%);\n  --sidebar-accent-foreground: 240 2% 14%;\n  --sidebar-border: hsl(240 100% 0%);\n  --sidebar-ring: undefined;\n  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';\n  --font-serif: ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif;\n  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;\n  --radius: 0.5rem;\n  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);\n  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);\n  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);\n  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);\n  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);\n  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);\n  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);\n  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);\n}\n\n@theme inline {\n  --color-background: var(--background);\n  --color-foreground: var(--foreground);\n  --color-card: var(--card);\n  --color-card-foreground: var(--card-foreground);\n  --color-popover: var(--popover);\n  --color-popover-foreground: var(--popover-foreground);\n  --color-primary: var(--primary);\n  --color-primary-foreground: var(--primary-foreground);\n  --color-secondary: var(--secondary);\n  --color-secondary-foreground: var(--secondary-foreground);\n  --color-muted: var(--muted);\n  --color-muted-foreground: var(--muted-foreground);\n  --color-accent: var(--accent);\n  --color-accent-foreground: var(--accent-foreground);\n  --color-destructive: var(--destructive);\n  --color-destructive-foreground: var(--destructive-foreground);\n  --color-border: var(--border);\n  --color-input: var(--input);\n  --color-ring: var(--ring);\n  --color-chart-1: var(--chart-1);\n  --color-chart-2: var(--chart-2);\n  --color-chart-3: var(--chart-3);\n  --color-chart-4: var(--chart-4);\n  --color-chart-5: var(--chart-5);\n  --color-sidebar: var(--sidebar);\n  --color-sidebar-foreground: var(--sidebar-foreground);\n  --color-sidebar-primary: var(--sidebar-primary);\n  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);\n  --color-sidebar-accent: var(--sidebar-accent);\n  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);\n  --color-sidebar-border: var(--sidebar-border);\n  --color-sidebar-ring: var(--sidebar-ring);\n\n  --font-sans: var(--font-sans);\n  --font-mono: var(--font-mono);\n  --font-serif: var(--font-serif);\n\n  --radius-sm: calc(var(--radius) - 4px);\n  --radius-md: calc(var(--radius) - 2px);\n  --radius-lg: var(--radius);\n  --radius-xl: calc(var(--radius) + 4px);\n\n  --shadow-2xs: var(--shadow-2xs);\n  --shadow-xs: var(--shadow-xs);\n  --shadow-sm: var(--shadow-sm);\n  --shadow: var(--shadow);\n  --shadow-md: var(--shadow-md);\n  --shadow-lg: var(--shadow-lg);\n  --shadow-xl: var(--shadow-xl);\n  --shadow-2xl: var(--shadow-2xl);\n}",
+  "theme": {
+    "light": {
+      "--background": "0 0% 100%",
+      "--card": "0 0% 100%",
+      "--popover": "0 0% 100%",
+      "--foreground": "240 2% 14%",
+      "--card-foreground": "240 2% 14%",
+      "--popover-foreground": "240 2% 14%",
+      "--secondary": "210 40% 96%",
+      "--secondary-foreground": "240 2% 14%",
+      "--accent": "210 40% 96%",
+      "--accent-foreground": "240 2% 14%",
+      "--muted": "210 40% 96%",
+      "--muted-foreground": "240 6% 27%",
+      "--destructive": "0 84% 60%",
+      "--destructive-foreground": "0 0% 100%",
+      "--border": "0 0% 93%",
+      "--input": "0 0% 93%",
+      "--chart-1": "hsl(205 100% 50%)",
+      "--chart-2": "hsl(120 100% 50%)",
+      "--chart-3": "hsl(280 100% 50%)",
+      "--chart-4": "hsl(60 100% 50%)",
+      "--chart-5": "hsl(340 100% 50%)",
+      "--sidebar": "hsl(0 0% 98%)",
+      "--sidebar-foreground": "240 2% 14%",
+      "--sidebar-accent": "hsl(0 0% 98%)",
+      "--sidebar-accent-foreground": "240 2% 14%",
+      "--sidebar-border": "hsl(240 100% 0%)",
+      "--font-sans": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
+      "--font-serif": "ui-serif, Georgia, Cambria, \"Times New Roman\", Times, serif",
+      "--font-mono": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+      "--radius": "0.5rem",
+      "--shadow-2xs": "0 1px 3px 0px hsl(0 0% 0% / 0.05)",
+      "--shadow-xs": "0 1px 3px 0px hsl(0 0% 0% / 0.05)",
+      "--shadow-sm": "0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10)",
+      "--shadow": "0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10)",
+      "--shadow-md": "0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10)",
+      "--shadow-lg": "0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10)",
+      "--shadow-xl": "0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10)",
+      "--shadow-2xl": "0 1px 3px 0px hsl(0 0% 0% / 0.25)"
+    },
+    "layoutZoneColors": {},
+    "additionalBrandColors": {},
+    "buttonColors": {}
+  },
+  "tokens": {
+    "colors": [
+      "#eee"
+    ],
+    "fontSizes": [
+      "1.5em"
+    ],
+    "spacing": [
+      "15vh"
+    ],
+    "radii": []
+  },
+  "bindings": {
+    "contractVersion": "0.1.0",
+    "bindings": {
+      "border.default": {
+        "role": "border.default",
+        "hex": "#eee",
+        "confidence": 0.63,
+        "source": "auto",
+        "reason": "direct: border → border.default"
+      }
+    },
+    "report": {
+      "totalCandidates": 1,
+      "autoBound": 0,
+      "suggested": 0,
+      "uncertain": 1,
+      "unmappedRoles": [
+        "bg.default",
+        "bg.muted",
+        "bg.elevated",
+        "text.primary",
+        "text.muted",
+        "text.onAccent",
+        "border.muted",
+        "accent.primary",
+        "accent.secondary",
+        "intent.danger",
+        "intent.warning",
+        "intent.success",
+        "intent.info"
+      ],
+      "reviewItems": [
+        {
+          "role": "border.default",
+          "hex": "#eee",
+          "confidence": 0.63,
+          "reason": "direct: border → border.default"
+        }
+      ]
+    }
+  }
+}
