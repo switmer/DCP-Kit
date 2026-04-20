@@ -2,17 +2,32 @@
   "site": "thefirestore.com",
   "surface_type": "stencil_no_semantic_vars",
   "run_date": "2026-04-19",
+  "measurement_date": "2026-04-20",
   "scope": {
     "components_authored": ["Button", "ProductCard", "CategoryTile"],
     "authoring_mode": "hand_authored_from_observed_css",
-    "autoMapper_run": false
+    "autoMapper_run": false,
+    "gss_run": true
   },
-  "role_binding": {
+  "role_binding_hand": {
     "total_roles": 7,
-    "high_confidence_roles": 3,
+    "mean_confidence": 0.72,
+    "max_confidence": 0.90,
+    "high_confidence_count": 3,
     "extensions": 2,
     "unmapped_dcp_roles": 10,
     "confidence_source": "hand_entered"
+  },
+  "role_binding_gss": {
+    "total_roles": 14,
+    "mean_confidence": 0.76,
+    "max_confidence": 0.84,
+    "high_confidence_count": 0,
+    "autoBound": 0,
+    "suggested": 11,
+    "uncertain": 3,
+    "unmapped_dcp_roles": [],
+    "raw_output": "gss-bindings.json"
   },
   "component_inference": {
     "families_attempted": ["Button", "ProductCard", "CategoryTile"],
@@ -23,10 +38,11 @@
     "one_physical_hex_multiple_roles",
     "interaction_state_colors_no_canonical_slot"
   ],
+  "hypothesis_result": "outperformed_bungee_pro_contradicting_prior_hypothesis",
   "notes": [
-    "No semantic CSS custom property definitions found in the stencil theme",
-    "Brand color #c12126 collides on the same hex with accent.primary (conf 0.85) and intent.danger (conf 0.4)",
-    "Palette is richer than contract (8 distinct grays → 1 text.muted slot)",
-    "Confidence counts are hand-entered, not measured; AutoMapper did not run"
+    "No semantic CSS custom property definitions — yet GSS scored this site higher than bungee-pro",
+    "Palette richness (76 unique hexes) and saturation separation appear to help algorithmic mapping more than semantic variable declarations do",
+    "Hand-bound brand color #c12126 collides with intent.danger on same hex; GSS resolved by picking the darker hover-red #9b090d for intent.danger",
+    "GSS bound accent.primary to the gold #f3ca3e (the site's --primary token) rather than the dominant brand red — disagrees with human reading"
   ]
 }

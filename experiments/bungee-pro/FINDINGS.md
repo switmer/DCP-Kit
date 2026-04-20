@@ -4,10 +4,11 @@
 
 - **Target type:** Webflow (modern template) with author-declared semantic CSS variables
 - **What worked:** role binding, transpile loop, registry generation, end-to-end pipeline
-- **What needed judgment:** component family inference (low), variant grouping (high — merge/split call on identical-styled siblings), role interpretation (low — author names partially aligned with DCP vocabulary)
+- **What needed judgment:** component family inference (low), variant grouping (high — merge/split call on identical-styled siblings), role interpretation (low for human mapping — author variable names partially aligned with DCP vocabulary; see measurement below for algorithmic view)
 - **Primary failure family:** merge/split ambiguity
 - **Important model gap:** none surfaced by this experiment (see `../MODEL-GAPS.md` for gaps surfaced across all experiments)
-- **Confidence in takeaway:** directional, not empirical. Confidence numbers in `site-bindings.json` were hand-entered; `AutoMapper` did not run. See `../live-site-comparison.md` for scope.
+- **Measured (GSS, 2026-04-20):** 12 roles bound, mean confidence 0.69, max 0.76, `autoBound: 0`. **GSS left `bg.default` and `text.primary` unmapped** despite bungee-pro declaring both in its `--colors--*` layer. Raw output: `gss-bindings.json`.
+- **Confidence in takeaway:** The hand-authored numbers in `site-bindings.json` were inflated relative to what an algorithmic mapper produces. See `../MEASUREMENT.md` — the strong hypothesis ("semantic CSS vars produce higher auto-mapper confidence") was falsified when tested; GSS scored this site *lower* than thefirestore.
 
 **Date:** 2026-04-17. **Duration:** ~90 min (hand-authored, not scraped). **Scope:** Button, ProjectCard, TestimonialCard, plus 7 color roles.
 

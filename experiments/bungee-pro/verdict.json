@@ -2,17 +2,32 @@
   "site": "bungee-pro.webflow.io",
   "surface_type": "webflow_with_semantic_vars",
   "run_date": "2026-04-17",
+  "measurement_date": "2026-04-20",
   "scope": {
     "components_authored": ["Button", "ProjectCard", "TestimonialCard"],
     "authoring_mode": "hand_authored_from_observed_css",
-    "autoMapper_run": false
+    "autoMapper_run": false,
+    "gss_run": true
   },
-  "role_binding": {
+  "role_binding_hand": {
     "total_roles": 7,
-    "high_confidence_roles": 4,
+    "mean_confidence": 0.78,
+    "max_confidence": 0.95,
+    "high_confidence_count": 4,
     "extensions": 0,
     "unmapped_dcp_roles": 10,
     "confidence_source": "hand_entered"
+  },
+  "role_binding_gss": {
+    "total_roles": 12,
+    "mean_confidence": 0.69,
+    "max_confidence": 0.76,
+    "high_confidence_count": 0,
+    "autoBound": 0,
+    "suggested": 6,
+    "uncertain": 6,
+    "unmapped_dcp_roles": ["bg.default", "text.primary"],
+    "raw_output": "gss-bindings.json"
   },
   "component_inference": {
     "families_attempted": ["Button", "ProjectCard", "TestimonialCard"],
@@ -20,9 +35,11 @@
     "failure_example": ".button-primary and .button-primary-v2 have identical declared CSS"
   },
   "model_gaps": [],
+  "hypothesis_result": "strong_form_falsified_by_gss_measurement",
   "notes": [
     "Bungee-pro ships author-declared semantic CSS variables (--colors--black, --colors--text, --colors--border)",
-    "Confidence counts are hand-entered, not measured; AutoMapper did not run",
+    "Despite semantic vars, GSS scored this site LOWER than thefirestore",
+    "GSS did not bind bg.default or text.primary on this site — the two roles the author's own variable names would seem to signal most clearly",
     "Transpile output is committed despite known defects as evidence, not polish"
   ]
 }

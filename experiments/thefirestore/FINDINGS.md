@@ -4,10 +4,11 @@
 
 - **Target type:** BigCommerce Stencil, no semantic CSS variable layer
 - **What worked:** role binding, transpile loop, registry generation, end-to-end pipeline (same scripts as bungee-pro, unchanged)
-- **What needed judgment:** component family inference (moderate — shared `.card` base across surfaces), variant grouping (very high — nine sibling `.button--*` modifiers need axis partitioning), role interpretation (high — every non-trivial mapping required provenance reading, not name alignment)
+- **What needed judgment (for human mapping):** component family inference (moderate — shared `.card` base across surfaces), variant grouping (very high — nine sibling `.button--*` modifiers need axis partitioning), role interpretation (high — every non-trivial mapping required provenance reading)
 - **Primary failure family:** axis-disaggregation
-- **Important model gap:** one physical hex (`#c12126`) bound to two canonical roles (`accent.primary` + `intent.danger`). See `../MODEL-GAPS.md`.
-- **Confidence in takeaway:** directional, not empirical. Confidence numbers in `site-bindings.json` were hand-entered; `AutoMapper` did not run. See `../live-site-comparison.md` for the scoped thesis.
+- **Important model gap:** one physical hex (`#c12126`) bound to two canonical roles (`accent.primary` + `intent.danger`). GSS resolved this differently (assigned the brand red to `accent.secondary` and bound `intent.danger` to the darker `#9b090d`). See `../MODEL-GAPS.md`.
+- **Measured (GSS, 2026-04-20):** **14 roles bound, mean confidence 0.76, max 0.84, 0 unmapped** — *higher* measured confidence than bungee-pro despite no semantic CSS variable layer. Raw output: `gss-bindings.json`.
+- **Confidence in takeaway:** The Webflow-cooperative-sites hypothesis — tested against GSS — **did not hold**. See `../MEASUREMENT.md`.
 
 **Date:** 2026-04-19. **Scope:** Button (4 color variants), ProductCard (2 variants), CategoryTile (1 variant), plus 7 color-role bindings + 2 extensions. **Platform:** BigCommerce Stencil e-commerce theme.
 
@@ -54,13 +55,17 @@ A human reads these and partitions them into axes: `{color: primary | secondary 
 
 **The broader finding:** variant-clustering failure is not a single problem with a single solution. It's a family of judgment problems whose shape depends on how the source site encodes its design system. A pipeline that only addresses the merge-ambiguity case leaves the axis-identification case unsolved, and vice versa.
 
-## 3. The Webflow-cooperative-sites hypothesis — consistent but not yet measured
+## 3. The Webflow-cooperative-sites hypothesis — tested and falsified in its strong form
 
-From the bungee-pro FINDINGS: *"Modern Webflow templates ship semantic CSS variables by default. This is probably an artifact of Webflow's CSS-variable feature and may not generalize to arbitrary live sites — compiled Tailwind builds and older Webflow templates flatten semantic naming out. Worth testing against non-Webflow targets before making claims about live-site role extraction in general."*
+From the bungee-pro FINDINGS: *"Modern Webflow templates ship semantic CSS variables by default. Worth testing against non-Webflow targets before making claims about live-site role extraction in general."*
 
-**Observation consistent with the hypothesis. Not empirically tested.** Thefirestore has no semantic CSS variable layer — absent, not reduced. The confidence numbers in the two experiments differ in the hypothesis-predicted direction (4/7 high-confidence on bungee-pro vs. 3/7 here), but both sets of confidence numbers were hand-entered by the author; no independent mapper produced them. The evidence is directional, not measured.
+**Tested on 2026-04-20 via Get-Site-Styles (GSS), which uses DCP's exact `SemanticColorRole` vocabulary and `CONTRACT_VERSION = '0.1.0'`. See [../MEASUREMENT.md](../MEASUREMENT.md) for the full comparison.**
 
-The real test — listed as next-experiment #1 below — is running DCP's existing `AutoMapper` against both sites' token inventories and comparing *its* confidence outputs. If AutoMapper produces higher confidence on bungee-pro than thefirestore for structurally equivalent roles, the hypothesis has an empirical anchor. Until that runs, the two experiments are two data points authored under the same hypothesis, not a test of it.
+**The strong form of the hypothesis did not hold.** GSS's measured confidence on thefirestore (mean 0.76, max 0.84, 14 roles bound, 0 unmapped) is *higher* than on bungee-pro (mean 0.69, max 0.76, 12 roles bound, 2 unmapped). The hand-entered "4/7 vs 3/7 high-confidence" framing that anchored the earlier narrative was an artifact of the author's own scale — GSS is calibrated more conservatively and inverts the ranking entirely. By GSS's threshold, **neither site crosses auto-bind** (`autoBound: 0` on both; every binding lands in `suggested` or `uncertain`).
+
+**The refined form remains plausible but untested here.** Semantic CSS vars appear to help a *human* mapper who can read `--colors--black` and bind it directly. They do not appear to help GSS, which uses frequency, saturation, lightness, and CSS-token naming patterns rather than author intent. These are two different operations with different failure modes. The original hypothesis conflated them.
+
+**Paradoxically, the stencil-no-semantic-vars target scored better.** Thefirestore's palette is larger (76 unique hexes vs. bungee-pro's 45), more saturation-differentiated, and encodes semantic roles in CSS-token names GSS recognizes (`--primary`, `--secondary`, `--destructive`, `--border`) — making GSS's heuristics fire more confidently despite the absence of author-declared CSS custom properties.
 
 **Bounded.** This does not mean DCP's role contract is broken on non-Webflow sites. It means:
 

@@ -4,11 +4,15 @@
 
 ---
 
-## Thesis (scoped)
+## Thesis (scoped, refined after measurement)
 
-**DCP can produce reviewable live-site registries across materially different site encodings, but output quality depends on how much semantic signal survives into the rendered surface. The main failure mode is not extraction but canonicalization — specifically family inference, variant grouping, and role interpretation.**
+**DCP can produce reviewable live-site registries across materially different site encodings. Output quality depends on the *operation* and on what semantic signal the operation can read — not on any single site property.**
 
-**These failures are not uniform.** Different source encodings produce different failure families.
+**Human mapping** benefits from author-declared semantic signal (CSS custom property names, selector names, comments). **Algorithmic mapping** (as implemented in Get-Site-Styles, measured 2026-04-20) benefits from *palette richness and saturation separation* — regardless of author naming.
+
+The earlier framing ("sites with semantic CSS vars produce higher auto-mapper confidence") was tested against GSS and did not hold — GSS scored thefirestore's stencil-with-no-semantic-vars target *higher* than bungee-pro's semantic-var-rich target. See [MEASUREMENT.md](./MEASUREMENT.md).
+
+**The main failure mode remains canonicalization** — specifically family inference, variant grouping, and role interpretation. **These failures are not uniform across site encodings, and they are not uniform across mapping operations either.**
 
 ---
 
@@ -18,8 +22,10 @@
 |---|---|---|
 | **Stack** | Webflow (modern template) | BigCommerce Stencil |
 | **Semantic token signal at surface** | Yes — author-declared CSS variables (`--colors--black`, `--colors--text`, `--colors--border`) | No — raw hex values throughout; zero CSS custom property definitions |
-| **High-confidence role bindings** (hand-entered) | 4 of 7 | 3 of 7 |
-| **Extensions captured** | 0 | 2 (`--site-brand-red-hover`, `--site-accent-gold`) |
+| **High-confidence role bindings** (hand-entered, ≥0.85) | 4 of 7 | 3 of 7 |
+| **GSS measured bindings** (see [MEASUREMENT.md](./MEASUREMENT.md)) | 12 bound, mean conf 0.69, max 0.76 | 14 bound, mean conf **0.76**, max 0.84 |
+| **GSS `autoBound` / unmapped DCP roles** | 0 auto / 2 unmapped (`bg.default`, `text.primary`) | 0 auto / 0 unmapped |
+| **Extensions captured (hand)** | 0 | 2 (`--site-brand-red-hover`, `--site-accent-gold`) |
 | **Component-family inference difficulty** | Moderate — a name-plus-style clusterer would mostly succeed | Moderate-to-hard — modifier-class proliferation needs axis partitioning |
 | **Variant failure family** | Merge/split ambiguity | Axis-disaggregation |
 | **Observed model gap** | None | One physical hex serving two canonical roles (`#c12126` → `accent.primary` + `intent.danger`). See [MODEL-GAPS.md](./MODEL-GAPS.md). |
@@ -81,15 +87,18 @@ If a third site is run, this list should grow.
 
 ## Confidence in takeaway
 
-**Directional, not empirical.** The two experiments are consistent with the hypothesis that sites shipping author-declared semantic scaffolding are easier targets for a DCP-style live-site adaptor than sites without it. They do not constitute a measurement of that hypothesis — both sets of confidence numbers were chosen by the author. The empirical test is running `AutoMapper` against the same token inventories and comparing its output.
+**Measured.** The hypothesis (in its strong form) has been tested by running Get-Site-Styles, which uses DCP's exact role vocabulary, against both sites on 2026-04-20. See [MEASUREMENT.md](./MEASUREMENT.md). **GSS scored thefirestore higher than bungee-pro** — the opposite of what the hand-authored confidence numbers suggested. The strong hypothesis ("semantic CSS vars produce higher algorithmic confidence") is falsified. The refined hypothesis ("semantic CSS vars help a *human* mapper") is still plausible but not directly tested here.
+
+The remaining open empirical question is whether DCP's *own* `AutoMapper` (`packages/dcp-toolkit/src/tokens/autoMapper.js`) — which uses overlapping but distinct heuristics from GSS — produces a different ranking. That's still pending.
 
 ---
 
 ## Next experiments, in priority order
 
-1. **Run `AutoMapper` (`packages/dcp-toolkit/src/tokens/autoMapper.js`) against both sites' extracted token inventories.** Compare its layer-1–5 bindings to the hand-authored `site-bindings.json` in each experiment. This is the empirical test of the Webflow-cooperative-sites hypothesis.
-2. **Test a third site: a compiled-Tailwind marketing page** (Vercel/Linear/Notion-flavored). If confidence drops further, the wedge becomes a real claim with three data points.
-3. **Add an axis-identification layer to AutoMapper.** Layer 3 currently targets palette-scale inference; an equivalent for BEM-modifier-class hierarchies would address the thefirestore failure mode without requiring hand authorship.
+1. **Run DCP's `AutoMapper` against both sites' extracted token inventories.** GSS already ran and inverted the hypothesis; the separate question is whether DCP's native mapper produces a third ranking. Compare all three: hand / GSS / DCP-AutoMapper.
+2. **Investigate why GSS left `bg.default` and `text.primary` unmapped on bungee-pro despite the site declaring both in its `--colors--*` layer.** This is a GSS-specific gap but may indicate where auto-mapping can be improved.
+3. **Test a third site** — compiled-Tailwind marketing page. Three-site comparison is the right point to commit to or retire the refined ("semantic vars help humans") hypothesis.
+4. **Add an axis-identification layer to AutoMapper.** Layer 3 currently targets palette-scale inference; an equivalent for BEM-modifier-class hierarchies would address the thefirestore Layer-C failure mode.
 
 ---
 
