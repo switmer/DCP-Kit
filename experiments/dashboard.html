@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live-site DCP experiments — dashboard</title>
+<style>
+  :root {
+    --bg: #0f1012;
+    --panel: #17191d;
+    --panel-alt: #1d2025;
+    --border: #2a2e34;
+    --text: #e6e8eb;
+    --muted: #8a909a;
+    --dim: #5b6169;
+    --accent: #6aa6ff;
+    --ok: #4ec9b0;
+    --warn: #e2c87c;
+    --bad: #e07b7b;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif; }
+  body { padding: 32px; max-width: 1400px; margin: 0 auto; }
+  h1, h2, h3 { font-weight: 600; letter-spacing: -0.01em; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; margin: 0 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre, .mono { font-family: var(--mono); font-size: 13px; }
+  .muted { color: var(--muted); }
+  .dim { color: var(--dim); }
+  header.top { margin-bottom: 32px; }
+  header.top .thesis { color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 900px; margin-top: 12px; }
+  header.top .meta-row { display: flex; gap: 20px; margin-top: 16px; flex-wrap: wrap; font-size: 13px; }
+  header.top .meta-row a { color: var(--muted); }
+  header.top .meta-row a:hover { color: var(--accent); }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card { background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+  .card h3 { margin-top: 0; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 12px 0; }
+  .stat { background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+  .stat-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-family: var(--mono); font-size: 18px; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  table tr:last-child td { border-bottom: none; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.2); vertical-align: middle; margin-right: 6px; }
+  .swatch-lg { width: 24px; height: 24px; }
+  .role { font-family: var(--mono); font-size: 12px; }
+  .hex { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .conf { font-family: var(--mono); font-size: 12px; }
+  .conf-high { color: var(--ok); }
+  .conf-mid { color: var(--warn); }
+  .conf-low { color: var(--bad); }
+  .diff-ok { color: var(--ok); }
+  .diff-warn { color: var(--warn); }
+  .diff-bad { color: var(--bad); }
+  .empty { color: var(--dim); font-style: italic; }
+  .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--panel-alt); color: var(--muted); border: 1px solid var(--border); }
+  .pill-hand { background: rgba(106,166,255,0.1); color: var(--accent); border-color: rgba(106,166,255,0.3); }
+  .pill-gss { background: rgba(78,201,176,0.1); color: var(--ok); border-color: rgba(78,201,176,0.3); }
+  .verdict-list { list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 1.7; }
+  .verdict-list li { padding: 4px 0; }
+  .verdict-list strong { color: var(--muted); font-weight: 500; margin-right: 8px; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 12px; padding: 4px 0; }
+  summary:hover { color: var(--text); }
+  .error { color: var(--bad); padding: 12px; background: rgba(224,123,123,0.08); border: 1px solid rgba(224,123,123,0.3); border-radius: 6px; }
+  .comparison-highlight { background: rgba(226,200,124,0.06); }
+  .summary-table { margin: 16px 0; }
+  .summary-table td.num { font-family: var(--mono); text-align: right; }
+  .bigger { font-size: 16px; font-weight: 600; }
+  .winner { color: var(--ok); font-weight: 600; }
+  .loser { color: var(--bad); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Live-site DCP experiments — dashboard</h1>
+  <p class="thesis">
+    Two hand-authored experiments against structurally different live sites, with measured auto-mapping run via Get-Site-Styles on 2026-04-20.
+    <br><br>
+    <strong>Thesis (refined after measurement):</strong> Output quality depends on the mapping operation, not a single site property. Human mapping benefits from author-declared semantic signal (variable names, selector provenance). Algorithmic mapping as implemented in GSS benefits from palette richness and saturation separation — regardless of author naming.
+    The strong form of the Webflow-cooperative-sites hypothesis was <strong>falsified</strong>: GSS scored the stencil-no-semantic-vars site <em>higher</em> than the semantic-var-rich site.
+  </p>
+  <div class="meta-row">
+    <a href="live-site-comparison.md">live-site-comparison.md</a>
+    <a href="MEASUREMENT.md">MEASUREMENT.md</a>
+    <a href="MODEL-GAPS.md">MODEL-GAPS.md</a>
+    <a href="bungee-pro/FINDINGS.md">bungee-pro/FINDINGS.md</a>
+    <a href="thefirestore/FINDINGS.md">thefirestore/FINDINGS.md</a>
+  </div>
+</header>
+
+<section id="summary">
+  <h2>Summary comparison</h2>
+  <div id="summary-body"></div>
+</section>
+
+<section id="site-bungee"></section>
+<section id="site-firestore"></section>
+
+<section id="role-disagreements">
+  <h2>Per-role disagreements</h2>
+  <p class="muted" style="font-size: 13px; margin-top: 0;">
+    Roles where the human and GSS either disagree on hex assignment, or where one bound a role the other left empty. These are the cases where "role interpretation" is doing judgment work — no single answer.
+  </p>
+  <div id="disagreements-body"></div>
+</section>
+
+<section id="errors" style="display: none;">
+  <h2>Load errors</h2>
+  <div id="errors-body"></div>
+</section>
+
+<script>
+(async function () {
+  const experiments = [
+    { slug: 'bungee-pro', label: 'bungee-pro.webflow.io', target: 'Webflow with semantic CSS vars' },
+    { slug: 'thefirestore', label: 'thefirestore.com', target: 'BigCommerce Stencil, no semantic vars' },
+  ];
+
+  const confClass = (c) => c >= 0.85 ? 'conf-high' : c >= 0.65 ? 'conf-mid' : 'conf-low';
+  const diffClass = (state) => state === 'agree' ? 'diff-ok' : state === 'partial' ? 'diff-warn' : 'diff-bad';
+
+  const errors = [];
+
+  async function loadJson(path) {
+    try {
+      const r = await fetch(path);
+      if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+      return await r.json();
+    } catch (e) {
+      errors.push(`${path}: ${e.message}`);
+      return null;
+    }
+  }
+
+  function swatch(hex, big = false) {
+    if (!hex) return '';
+    const safe = String(hex).replace(/[^#0-9a-fA-F(),rgbahsl. ]/g, '');
+    return `<span class="swatch ${big ? 'swatch-lg' : ''}" style="background: ${safe};"></span>`;
+  }
+
+  function renderVerdict(verdict) {
+    const hand = verdict.role_binding_hand || {};
+    const gss = verdict.role_binding_gss || {};
+    return `
+      <ul class="verdict-list">
+        <li><strong>Target:</strong> <span class="mono">${verdict.surface_type}</span></li>
+        <li><strong>Components authored:</strong> ${(verdict.scope?.components_authored || []).join(', ')}</li>
+        <li><strong>Primary failure family:</strong> <code>${verdict.component_inference?.primary_failure_family || '—'}</code></li>
+        <li><strong>Model gaps:</strong> ${(verdict.model_gaps && verdict.model_gaps.length) ? verdict.model_gaps.map(g => `<code>${g}</code>`).join(', ') : '<span class="empty">none</span>'}</li>
+        <li><strong>Hypothesis result:</strong> <code>${verdict.hypothesis_result || '—'}</code></li>
+      </ul>
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-label">Hand roles</div>
+          <div class="stat-value">${hand.total_roles ?? '—'}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Hand mean / max</div>
+          <div class="stat-value">${(hand.mean_confidence ?? 0).toFixed(2)} / ${(hand.max_confidence ?? 0).toFixed(2)}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">GSS roles</div>
+          <div class="stat-value">${gss.total_roles ?? '—'}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">GSS mean / max</div>
+          <div class="stat-value">${(gss.mean_confidence ?? 0).toFixed(2)} / ${(gss.max_confidence ?? 0).toFixed(2)}</div>
+        </div>
+      </div>
+      ${gss.unmapped_dcp_roles && gss.unmapped_dcp_roles.length ? `
+        <div style="margin-top: 8px; font-size: 13px;">
+          <span class="muted">GSS left unmapped:</span>
+          ${gss.unmapped_dcp_roles.map(r => `<code>${r}</code>`).join(' ')}
+        </div>
+      ` : ''}
+    `;
+  }
+
+  function renderBindingsTable(handBindings, gssBindings) {
+    // Union of roles
+    const roleSet = new Set([...Object.keys(handBindings || {}), ...Object.keys(gssBindings?.bindings || {})]);
+    const roles = [...roleSet].sort();
+
+    const rows = roles.map(role => {
+      const h = (handBindings || {})[role];
+      const g = (gssBindings?.bindings || {})[role];
+      let state = 'bad';
+      if (h && g) {
+        state = (h.hex || '').toLowerCase() === (g.hex || '').toLowerCase() ? 'agree' : 'partial';
+      }
+      const highlight = state !== 'agree' ? 'class="comparison-highlight"' : '';
+
+      return `
+        <tr ${highlight}>
+          <td class="role">${role}</td>
+          <td>${h ? swatch(h.hex) + `<span class="hex">${h.hex}</span>` : '<span class="empty">—</span>'}</td>
+          <td><span class="conf ${h ? confClass(h.confidence) : ''}">${h ? h.confidence.toFixed(2) : ''}</span></td>
+          <td>${g ? swatch(g.hex) + `<span class="hex">${g.hex}</span>` : '<span class="empty">—</span>'}</td>
+          <td><span class="conf ${g ? confClass(g.confidence) : ''}">${g ? g.confidence.toFixed(2) : ''}</span></td>
+          <td class="${diffClass(state)}">${state === 'agree' ? '✓ agree' : state === 'partial' ? '⚠ diff hex' : '✗ one-side only'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <table>
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Hand hex</th>
+            <th>Hand conf</th>
+            <th>GSS hex</th>
+            <th>GSS conf</th>
+            <th>State</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  // Load all data
+  const data = {};
+  for (const ex of experiments) {
+    data[ex.slug] = {
+      verdict: await loadJson(`${ex.slug}/verdict.json`),
+      site: await loadJson(`${ex.slug}/site-bindings.json`),
+      registry: await loadJson(`${ex.slug}/registry.json`),
+      gss: await loadJson(`${ex.slug}/gss-bindings.json`),
+    };
+  }
+
+  // Render summary
+  const summaryHtml = `
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          ${experiments.map(e => `<th>${e.label}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Stack</td>
+          ${experiments.map(e => `<td class="muted">${e.target}</td>`).join('')}
+        </tr>
+        <tr>
+          <td>Components authored</td>
+          ${experiments.map(e => {
+            const cs = data[e.slug].verdict?.scope?.components_authored || [];
+            return `<td class="mono">${cs.join(', ')}</td>`;
+          }).join('')}
+        </tr>
+        <tr>
+          <td>Hand bindings (count)</td>
+          ${experiments.map(e => `<td class="num">${data[e.slug].verdict?.role_binding_hand?.total_roles ?? '—'}</td>`).join('')}
+        </tr>
+        <tr>
+          <td>Hand mean conf</td>
+          ${experiments.map(e => `<td class="num">${(data[e.slug].verdict?.role_binding_hand?.mean_confidence ?? 0).toFixed(2)}</td>`).join('')}
+        </tr>
+        <tr>
+          <td>Hand ≥0.85 count</td>
+          ${experiments.map(e => `<td class="num">${data[e.slug].verdict?.role_binding_hand?.high_confidence_count ?? '—'}</td>`).join('')}
+        </tr>
+        <tr>
+          <td>GSS bindings (count)</td>
+          ${experiments.map(e => `<td class="num">${data[e.slug].verdict?.role_binding_gss?.total_roles ?? '—'}</td>`).join('')}
+        </tr>
+        <tr class="comparison-highlight">
+          <td class="bigger">GSS mean conf (measured)</td>
+          ${(() => {
+            const vals = experiments.map(e => data[e.slug].verdict?.role_binding_gss?.mean_confidence ?? 0);
+            const maxVal = Math.max(...vals);
+            return experiments.map((e, i) =>
+              `<td class="num bigger ${vals[i] === maxVal ? 'winner' : 'loser'}">${vals[i].toFixed(2)}</td>`
+            ).join('');
+          })()}
+        </tr>
+        <tr>
+          <td>GSS max conf</td>
+          ${experiments.map(e => `<td class="num">${(data[e.slug].verdict?.role_binding_gss?.max_confidence ?? 0).toFixed(2)}</td>`).join('')}
+        </tr>
+        <tr>
+          <td>GSS <code>autoBound</code></td>
+          ${experiments.map(e => `<td class="num">${data[e.slug].verdict?.role_binding_gss?.autoBound ?? '—'}</td>`).join('')}
+        </tr>
+        <tr>
+          <td>GSS unmapped DCP roles</td>
+          ${experiments.map(e => {
+            const u = data[e.slug].verdict?.role_binding_gss?.unmapped_dcp_roles || [];
+            return `<td>${u.length ? u.map(r => `<code>${r}</code>`).join(' ') : '<span class="empty">none</span>'}</td>`;
+          }).join('')}
+        </tr>
+        <tr>
+          <td>Primary failure family</td>
+          ${experiments.map(e => `<td class="mono">${data[e.slug].verdict?.component_inference?.primary_failure_family || '—'}</td>`).join('')}
+        </tr>
+        <tr>
+          <td>Model gaps</td>
+          ${experiments.map(e => {
+            const g = data[e.slug].verdict?.model_gaps || [];
+            return `<td>${g.length ? g.map(x => `<code>${x}</code>`).join(' ') : '<span class="empty">none</span>'}</td>`;
+          }).join('')}
+        </tr>
+      </tbody>
+    </table>
+    <p class="muted" style="font-size: 13px; margin: 0;">
+      The highlighted row is the empirical test of the Webflow-cooperative-sites hypothesis. The site without semantic CSS variables scored higher on measured confidence, falsifying the strong form of the hypothesis. See
+      <a href="MEASUREMENT.md">MEASUREMENT.md</a> for the full analysis.
+    </p>
+  `;
+  document.getElementById('summary-body').innerHTML = summaryHtml;
+
+  // Render per-site sections
+  for (const ex of experiments) {
+    const d = data[ex.slug];
+    const hand = d.site?.bindings || {};
+    const gss = d.gss?.bindings || {};
+    const sectionId = ex.slug === 'bungee-pro' ? 'site-bungee' : 'site-firestore';
+
+    const html = `
+      <h2>${ex.label} <span class="pill">${ex.target}</span></h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Verdict</h3>
+          ${d.verdict ? renderVerdict(d.verdict) : '<span class="error">verdict.json not loaded</span>'}
+          <details style="margin-top: 16px;">
+            <summary>links</summary>
+            <div class="meta-row" style="margin-top: 8px;">
+              <a href="${ex.slug}/FINDINGS.md">FINDINGS.md</a>
+              <a href="${ex.slug}/README.md">README.md</a>
+              <a href="${ex.slug}/variant-rationale.md">variant-rationale.md</a>
+              <a href="${ex.slug}/registry.json">registry.json</a>
+              <a href="${ex.slug}/site-bindings.json">site-bindings.json</a>
+              <a href="${ex.slug}/gss-bindings.json">gss-bindings.json</a>
+            </div>
+          </details>
+        </div>
+        <div class="card">
+          <h3>Components authored</h3>
+          ${(() => {
+            const comps = d.registry?.components || [];
+            if (!comps.length) return '<span class="empty">no components loaded</span>';
+            return `
+              <ul style="list-style: none; padding: 0; margin: 0;">
+                ${comps.map(c => `
+                  <li style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+                    <div class="mono" style="color: var(--text);">${c.name}</div>
+                    <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
+                      ${c.variants?.length || 0} variant${(c.variants?.length || 0) === 1 ? '' : 's'}
+                      · category: <code>${c.category}</code>
+                      · ${Array.isArray(c.props) ? c.props.length : Object.keys(c.props || {}).length} props
+                    </div>
+                  </li>
+                `).join('')}
+              </ul>
+            `;
+          })()}
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h3>Hand-authored vs GSS measured — role-by-role</h3>
+        ${renderBindingsTable(hand, { bindings: gss })}
+      </div>
+    `;
+    document.getElementById(sectionId).innerHTML = html;
+  }
+
+  // Render cross-site role disagreements
+  const disagreements = [];
+  for (const ex of experiments) {
+    const hand = data[ex.slug].site?.bindings || {};
+    const gss = data[ex.slug].gss?.bindings || {};
+    const allRoles = new Set([...Object.keys(hand), ...Object.keys(gss)]);
+    for (const role of allRoles) {
+      const h = hand[role];
+      const g = gss[role];
+      let state;
+      if (h && g) {
+        state = (h.hex || '').toLowerCase() === (g.hex || '').toLowerCase() ? 'agree' : 'partial';
+      } else {
+        state = 'bad';
+      }
+      if (state !== 'agree') {
+        disagreements.push({ site: ex.label, role, h, g, state });
+      }
+    }
+  }
+  disagreements.sort((a, b) => a.role.localeCompare(b.role) || a.site.localeCompare(b.site));
+
+  const disagreementsHtml = `
+    <table>
+      <thead>
+        <tr>
+          <th>Site</th>
+          <th>Role</th>
+          <th>Hand</th>
+          <th>Hand conf</th>
+          <th>GSS</th>
+          <th>GSS conf</th>
+          <th>Kind</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${disagreements.map(d => `
+          <tr>
+            <td class="muted">${d.site}</td>
+            <td class="role">${d.role}</td>
+            <td>${d.h ? swatch(d.h.hex) + `<span class="hex">${d.h.hex}</span>` : '<span class="empty">—</span>'}</td>
+            <td><span class="conf ${d.h ? confClass(d.h.confidence) : ''}">${d.h ? d.h.confidence.toFixed(2) : ''}</span></td>
+            <td>${d.g ? swatch(d.g.hex) + `<span class="hex">${d.g.hex}</span>` : '<span class="empty">—</span>'}</td>
+            <td><span class="conf ${d.g ? confClass(d.g.confidence) : ''}">${d.g ? d.g.confidence.toFixed(2) : ''}</span></td>
+            <td class="${diffClass(d.state)}">${d.state === 'partial' ? '⚠ different hex, same role' : '✗ one side only'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <p class="muted" style="font-size: 13px; margin-top: 12px;">
+      ${disagreements.length} disagreements across both sites. These are the cases where role interpretation is a judgment call — no single answer from observation alone.
+    </p>
+  `;
+  document.getElementById('disagreements-body').innerHTML = disagreementsHtml;
+
+  // Render errors if any
+  if (errors.length) {
+    document.getElementById('errors').style.display = '';
+    document.getElementById('errors-body').innerHTML = `
+      <div class="error">
+        <strong>Failed to load:</strong>
+        <ul>${errors.map(e => `<li><code>${e}</code></li>`).join('')}</ul>
+        <p class="muted">If opened via <code>file://</code>, browsers block <code>fetch()</code> to local JSON. Serve from a local HTTP server: <code>cd experiments && python3 -m http.server 8000</code> then visit <a href="http://localhost:8000/dashboard.html">http://localhost:8000/dashboard.html</a>.</p>
+      </div>
+    `;
+  }
+})();
+</script>
+
+</body>
+</html>

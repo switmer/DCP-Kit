@@ -130,5 +130,7 @@ Keeping these three buckets separate matters because they have different kinds o
 
 - [bungee-pro/](./bungee-pro/) — Webflow target, merge/split failure-family example
 - [thefirestore/](./thefirestore/) — Stencil target, axis-disaggregation failure-family example
+- [MEASUREMENT.md](./MEASUREMENT.md) — GSS measurement comparison (falsifies strong hypothesis)
 - [MODEL-GAPS.md](./MODEL-GAPS.md) — contract-level gaps surfaced by these experiments
 - [lib/import-bindings.mjs](./lib/import-bindings.mjs) — shared applier used by both experiments
+- **[dashboard.html](./dashboard.html)** — interactive UI comparing hand vs GSS bindings per site, with color swatches and role-level diff. Run `./serve-dashboard.sh` then open `http://localhost:8000/dashboard.html`.
