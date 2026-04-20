@@ -1,0 +1,32 @@
+{
+  "site": "thefirestore.com",
+  "surface_type": "stencil_no_semantic_vars",
+  "run_date": "2026-04-19",
+  "scope": {
+    "components_authored": ["Button", "ProductCard", "CategoryTile"],
+    "authoring_mode": "hand_authored_from_observed_css",
+    "autoMapper_run": false
+  },
+  "role_binding": {
+    "total_roles": 7,
+    "high_confidence_roles": 3,
+    "extensions": 2,
+    "unmapped_dcp_roles": 10,
+    "confidence_source": "hand_entered"
+  },
+  "component_inference": {
+    "families_attempted": ["Button", "ProductCard", "CategoryTile"],
+    "primary_failure_family": "axis_disaggregation",
+    "failure_example": "Nine .button--* sibling modifiers mix color, size, layout, and specialized-component axes under one prefix"
+  },
+  "model_gaps": [
+    "one_physical_hex_multiple_roles",
+    "interaction_state_colors_no_canonical_slot"
+  ],
+  "notes": [
+    "No semantic CSS custom property definitions found in the stencil theme",
+    "Brand color #c12126 collides on the same hex with accent.primary (conf 0.85) and intent.danger (conf 0.4)",
+    "Palette is richer than contract (8 distinct grays → 1 text.muted slot)",
+    "Confidence counts are hand-entered, not measured; AutoMapper did not run"
+  ]
+}

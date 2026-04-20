@@ -1,0 +1,28 @@
+{
+  "site": "bungee-pro.webflow.io",
+  "surface_type": "webflow_with_semantic_vars",
+  "run_date": "2026-04-17",
+  "scope": {
+    "components_authored": ["Button", "ProjectCard", "TestimonialCard"],
+    "authoring_mode": "hand_authored_from_observed_css",
+    "autoMapper_run": false
+  },
+  "role_binding": {
+    "total_roles": 7,
+    "high_confidence_roles": 4,
+    "extensions": 0,
+    "unmapped_dcp_roles": 10,
+    "confidence_source": "hand_entered"
+  },
+  "component_inference": {
+    "families_attempted": ["Button", "ProjectCard", "TestimonialCard"],
+    "primary_failure_family": "merge_split_ambiguity",
+    "failure_example": ".button-primary and .button-primary-v2 have identical declared CSS"
+  },
+  "model_gaps": [],
+  "notes": [
+    "Bungee-pro ships author-declared semantic CSS variables (--colors--black, --colors--text, --colors--border)",
+    "Confidence counts are hand-entered, not measured; AutoMapper did not run",
+    "Transpile output is committed despite known defects as evidence, not polish"
+  ]
+}

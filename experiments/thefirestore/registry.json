@@ -300,17 +300,17 @@
         "confidence": 0.8,
         "reason": "Darker red, used as .button--primary:hover. Not a canonical DCP role — hover states aren't in the color contract. Stored as a themeContext extension. Bungee-pro did not produce any role-vocabulary-gap extensions; thefirestore produces one immediately because the site encodes interaction state (hover) in the palette itself.",
         "siteUrl": "https://thefirestore.com/",
-        "importedAt": "2026-04-19T18:19:53.851Z"
+        "importedAt": "2026-04-20T20:08:02.090Z"
       },
       "--site-accent-gold": {
         "hex": "#d2aa21",
         "confidence": 0.7,
         "reason": "Used on .button--accent. Warm gold, distinct from brand red. Could plausibly map to accent.primary (if you argue the site has two accent tones), but #c12126 is more broadly used, so this goes in extensions. Another judgment call where the DCP vocabulary is narrower than the site's expression.",
         "siteUrl": "https://thefirestore.com/",
-        "importedAt": "2026-04-19T18:19:53.851Z"
+        "importedAt": "2026-04-20T20:08:02.090Z"
       }
     },
     "siteUrl": "https://thefirestore.com/",
-    "importedAt": "2026-04-19T18:19:53.851Z"
+    "importedAt": "2026-04-20T20:08:02.090Z"
   }
 }

@@ -1,5 +1,14 @@
 # FINDINGS — DCP against thefirestore.com (contrast to bungee-pro)
 
+## Verdict
+
+- **Target type:** BigCommerce Stencil, no semantic CSS variable layer
+- **What worked:** role binding, transpile loop, registry generation, end-to-end pipeline (same scripts as bungee-pro, unchanged)
+- **What needed judgment:** component family inference (moderate — shared `.card` base across surfaces), variant grouping (very high — nine sibling `.button--*` modifiers need axis partitioning), role interpretation (high — every non-trivial mapping required provenance reading, not name alignment)
+- **Primary failure family:** axis-disaggregation
+- **Important model gap:** one physical hex (`#c12126`) bound to two canonical roles (`accent.primary` + `intent.danger`). See `../MODEL-GAPS.md`.
+- **Confidence in takeaway:** directional, not empirical. Confidence numbers in `site-bindings.json` were hand-entered; `AutoMapper` did not run. See `../live-site-comparison.md` for the scoped thesis.
+
 **Date:** 2026-04-19. **Scope:** Button (4 color variants), ProductCard (2 variants), CategoryTile (1 variant), plus 7 color-role bindings + 2 extensions. **Platform:** BigCommerce Stencil e-commerce theme.
 
 ## Why this experiment
@@ -45,11 +54,13 @@ A human reads these and partitions them into axes: `{color: primary | secondary 
 
 **The broader finding:** variant-clustering failure is not a single problem with a single solution. It's a family of judgment problems whose shape depends on how the source site encodes its design system. A pipeline that only addresses the merge-ambiguity case leaves the axis-identification case unsolved, and vice versa.
 
-## 3. The Webflow-cooperative-sites hypothesis — tested and bounded
+## 3. The Webflow-cooperative-sites hypothesis — consistent but not yet measured
 
 From the bungee-pro FINDINGS: *"Modern Webflow templates ship semantic CSS variables by default. This is probably an artifact of Webflow's CSS-variable feature and may not generalize to arbitrary live sites — compiled Tailwind builds and older Webflow templates flatten semantic naming out. Worth testing against non-Webflow targets before making claims about live-site role extraction in general."*
 
-**Tested. The hypothesis holds.** Thefirestore has no semantic CSS variable layer. Not reduced, not thinner — absent. Role mapping confidence dropped from 4/7 high-confidence on bungee-pro to 3/7 high-confidence here, and the high-confidence cases are the easiest ones (`bg.default` = `#ffffff`, `accent.on` = `#ffffff`). Every non-trivial mapping on thefirestore required a human reading class-name provenance and deciding which of several similar hex values to bind to which role.
+**Observation consistent with the hypothesis. Not empirically tested.** Thefirestore has no semantic CSS variable layer — absent, not reduced. The confidence numbers in the two experiments differ in the hypothesis-predicted direction (4/7 high-confidence on bungee-pro vs. 3/7 here), but both sets of confidence numbers were hand-entered by the author; no independent mapper produced them. The evidence is directional, not measured.
+
+The real test — listed as next-experiment #1 below — is running DCP's existing `AutoMapper` against both sites' token inventories and comparing *its* confidence outputs. If AutoMapper produces higher confidence on bungee-pro than thefirestore for structurally equivalent roles, the hypothesis has an empirical anchor. Until that runs, the two experiments are two data points authored under the same hypothesis, not a test of it.
 
 **Bounded.** This does not mean DCP's role contract is broken on non-Webflow sites. It means:
 

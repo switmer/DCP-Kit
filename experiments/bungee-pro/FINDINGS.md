@@ -1,5 +1,14 @@
 # FINDINGS — DCP against bungee-pro.webflow.io
 
+## Verdict
+
+- **Target type:** Webflow (modern template) with author-declared semantic CSS variables
+- **What worked:** role binding, transpile loop, registry generation, end-to-end pipeline
+- **What needed judgment:** component family inference (low), variant grouping (high — merge/split call on identical-styled siblings), role interpretation (low — author names partially aligned with DCP vocabulary)
+- **Primary failure family:** merge/split ambiguity
+- **Important model gap:** none surfaced by this experiment (see `../MODEL-GAPS.md` for gaps surfaced across all experiments)
+- **Confidence in takeaway:** directional, not empirical. Confidence numbers in `site-bindings.json` were hand-entered; `AutoMapper` did not run. See `../live-site-comparison.md` for scope.
+
 **Date:** 2026-04-17. **Duration:** ~90 min (hand-authored, not scraped). **Scope:** Button, ProjectCard, TestimonialCard, plus 7 color roles.
 
 ## 1. What worked
