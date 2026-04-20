@@ -1,0 +1,25 @@
+{
+  "hostname": "www.onroster.io",
+  "source_url": "http://www.onroster.io",
+  "generated_at": "2026-04-20T23:27:07.292Z",
+  "substrate_score": 0.41,
+  "refusal_threshold": 0.55,
+  "refused": true,
+  "refuse_reason": "role coverage 0.29 below hard floor 0.5",
+  "tier": "refused",
+  "files": {
+    "CAVEATS.md": {
+      "bytes": 2733,
+      "lines": 50
+    },
+    "REFUSAL.md": {
+      "bytes": 3720,
+      "lines": 67
+    }
+  },
+  "absent_files": [
+    "DESIGN.md",
+    "STRUCTURE.md",
+    "IMPLEMENTATION.md"
+  ]
+}

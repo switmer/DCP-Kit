@@ -397,42 +397,18 @@
         ${renderBindingsTable(hand, gss)}
       </div>
       <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="baseline-design-md-btn" data-hostname="${ex.slug === 'bungee-pro' ? 'bungee-pro.webflow.io' : 'thefirestore.com'}" data-slug="${ex.slug}"
+        <button class="pack-btn" data-hostname="${ex.slug === 'bungee-pro' ? 'bungee-pro.webflow.io' : 'thefirestore.com'}"
           style="padding: 8px 16px; border: 1px solid rgba(78,201,176,0.4); background: rgba(78,201,176,0.10); color: var(--ok); border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500;">
-          Generate DESIGN.md for this site
+          Generate site-spec pack
         </button>
       </div>
-      <div class="baseline-design-md-output" data-slug="${ex.slug}"></div>
+      <div class="pack-output" data-hostname="${ex.slug === 'bungee-pro' ? 'bungee-pro.webflow.io' : 'thefirestore.com'}"></div>
     `;
     document.getElementById(sectionId).innerHTML = html;
   }
 
-  // Wire baseline-site DESIGN.md buttons
-  document.querySelectorAll('.baseline-design-md-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const host = btn.dataset.hostname;
-      const slug = btn.dataset.slug;
-      const output = document.querySelector(`.baseline-design-md-output[data-slug="${slug}"]`);
-      btn.disabled = true;
-      btn.textContent = 'Generating…';
-      try {
-        const r = await fetch('/api/design/' + encodeURIComponent(host));
-        const text = await r.text();
-        if (!r.ok) throw new Error(text);
-        output.innerHTML = `
-          <details open style="margin-top: 16px;">
-            <summary style="cursor: pointer; color: var(--muted); font-size: 12px;">DESIGN.md — ${host} (${text.length.toLocaleString()} chars, saved to experiments/${slug}/DESIGN.md)</summary>
-            <pre style="margin-top: 12px; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: auto; max-height: 500px; font-size: 12px; line-height: 1.5; white-space: pre-wrap;">${text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
-          </details>
-        `;
-      } catch (e) {
-        output.innerHTML = `<div class="diff-bad" style="margin-top: 12px; font-size: 13px;">Generation failed: ${e.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Generate DESIGN.md for this site';
-      }
-    });
-  });
+  // Wire pack buttons (both baseline experiment sections and ad-hoc cards share .pack-btn)
+  wirePackButtons(document);
 
   // Render cross-site role disagreements
   const disagreements = [];
@@ -567,47 +543,108 @@
           — this site lands at <strong style="color: ${mean >= 0.76 ? 'var(--ok)' : mean >= 0.69 ? 'var(--warn)' : 'var(--bad)'};">${mean.toFixed(2)}</strong>.
         </div>
         <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="design-md-btn" data-hostname="${result.hostname}"
+          <button class="pack-btn" data-hostname="${result.hostname}"
             style="padding: 8px 16px; border: 1px solid rgba(78,201,176,0.4); background: rgba(78,201,176,0.10); color: var(--ok); border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500;">
-            Generate DESIGN.md
+            Generate site-spec pack
           </button>
           <a class="pill" href="/api/design/${encodeURIComponent(result.hostname)}" target="_blank"
             style="padding: 8px 14px; text-decoration: none;">
-            Open raw
+            Legacy DESIGN.md
           </a>
         </div>
-        <div class="design-md-output" data-hostname="${result.hostname}"></div>
+        <div class="pack-output" data-hostname="${result.hostname}"></div>
       </div>
     `;
 
-    // Wire up the Generate DESIGN.md button(s) inside the rendered card
-    setTimeout(() => {
-      const btns = container.querySelectorAll('.design-md-btn');
-      btns.forEach(btn => {
+    // Wire up the Generate site-spec pack button(s)
+    setTimeout(() => wirePackButtons(container), 0);
+  }
+
+  // Renders a site-spec pack manifest in the given output element, with a
+  // clickable list of present files and a muted list of absent ones.
+  async function renderPackManifest(hostname, outputEl) {
+    outputEl.innerHTML = `<div class="muted" style="margin-top: 12px; font-size: 13px;">Generating pack…</div>`;
+    try {
+      const r = await fetch('/api/pack/' + encodeURIComponent(hostname));
+      const manifest = await r.json();
+      if (!r.ok) throw new Error(manifest.error || 'pack request failed');
+      const tierColor = manifest.tier === 'refused' ? 'var(--bad)'
+        : manifest.tier === 'high' ? 'var(--ok)'
+        : 'var(--warn)';
+      outputEl.innerHTML = `
+        <div class="card" style="margin-top: 16px;">
+          <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+            <h3 style="margin: 0;">Site-spec pack · ${hostname}</h3>
+            <span class="pill" style="background: rgba(${manifest.tier === 'refused' ? '224,123,123' : manifest.tier === 'high' ? '78,201,176' : '226,200,124'},0.12); color: ${tierColor}; border-color: ${tierColor};">
+              tier: ${manifest.tier}
+            </span>
+            <span class="muted mono" style="font-size: 12px;">substrate ${manifest.substrate_score.toFixed(2)}</span>
+          </div>
+          ${manifest.refused ? `
+            <div style="margin-top: 12px; padding: 10px 12px; background: rgba(224,123,123,0.08); border: 1px solid rgba(224,123,123,0.3); border-radius: 6px; color: var(--bad); font-size: 13px;">
+              <strong>Refused:</strong> ${manifest.refuse_reason}
+            </div>
+          ` : ''}
+          <div style="margin-top: 16px;">
+            <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Present files</div>
+            ${Object.entries(manifest.files).map(([name, info]) => `
+              <button class="pack-file-btn" data-hostname="${hostname}" data-filename="${name}"
+                style="display: block; width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 6px; background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px; color: var(--text); cursor: pointer; font-family: var(--mono); font-size: 13px;">
+                ${name} <span class="muted" style="float: right; font-size: 11px;">${info.bytes.toLocaleString()}b · ${info.lines}L</span>
+              </button>
+            `).join('')}
+          </div>
+          ${manifest.absent_files?.length ? `
+            <div style="margin-top: 16px;">
+              <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Absent files <span style="text-transform: none;">(the absence is the signal — pipeline does not have enough evidence)</span></div>
+              ${manifest.absent_files.map(n => `<code class="empty" style="display: inline-block; padding: 4px 10px; margin: 0 4px 4px 0; background: var(--bg); border: 1px dashed var(--border); border-radius: 4px; text-decoration: line-through;">${n}</code>`).join('')}
+            </div>
+          ` : ''}
+          <div class="pack-file-viewer" style="margin-top: 16px;"></div>
+        </div>
+      `;
+      outputEl.querySelectorAll('.pack-file-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const host = btn.dataset.hostname;
-          const output = container.querySelector(`.design-md-output[data-hostname="${host}"]`);
-          btn.disabled = true;
-          btn.textContent = 'Generating…';
+          const filename = btn.dataset.filename;
+          const viewer = outputEl.querySelector('.pack-file-viewer');
+          viewer.innerHTML = `<div class="muted" style="font-size: 12px;">Loading ${filename}…</div>`;
           try {
-            const r = await fetch('/api/design/' + encodeURIComponent(host));
-            const text = await r.text();
-            if (!r.ok) throw new Error(text);
-            output.innerHTML = `
-              <details open style="margin-top: 16px;">
-                <summary style="cursor: pointer; color: var(--muted); font-size: 12px;">DESIGN.md — ${host} (${text.length.toLocaleString()} chars)</summary>
-                <pre style="margin-top: 12px; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: auto; max-height: 500px; font-size: 12px; line-height: 1.5; white-space: pre-wrap;">${text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
+            const fr = await fetch(`/api/pack/${encodeURIComponent(host)}/${encodeURIComponent(filename)}`);
+            const text = await fr.text();
+            if (!fr.ok) throw new Error(text);
+            viewer.innerHTML = `
+              <details open>
+                <summary style="cursor: pointer; color: var(--muted); font-size: 12px; margin-bottom: 8px;">${filename} (${text.length.toLocaleString()} chars)</summary>
+                <pre style="padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: auto; max-height: 500px; font-size: 12px; line-height: 1.5; white-space: pre-wrap;">${text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
               </details>
             `;
           } catch (e) {
-            output.innerHTML = `<div class="diff-bad" style="margin-top: 12px; font-size: 13px;">Generation failed: ${e.message}</div>`;
-          } finally {
-            btn.disabled = false;
-            btn.textContent = 'Generate DESIGN.md';
+            viewer.innerHTML = `<div class="diff-bad" style="font-size: 13px;">Load failed: ${e.message}</div>`;
           }
         });
       });
-    }, 0);
+    } catch (e) {
+      outputEl.innerHTML = `<div class="diff-bad" style="margin-top: 12px; font-size: 13px;">Generation failed: ${e.message}</div>`;
+    }
+  }
+
+  function wirePackButtons(scope) {
+    const root = scope || document;
+    root.querySelectorAll('.pack-btn').forEach(btn => {
+      if (btn.dataset.wired === '1') return;
+      btn.dataset.wired = '1';
+      btn.addEventListener('click', async () => {
+        const host = btn.dataset.hostname;
+        const output = root.querySelector(`.pack-output[data-hostname="${host}"]`)
+                   || document.querySelector(`.pack-output[data-hostname="${host}"]`);
+        btn.disabled = true;
+        btn.textContent = 'Generating…';
+        await renderPackManifest(host, output);
+        btn.disabled = false;
+        btn.textContent = 'Generate site-spec pack';
+      });
+    });
   }
 
   async function loadAdHocList() {

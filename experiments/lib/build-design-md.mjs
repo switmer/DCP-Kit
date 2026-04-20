@@ -472,7 +472,404 @@ function annotateBindingsWithValidity(bindings) {
   return annotated;
 }
 
-// ── Main synthesis ────────────────────────────────────────────────────
+// ── Site-spec pack — multi-file output ────────────────────────────────
+// A single DESIGN.md overloads four different jobs: style prior, structural
+// recipe, implementation adapter, and truth boundary. The agent feedback and
+// the review converged: split into a site-spec pack where each file answers
+// one question and the absence of a file is information.
+//
+// Pack inclusion by substrate tier:
+//   refuse        → CAVEATS.md + REFUSAL.md
+//   above-floor   → DESIGN.md + IMPLEMENTATION.md + CAVEATS.md
+//                   STRUCTURE.md also included, honest about limits
+//
+// Agent pushback accepted: no separate COMPONENTS.md until component
+// geometry extraction is real. Component notes live inside STRUCTURE.md
+// as section descriptions.
+
+function buildDesignSpecFile({ canonical, bindings, gss, substrate, context }) {
+  const lines = [];
+  const bindingRoles = Object.entries(bindings).sort((a, b) => a[0].localeCompare(b[0]));
+  const report = gss.bindings?.report || {};
+  const clampCount = countClamp(canonical.rawCss);
+  const topColors = canonical.colorCandidates.slice(0, 5);
+
+  lines.push('---');
+  lines.push(`file: DESIGN.md`);
+  lines.push(`role_in_pack: style_and_system`);
+  lines.push(`answers_question: "What does it feel like?"`);
+  lines.push(`hostname: ${context.hostname}`);
+  lines.push(`source_url: ${context.url || 'https://' + context.hostname}`);
+  lines.push(`substrate_score: ${substrate.score.toFixed(2)}`);
+  lines.push(`section_confidence: { visual_theme: low, color_roles: medium, typography: low, dos_donts: low-medium }`);
+  lines.push(`siblings: STRUCTURE.md, IMPLEMENTATION.md, CAVEATS.md`);
+  lines.push('---');
+  lines.push('');
+  lines.push(`# DESIGN.md — ${context.hostname}`);
+  lines.push('');
+  lines.push(`> **Provisional style and system spec, synthesized from rendered-surface evidence.** Covers color roles, typography tokens, and visual tone. **Does not cover** page structure (see STRUCTURE.md), component geometry (not yet extractable), or implementation defaults (see IMPLEMENTATION.md). **Read CAVEATS.md before treating any claim here as canonical.**`);
+  lines.push('');
+
+  // §1 Visual theme — low confidence, labeled
+  lines.push('## 1. Visual theme & atmosphere *(confidence: low — synthesized from palette extremes)*');
+  lines.push('');
+  if (topColors.length) {
+    const darkest = topColors.slice().sort((a, b) => a.lightness - b.lightness)[0];
+    const lightest = topColors.slice().sort((a, b) => b.lightness - a.lightness)[0];
+    const saturated = topColors.slice().sort((a, b) => b.saturation - a.saturation)[0];
+    lines.push(`Observed palette spans \`${darkest.color}\` (L=${darkest.lightness}) → \`${lightest.color}\` (L=${lightest.lightness}); most saturated tone is \`${saturated.color}\` (S=${saturated.saturation}). Wording is heuristic — use as vibe only.`);
+  } else {
+    lines.push('*No high-confidence color candidates to synthesize from.*');
+  }
+  if (clampCount > 0) {
+    lines.push('');
+    lines.push(`\`clamp()\` used ${clampCount}× → fluid design intent is author-declared.`);
+  }
+  lines.push('');
+
+  // §2 Color palette — strongest part
+  lines.push('## 2. Color palette & roles *(confidence: medium)*');
+  lines.push('');
+  lines.push('Each role was chosen by Get-Site-Styles. Saliency is measured (evidence-weighted). Validity is rule-based (canonical-membership under named rules; see CAVEATS.md for rule set). Low-validity bindings are called out explicitly.');
+  lines.push('');
+  if (bindingRoles.length === 0) {
+    lines.push('*No role bindings produced.*');
+  } else {
+    for (const [roleId, b] of bindingRoles) {
+      lines.push(renderBindingEntry(roleId, b, 'auto-mapper'));
+    }
+  }
+  lines.push('');
+
+  // §3 Typography — honest about gaps
+  lines.push('## 3. Typography tokens *(confidence: low — tokens only, no hierarchy inferred)*');
+  lines.push('');
+  if (canonical.fontSizes.length) {
+    lines.push('Observed font-size tokens (raw, un-ranked):');
+    lines.push('');
+    lines.push('```');
+    lines.push(canonical.fontSizes.slice(0, 30).join(', '));
+    if (canonical.fontSizes.length > 30) lines.push(`… + ${canonical.fontSizes.length - 30} more`);
+    lines.push('```');
+    lines.push('');
+    lines.push('**Gap:** H1/H2/H3 hierarchy is not inferred from rendered CSS. Font-family-to-role, line-height-to-role, and letter-spacing systems are not recovered. These sizes are raw material, not a typed scale.');
+  } else {
+    lines.push('*No typography tokens recovered.*');
+  }
+  lines.push('');
+
+  // §7 Do's/don'ts — low-medium
+  lines.push(`## 7. Do's and don'ts *(confidence: low-medium — heuristic, not authoritative)*`);
+  lines.push('');
+  const primaryAccent = bindings['accent.primary'];
+  const intentDanger = bindings['intent.danger'];
+  const textRole = bindings['text.primary'] || bindings['text.muted'];
+  const bgRole = bindings['bg.default'];
+
+  // Separate observation from recommendation
+  if (primaryAccent) {
+    const isHighValidity = typeof primaryAccent._validity !== 'number' || primaryAccent._validity >= 0.5;
+    lines.push(`- **Observed likely primary CTA color:** \`${primaryAccent.hex}\` (saliency ${primaryAccent.confidence.toFixed(2)}${typeof primaryAccent._validity === 'number' ? ', validity ' + primaryAccent._validity.toFixed(2) : ''}). ${isHighValidity ? '**Recommended:** use as primary CTA default; confirm against live site before shipping.' : '**Caution:** validity flags this as suspicious — review before using.'}`);
+  }
+  if (textRole && bgRole) {
+    const bgValidityOk = typeof bgRole._validity !== 'number' || bgRole._validity >= 0.5;
+    lines.push(`- **Observed body/canvas pairing:** text \`${textRole.hex}\` on \`${bgRole.hex}\`. ${bgValidityOk ? '' : '**⚠ Canvas validity is low** — background candidate may be a transparent overlay, not the real page background. Verify before using.'}`);
+  }
+  if (primaryAccent && intentDanger && primaryAccent.hex === intentDanger.hex) {
+    lines.push(`- **⚠ Brand/danger collision:** \`${intentDanger.hex}\` is bound to both \`accent.primary\` and \`intent.danger\` on this site. Disambiguate by context at implementation time.`);
+  }
+  lines.push('');
+
+  lines.push('---');
+  lines.push('');
+  lines.push('**Where to look next:**');
+  lines.push('- Need layout/composition? → `STRUCTURE.md` (weak doc — honest about limits)');
+  lines.push('- Need implementation defaults? → `IMPLEMENTATION.md` (shadcn/Tailwind scaffold)');
+  lines.push('- Need to calibrate trust? → `CAVEATS.md` (substrate score, validity flags, unmapped roles)');
+
+  return lines.join('\n');
+}
+
+function buildStructureFile({ canonical, gss, substrate, context }) {
+  const lines = [];
+  const sp = canonical.spacingClassified;
+  const clampCount = countClamp(canonical.rawCss);
+  const mediaCount = countMedia(canonical.rawCss);
+
+  lines.push('---');
+  lines.push(`file: STRUCTURE.md`);
+  lines.push(`role_in_pack: layout_and_composition`);
+  lines.push(`answers_question: "What is it made of?"`);
+  lines.push(`hostname: ${context.hostname}`);
+  lines.push(`source_url: ${context.url || 'https://' + context.hostname}`);
+  lines.push(`readiness: weak`);
+  lines.push('---');
+  lines.push('');
+  lines.push(`# STRUCTURE.md — ${context.hostname}`);
+  lines.push('');
+  lines.push(`> **This is the weak document in the pack.** The pipeline cannot currently infer page structure from rendered CSS alone. What you'll find here is the *raw layout material* (spacing buckets, radii, responsive-pattern classification) and explicit statements of what is *not* recoverable. If you need actual page structure — sections in order, container patterns, hierarchy, full-bleed vs contained — **examine the live site directly**. This file is known-insufficient for reconstruction.`);
+  lines.push('');
+  lines.push('## Layout material (raw — classified)');
+  lines.push('');
+  if (sp.scale.length) {
+    lines.push('**Spacing scale (≤64px, ≤4rem/em)** — component-level candidates:');
+    lines.push(`\`${sp.scale.slice(0, 20).join('`, `')}\``);
+    lines.push('');
+  }
+  if (sp.section.length) {
+    lines.push('**Section-level spacing:**');
+    lines.push(`\`${sp.section.slice(0, 20).join('`, `')}\``);
+    lines.push('');
+  }
+  if (sp.fluid.length) {
+    lines.push('**Fluid tokens (`clamp()`):**');
+    lines.push(`\`${sp.fluid.slice(0, 10).join('`, `')}\``);
+    lines.push('');
+  }
+  if (sp.layout.length) {
+    lines.push('**Layout constraints (vw/vh/%):**');
+    lines.push(`\`${sp.layout.slice(0, 20).join('`, `')}\``);
+    lines.push('');
+  }
+  if (canonical.radii.length) {
+    lines.push(`**Border radii (absolute):** \`${canonical.radii.slice(0, 12).join('`, `')}\``);
+    if (canonical.percentRadii.length) {
+      lines.push(`**Pill / circle radii:** \`${canonical.percentRadii.slice(0, 5).join('`, `')}\``);
+    }
+    lines.push('');
+  }
+
+  lines.push('## Responsive pattern (classified, not enumerated)');
+  lines.push('');
+  lines.push(`- \`clamp()\` usage: ${clampCount}×`);
+  lines.push(`- \`@media\` queries: ${mediaCount} rules`);
+  lines.push('');
+  if (clampCount > 10 && mediaCount < 10) {
+    lines.push('**Pattern:** fluid-first. Author relies on `clamp()` for smooth scaling rather than breakpoint cutoffs.');
+  } else if (mediaCount > 20 && clampCount < 5) {
+    lines.push('**Pattern:** breakpoint-driven. Discrete viewport tiers.');
+  } else if (clampCount > 0 && mediaCount > 0) {
+    lines.push('**Pattern:** hybrid — fluid scaling paired with explicit breakpoints.');
+  } else {
+    lines.push('**Pattern:** indeterminate from available evidence.');
+  }
+  lines.push('');
+
+  lines.push('## What this file does NOT contain');
+  lines.push('');
+  lines.push('- **Section ordering.** Which sections appear, in what order, hero-vs-content-vs-footer relationships — not inferred.');
+  lines.push('- **Container/grid patterns.** Full-bleed vs contained, grid gutter conventions, column counts — not recovered.');
+  lines.push('- **Component hierarchy.** Which components nest inside which — not extractable from CSS alone.');
+  lines.push('- **Component geometry.** Button padding, card radius-per-variant, input heights — not recoverable without DOM-level analysis.');
+  lines.push('- **Route-level composition.** How layout changes across routes — homepage-only sampling (see CAVEATS.md § coverage).');
+  lines.push('');
+  lines.push('These gaps are the Layer-B / Layer-C research problems documented in `experiments/live-site-comparison.md`. They are not "not yet implemented" — they are open problems for which the rendered-surface evidence is structurally insufficient.');
+  lines.push('');
+  lines.push('**If you are an agent reconstructing this site, use this file for raw spacing/radii/responsive-pattern hints, and use the live site or a screenshot for structural decisions. Do not trust this file to tell you the shape of a page.**');
+
+  return lines.join('\n');
+}
+
+function buildImplementationFile({ canonical, gss, substrate, context, bindings }) {
+  const lines = [];
+
+  lines.push('---');
+  lines.push(`file: IMPLEMENTATION.md`);
+  lines.push(`role_in_pack: adapter_and_defaults`);
+  lines.push(`answers_question: "How do I build it?"`);
+  lines.push(`hostname: ${context.hostname}`);
+  lines.push('---');
+  lines.push('');
+  lines.push(`# IMPLEMENTATION.md — ${context.hostname}`);
+  lines.push('');
+  lines.push(`> Adapter output and agent guidance. **This is downstream of DESIGN.md / STRUCTURE.md** — use these defaults to bootstrap, then confirm against the evidence in the other pack files.`);
+  lines.push('');
+
+  lines.push('## Agent prompt guide');
+  lines.push('');
+  lines.push('When handing this pack to a coding agent:');
+  lines.push('');
+  lines.push('- Use **DESIGN.md** for palette, role bindings, and style-tone decisions.');
+  lines.push('- Use **STRUCTURE.md** for raw spacing/radii/responsive classification *only* — do not trust it for page layout.');
+  lines.push('- Use **CAVEATS.md** to calibrate trust. Low-validity bindings and unmapped roles belong in human-review queues, not as auto-generated defaults.');
+  lines.push('- For layout, hierarchy, and composition: **use the live site or a screenshot**. This pack knows color + tokens, not page shape.');
+  const primaryAccent = bindings['accent.primary'];
+  const bgRole = bindings['bg.default'];
+  const bgOk = bgRole && (typeof bgRole._validity !== 'number' || bgRole._validity >= 0.5);
+  if (primaryAccent && bgOk) {
+    lines.push('');
+    lines.push(`**Suggested one-liner:** *"Use \`${primaryAccent.hex}\` as the primary CTA and \`${bgRole.hex}\` as the canvas. For any role marked validity < 0.5 in DESIGN.md, prefer default shadcn/Tailwind equivalents and flag for review."*`);
+  } else if (primaryAccent) {
+    lines.push('');
+    lines.push(`**Suggested one-liner:** *"Use \`${primaryAccent.hex}\` as the primary CTA. Canvas binding is flagged as low-validity — default to white or your project's conventional background and flag for review."*`);
+  }
+  lines.push('');
+
+  // shadcn adapter
+  if (gss.theme?.light && Object.keys(gss.theme.light).length) {
+    lines.push('## shadcn/ui theme scaffold');
+    lines.push('');
+    lines.push('*Implementation convenience, not source of truth. Generated by GSS. Use as a starting point; prefer DESIGN.md §2 for semantic reasoning.*');
+    lines.push('');
+    lines.push('```css');
+    lines.push(':root {');
+    for (const [k, v] of Object.entries(gss.theme.light)) lines.push(`  ${k}: ${v};`);
+    lines.push('}');
+    if (gss.theme.dark) {
+      lines.push('');
+      lines.push('.dark {');
+      for (const [k, v] of Object.entries(gss.theme.dark)) lines.push(`  ${k}: ${v};`);
+      lines.push('}');
+    }
+    lines.push('```');
+  }
+
+  return lines.join('\n');
+}
+
+function buildCaveatsFile({ canonical, bindings, gss, substrate, context }) {
+  const lines = [];
+  const bindingRoles = Object.entries(bindings).sort((a, b) => a[0].localeCompare(b[0]));
+  const report = gss.bindings?.report || {};
+  const unmapped = report.unmappedRoles || [];
+  const highConf = bindingRoles.filter(([, v]) => v.confidence >= 0.85).length;
+  const medConf = bindingRoles.filter(([, v]) => v.confidence >= 0.65 && v.confidence < 0.85).length;
+  const lowConf = bindingRoles.filter(([, v]) => v.confidence < 0.65).length;
+  const suspicious = bindingRoles.filter(([, v]) => typeof v._validity === 'number' && v._validity < 0.5);
+
+  lines.push('---');
+  lines.push(`file: CAVEATS.md`);
+  lines.push(`role_in_pack: truth_boundaries`);
+  lines.push(`answers_question: "What don't we know?"`);
+  lines.push(`hostname: ${context.hostname}`);
+  lines.push(`substrate_score: ${substrate.score.toFixed(2)}`);
+  lines.push(`refusal_threshold: ${substrate.refusalThreshold?.toFixed?.(2) || '?'}`);
+  lines.push('---');
+  lines.push('');
+  lines.push(`# CAVEATS.md — ${context.hostname}`);
+  lines.push('');
+  lines.push('> The truth-boundaries doc. Read this before treating anything in the rest of the pack as canonical. Prose is sticky — if a claim sounds confident elsewhere in the pack but contradicts something here, this file wins.');
+  lines.push('');
+
+  // Substrate score
+  lines.push('## Substrate');
+  lines.push('');
+  lines.push(`- **Score:** ${substrate.score.toFixed(2)} / 1.0 (above-refusal-threshold: ${!substrate.refuse})`);
+  lines.push('');
+  lines.push('| Dimension | Value | Weight | Detail |');
+  lines.push('|---|---|---|---|');
+  for (const [name, c] of Object.entries(substrate.components || {})) {
+    lines.push(`| \`${name}\` | ${c.value.toFixed(2)} | ${c.weight.toFixed(2)} | ${c.note} |`);
+  }
+  lines.push('');
+
+  // Confidence distribution
+  lines.push('## Binding confidence distribution');
+  lines.push('');
+  lines.push(`- **${bindingRoles.length}** roles bound. High-saliency (≥0.85): **${highConf}**. Medium (0.65–0.85): **${medConf}**. Low (<0.65): **${lowConf}**.`);
+  lines.push(`- **${unmapped.length}** DCP roles unmapped: ${unmapped.map(r => `\`${r}\``).join(', ') || '*none*'}`);
+  lines.push('');
+
+  // Validity-flagged bindings — the key honesty surface
+  if (suspicious.length) {
+    lines.push('## ⚠ Low-validity bindings (saliency and validity disagree)');
+    lines.push('');
+    lines.push('The extractor found these, but rule-based validity checks flag them as likely-wrong for the role regardless of how often they were observed. Treat as extraction noise, not as canonical design decisions.');
+    lines.push('');
+    for (const [role, b] of suspicious) {
+      lines.push(`- \`${role}\` = \`${b.hex}\` — validity **${b._validity.toFixed(2)}**. Failed rules:`);
+      for (const r of (b._validityRules || [])) {
+        lines.push(`  - *${r.ruleId}*: ${r.reason}`);
+      }
+    }
+    lines.push('');
+  }
+
+  // Gaps — the pipeline-level honesty
+  lines.push('## Named gaps');
+  lines.push('');
+  lines.push('What this pipeline does **not** produce, and won\'t until research problems are addressed:');
+  lines.push('');
+  lines.push('- **Typography hierarchy.** Raw font-size tokens appear in DESIGN.md §3, but H1/H2/H3 assignment is not recovered.');
+  lines.push('- **Component geometry.** Button padding, card radius-per-variant, input height-per-state — not extractable from CSS alone.');
+  lines.push('- **Layout composition.** Section ordering, container patterns, page shells, route-level composition — see STRUCTURE.md for the gap list.');
+  lines.push('- **Interaction & motion.** Hover, transitions, animations — not captured.');
+  lines.push('- **Multi-page coverage.** Homepage-only sampling. A site\'s dashboard, checkout, and marketing surfaces may use materially different token subsets.');
+  lines.push('');
+
+  lines.push('## Calibration note');
+  lines.push('');
+  lines.push('Get-Site-Styles assigns saliency via frequency, saturation, and lightness heuristics. Validity is applied on top as a rule-based prior (see `experiments/lib/build-design-md.mjs:COLOR_VALIDITY_RULES`). Neither score is calibrated against a ground-truth corpus. Treat numbers as *relative within a run*, not *absolute across the web*.');
+
+  return lines.join('\n');
+}
+
+function buildManifest({ files, substrate, context }) {
+  const manifest = {
+    hostname: context.hostname,
+    source_url: context.url || `https://${context.hostname}`,
+    generated_at: new Date().toISOString(),
+    substrate_score: Number(substrate.score.toFixed(2)),
+    refusal_threshold: Number(substrate.refusalThreshold?.toFixed?.(2) || 0),
+    refused: !!substrate.refuse,
+    refuse_reason: substrate.refuseReason || null,
+    tier: substrate.refuse ? 'refused' : (substrate.score >= 0.75 ? 'high' : 'medium'),
+    files: Object.fromEntries(
+      Object.entries(files).map(([name, content]) => [name, { bytes: content.length, lines: content.split('\n').length }])
+    ),
+    absent_files: [],
+  };
+  const ALL = ['DESIGN.md', 'STRUCTURE.md', 'IMPLEMENTATION.md', 'CAVEATS.md', 'REFUSAL.md'];
+  for (const f of ALL) if (!files[f]) manifest.absent_files.push(f);
+  return manifest;
+}
+
+/**
+ * Build the full site-spec pack. Each file answers one question; absence is information.
+ *
+ * @returns {{ files: Record<string, string>, manifest: object }}
+ */
+export function buildSiteSpecPack({ gss, hostname, url, force = false }) {
+  const canonical = extractCanonical(gss);
+  const substrate = scoreSubstrate(canonical, gss);
+  const bindings = annotateBindingsWithValidity(canonical.bindings);
+  const context = { hostname, url };
+
+  const files = {};
+
+  // CAVEATS.md is always emitted. Always.
+  files['CAVEATS.md'] = buildCaveatsFile({ canonical, bindings, gss, substrate, context });
+
+  if (substrate.refuse && !force) {
+    // Refusal pack: CAVEATS + REFUSAL, nothing else.
+    files['REFUSAL.md'] = renderRefusal({ gss, hostname, url, canonical, substrate });
+    const manifest = buildManifest({ files, substrate, context });
+    return { files, manifest };
+  }
+
+  // Above-floor pack: DESIGN + STRUCTURE + IMPLEMENTATION + CAVEATS.
+  files['DESIGN.md'] = buildDesignSpecFile({ canonical, bindings, gss, substrate, context });
+  files['STRUCTURE.md'] = buildStructureFile({ canonical, gss, substrate, context });
+  files['IMPLEMENTATION.md'] = buildImplementationFile({ canonical, gss, substrate, context, bindings });
+
+  const manifest = buildManifest({ files, substrate, context });
+  return { files, manifest };
+}
+
+// ── Main synthesis (legacy single-file) ────────────────────────────────
+// Preserved as back-compat for callers that expect a single markdown string.
+// New callers should use buildSiteSpecPack. The single-file version now
+// just concatenates the pack files with visible separators, so it still
+// reflects the split even when rendered as one blob.
+export function buildDesignMdLegacySingleFile({ gss, hostname, url, force = false }) {
+  const pack = buildSiteSpecPack({ gss, hostname, url, force });
+  const order = ['REFUSAL.md', 'DESIGN.md', 'STRUCTURE.md', 'IMPLEMENTATION.md', 'CAVEATS.md'];
+  return order
+    .filter(f => pack.files[f])
+    .map(f => `<!-- ===== ${f} ===== -->\n\n${pack.files[f]}`)
+    .join('\n\n---\n\n');
+}
+
 export function buildDesignMd({ gss, hostname, url, force = false }) {
   const c = extractCanonical(gss);
   const substrate = scoreSubstrate(c, gss);

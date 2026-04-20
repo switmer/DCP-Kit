@@ -20,7 +20,7 @@ import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { buildDesignMd } from './lib/build-design-md.mjs';
+import { buildDesignMd, buildSiteSpecPack } from './lib/build-design-md.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -232,6 +232,68 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { ...meta, bindings: gss.bindings?.bindings || {}, report: gss.bindings?.report || {}, tokens: gss.tokens || null });
       } catch (e) {
         return sendJson(res, 404, { error: `no ad-hoc record for ${hostname}` });
+      }
+    }
+
+    // GET /api/pack/:hostname           → JSON manifest of the site-spec pack
+    // GET /api/pack/:hostname/:filename  → raw markdown for one file in the pack
+    if (req.method === 'GET' && req.url.startsWith('/api/pack/')) {
+      const rest = decodeURIComponent(req.url.replace('/api/pack/', '').split('?')[0]);
+      const parts = rest.split('/');
+      const hostname = parts[0];
+      const filename = parts[1] || null; // if present, return just that file
+
+      const candidatePaths = [
+        path.join(AD_HOC_DIR, hostname, 'gss-bindings.json'),
+        path.join(__dirname, 'bungee-pro', 'gss-bindings.json'),
+        path.join(__dirname, 'thefirestore', 'gss-bindings.json'),
+      ];
+      let gssPath = null;
+      for (const p of candidatePaths) {
+        try { await fs.access(p); gssPath = p; break; } catch {}
+      }
+      if (!gssPath) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end(`No gss-bindings.json found for ${hostname}. Run /api/analyze first.`);
+        return;
+      }
+      try {
+        const gss = JSON.parse(await fs.readFile(gssPath, 'utf8'));
+        let url = null;
+        try {
+          const meta = JSON.parse(await fs.readFile(path.join(path.dirname(gssPath), 'meta.json'), 'utf8'));
+          url = meta.url;
+        } catch {}
+        const pack = buildSiteSpecPack({ gss, hostname, url });
+
+        // Persist the whole pack to disk alongside the source for fast re-reads.
+        try {
+          const packDir = path.join(path.dirname(gssPath), 'site-spec');
+          await fs.mkdir(packDir, { recursive: true });
+          for (const [name, content] of Object.entries(pack.files)) {
+            await fs.writeFile(path.join(packDir, name), content, 'utf8');
+          }
+          await fs.writeFile(path.join(packDir, 'manifest.json'), JSON.stringify(pack.manifest, null, 2), 'utf8');
+        } catch {}
+
+        if (filename) {
+          const content = pack.files[filename];
+          if (!content) {
+            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end(`File '${filename}' not in pack. Available: ${Object.keys(pack.files).join(', ')}`);
+            return;
+          }
+          res.writeHead(200, { 'Content-Type': 'text/markdown; charset=utf-8' });
+          res.end(content);
+          return;
+        }
+
+        // No filename: return manifest JSON
+        return sendJson(res, 200, pack.manifest);
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end(`pack synthesis failed: ${e.message}`);
+        return;
       }
     }
 
