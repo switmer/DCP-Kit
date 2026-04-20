@@ -26,7 +26,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
 const GSS_ROOT = process.env.GSS_ROOT || path.resolve(REPO_ROOT, '..', 'Get-Site-Styles');
 const AD_HOC_DIR = path.join(__dirname, 'ad-hoc');
-const PORT = Number(process.argv[2]) || 8765;
+const PORT = Number(process.argv[2]) || Number(process.env.PORT) || 8765;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',

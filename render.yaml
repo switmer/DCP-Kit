@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: dcp-experiments
+    runtime: node
+    plan: free
+    branch: experiment/bungee-pro-live-site-dcp
+    # server.mjs uses only Node built-ins + ./lib/build-design-md.mjs (also builtins-only),
+    # so no install step is required.
+    buildCommand: ""
+    startCommand: node experiments/server.mjs
+    # /api/analyze requires Get-Site-Styles to be installed at GSS_ROOT; in this hosted
+    # environment GSS is not deployed, so the analyze button will return a 500 with
+    # "GSS_ROOT not found". The dashboard + cached ad-hoc results (/api/adhoc/*) work.
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
