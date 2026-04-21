@@ -92,7 +92,17 @@ async function runGss(url) {
     let json;
     try { json = JSON.parse(bodyText); }
     catch { throw new Error(`GSS API returned non-JSON body: ${bodyText.slice(0, 200)}`); }
-    return { hosted: true, payload: json };
+    // The hosted API wraps the GSS analysis payload in a REST envelope:
+    //   { success, data, meta, timestamp, requestId }
+    // Where .data holds the same shape the local subprocess writes directly to
+    // shadcn.analysis.json. Unwrap so downstream code is shape-agnostic.
+    const payload = (json && typeof json === 'object' && 'data' in json && !('bindings' in json))
+      ? json.data
+      : json;
+    if (!payload || typeof payload !== 'object') {
+      throw new Error(`GSS API returned unexpected shape: ${bodyText.slice(0, 200)}`);
+    }
+    return { hosted: true, payload };
   }
 
   // Mode 2: local subprocess.
