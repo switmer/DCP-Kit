@@ -285,8 +285,13 @@ function applyCollisionPenalties(bindingsWithValidity) {
     const penalty = crossCategory ? 0.45 : 0.20;
     for (const role of roles) {
       const e = bindingsWithValidity[role];
-      e.validity *= (1 - penalty);
-      e.appliedRules.push({
+      // annotateBindingsWithValidity stores these as _validity / _validityRules
+      // (underscore prefix). Keep the contract consistent here — previously
+      // this function read e.validity / e.appliedRules and silently never
+      // fired because no prior binding set had cross-role collisions.
+      if (typeof e._validity === 'number') e._validity *= (1 - penalty);
+      if (!Array.isArray(e._validityRules)) e._validityRules = [];
+      e._validityRules.push({
         ruleId: 'collision-shared-hex-across-semantic-roles',
         penalty,
         reason: `${hex} also bound to ${roles.filter(r => r !== role).join(', ')}${crossCategory ? ' (cross-category)' : ''}`,

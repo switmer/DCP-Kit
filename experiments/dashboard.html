@@ -164,7 +164,16 @@
   }
 
   async function fetchPackManifest(hostname) {
-    if (!IS_STATIC) return (await fetch('/api/pack/' + encodeURIComponent(hostname))).json();
+    if (!IS_STATIC) {
+      const r = await fetch('/api/pack/' + encodeURIComponent(hostname));
+      const text = await r.text();
+      if (!r.ok) {
+        // Server returns text/plain on failure; surface the real message
+        throw new Error(`${r.status}: ${text.slice(0, 300)}`);
+      }
+      try { return JSON.parse(text); }
+      catch { throw new Error(`Unexpected non-JSON response: ${text.slice(0, 200)}`); }
+    }
     // Static: the manifest was persisted alongside the pack files at site-spec/manifest.json
     // Resolve the base dir for this hostname.
     const bases = [
