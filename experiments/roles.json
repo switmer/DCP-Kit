@@ -1,0 +1,43 @@
+{
+  "contractVersion": "0.1.0",
+  "source": "packages/dcp-toolkit/src/tokens/roles.js",
+  "description": "Canonical semantic role contract. The stable API that generators, previews, and binding UIs target. Token inventories are mapped TO these roles. Adding or removing roles is a versioned change.",
+  "color": {
+    "bg.default":    { "category": "surface",  "description": "Default page/content background" },
+    "bg.muted":      { "category": "surface",  "description": "Subdued background for secondary areas" },
+    "bg.elevated":   { "category": "surface",  "description": "Raised surface (cards, popovers)" },
+    "bg.overlay":    { "category": "surface",  "description": "Overlay/backdrop behind modals" },
+    "text.primary":  { "category": "content",  "description": "Primary readable text" },
+    "text.muted":    { "category": "content",  "description": "De-emphasized secondary text" },
+    "text.onAccent": { "category": "content",  "description": "Text on accent-colored backgrounds" },
+    "text.disabled": { "category": "content",  "description": "Disabled/inactive text" },
+    "border.default":{ "category": "border",   "description": "Default border for containers" },
+    "border.muted":  { "category": "border",   "description": "Subtle dividers and separators" },
+    "border.focus":  { "category": "border",   "description": "Focus ring / keyboard navigation indicator" },
+    "accent.primary":{ "category": "accent",   "description": "Primary brand/action color" },
+    "accent.on":     { "category": "accent",   "description": "Content on top of accent color" },
+    "intent.danger": { "category": "intent",   "description": "Destructive/error state" },
+    "intent.warning":{ "category": "intent",   "description": "Warning/caution state" },
+    "intent.success":{ "category": "intent",   "description": "Success/positive state" },
+    "intent.info":   { "category": "intent",   "description": "Informational state" }
+  },
+  "typography": {
+    "text.hero":       { "category": "heading", "description": "Hero/display heading" },
+    "text.h1":         { "category": "heading", "description": "Page title" },
+    "text.h2":         { "category": "heading", "description": "Section heading" },
+    "text.h3":         { "category": "heading", "description": "Subsection heading" },
+    "text.body":       { "category": "body",    "description": "Default body text" },
+    "text.bodyStrong": { "category": "body",    "description": "Emphasized body text" },
+    "text.label":      { "category": "ui",      "description": "Form labels and UI labels" },
+    "text.caption":    { "category": "ui",      "description": "Small helper text, captions" },
+    "text.button":     { "category": "ui",      "description": "Button label text" },
+    "text.input":      { "category": "ui",      "description": "Form input text" }
+  },
+  "spacing": {
+    "space.xs":  { "category": "spacing", "description": "Extra-small spacing (tight gaps)" },
+    "space.sm":  { "category": "spacing", "description": "Small spacing" },
+    "space.md":  { "category": "spacing", "description": "Medium/default spacing" },
+    "space.lg":  { "category": "spacing", "description": "Large spacing" },
+    "space.xl":  { "category": "spacing", "description": "Extra-large spacing (section gaps)" }
+  }
+}

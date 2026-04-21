@@ -120,6 +120,22 @@
   <div id="summary-body"></div>
 </section>
 
+<section id="roles-gallery">
+  <h2>DCP canonical role contract</h2>
+  <p class="muted" style="font-size: 13px; margin-top: 0;">
+    The stable vocabulary every binding on this page refers to. Defined in <code>packages/dcp-toolkit/src/tokens/roles.js</code> — 17 color roles, 10 typography roles, 5 spacing roles. Adding or removing a role is a versioned change. <strong>Every hex / size / spacing value mentioned elsewhere on this dashboard is mapped <em>to</em> one of these slots.</strong>
+  </p>
+  <div id="roles-gallery-body" style="margin-top: 16px;"></div>
+</section>
+
+<section id="registry-explorer">
+  <h2>Registry explorer</h2>
+  <p class="muted" style="font-size: 13px; margin-top: 0;">
+    The raw hand-authored DCP registry for each baseline site — components, variants, props, tokens. Click a component to expand. This is what "hand-authored" actually means in the summary comparison above.
+  </p>
+  <div id="registry-explorer-body" style="margin-top: 16px;"></div>
+</section>
+
 <section id="site-bungee"></section>
 <section id="site-firestore"></section>
 
@@ -528,6 +544,211 @@
     </p>
   `;
   document.getElementById('disagreements-body').innerHTML = disagreementsHtml;
+
+  // --- Role contract gallery ---
+  async function renderRolesGallery() {
+    const el = document.getElementById('roles-gallery-body');
+    if (!el) return;
+    try {
+      const r = await fetch('./roles.json');
+      if (!r.ok) throw new Error('roles.json not reachable');
+      const roles = await r.json();
+
+      // Group color roles by category
+      const colorByCat = {};
+      for (const [id, meta] of Object.entries(roles.color)) {
+        (colorByCat[meta.category] = colorByCat[meta.category] || []).push({ id, ...meta });
+      }
+      const typeByCat = {};
+      for (const [id, meta] of Object.entries(roles.typography)) {
+        (typeByCat[meta.category] = typeByCat[meta.category] || []).push({ id, ...meta });
+      }
+      const spacingArr = Object.entries(roles.spacing).map(([id, meta]) => ({ id, ...meta }));
+
+      const colorTotal = Object.keys(roles.color).length;
+      const typeTotal = Object.keys(roles.typography).length;
+      const spaceTotal = Object.keys(roles.spacing).length;
+
+      el.innerHTML = `
+        <div style="display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-bottom: 16px;">
+          <span>contract version <code>${roles.contractVersion}</code></span>
+          <span>·</span>
+          <span><code>${colorTotal}</code> color</span>
+          <span>·</span>
+          <span><code>${typeTotal}</code> typography</span>
+          <span>·</span>
+          <span><code>${spaceTotal}</code> spacing</span>
+          <span>·</span>
+          <span><code>${colorTotal + typeTotal + spaceTotal}</code> total</span>
+        </div>
+
+        <h3>Color roles</h3>
+        ${Object.entries(colorByCat).map(([cat, list]) => `
+          <div style="margin-bottom: 20px;">
+            <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">${cat}</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
+              ${list.map(r => `
+                <div class="card" style="padding: 12px; border-radius: 6px;">
+                  <div class="role" style="font-weight: 600; color: var(--text);">${r.id}</div>
+                  <div class="muted" style="font-size: 12px; margin-top: 4px;">${r.description}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+
+        <h3 style="margin-top: 28px;">Typography roles</h3>
+        ${Object.entries(typeByCat).map(([cat, list]) => `
+          <div style="margin-bottom: 20px;">
+            <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">${cat}</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
+              ${list.map(r => `
+                <div class="card" style="padding: 12px; border-radius: 6px;">
+                  <div class="role" style="font-weight: 600; color: var(--text);">${r.id}</div>
+                  <div class="muted" style="font-size: 12px; margin-top: 4px;">${r.description}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+
+        <h3 style="margin-top: 28px;">Spacing roles</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+          ${spacingArr.map(r => `
+            <div class="card" style="padding: 12px; border-radius: 6px;">
+              <div class="role" style="font-weight: 600; color: var(--text);">${r.id}</div>
+              <div class="muted" style="font-size: 12px; margin-top: 4px;">${r.description}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } catch (e) {
+      el.innerHTML = `<div class="diff-bad" style="font-size: 13px;">Could not load roles.json: ${e.message}</div>`;
+    }
+  }
+
+  // --- Registry IR explorer ---
+  function renderRegistryCard(slug, label, registry) {
+    if (!registry) return `<div class="card"><h3>${label}</h3><span class="empty">registry.json not loaded</span></div>`;
+    const components = registry.components || [];
+    const tokenCats = registry.tokens ? Object.keys(registry.tokens) : [];
+    const sourceUrl = registry.source || '';
+
+    return `
+      <div class="card" style="padding: 20px;">
+        <h3 style="margin-top: 0;">${label}</h3>
+        <div class="muted" style="font-size: 12px; margin-bottom: 12px;">
+          ${sourceUrl ? `<a href="${sourceUrl}" target="_blank">${sourceUrl}</a> · ` : ''}
+          <code>${components.length}</code> component${components.length === 1 ? '' : 's'},
+          <code>${tokenCats.length}</code> token categor${tokenCats.length === 1 ? 'y' : 'ies'}
+        </div>
+
+        <h4 style="margin: 12px 0 8px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Components</h4>
+        ${components.map(c => {
+          const variantCount = (c.variants || []).length;
+          const propCount = Array.isArray(c.props) ? c.props.length : Object.keys(c.props || {}).length;
+          return `
+            <details style="margin-bottom: 6px; background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px;">
+              <summary style="padding: 10px 12px; cursor: pointer; font-family: var(--mono); font-size: 13px;">
+                <strong style="color: var(--text);">${c.name}</strong>
+                <span class="muted" style="font-size: 11px; margin-left: 10px;">
+                  ${c.category ? `category: <code>${c.category}</code> · ` : ''}
+                  ${propCount} prop${propCount === 1 ? '' : 's'} · ${variantCount} variant${variantCount === 1 ? '' : 's'}
+                </span>
+              </summary>
+              <div style="padding: 12px; border-top: 1px solid var(--border); font-size: 12px;">
+                ${c.description ? `<div class="muted" style="margin-bottom: 10px;">${c.description}</div>` : ''}
+                ${Array.isArray(c.props) && c.props.length ? `
+                  <div style="margin-bottom: 12px;">
+                    <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Props</div>
+                    <table style="width: 100%; font-size: 12px;">
+                      ${c.props.map(p => `
+                        <tr>
+                          <td class="mono" style="padding: 2px 8px 2px 0; vertical-align: top;">${p.name}</td>
+                          <td class="mono muted" style="padding: 2px 8px 2px 0; vertical-align: top;">${p.type || '?'}</td>
+                          <td class="muted" style="padding: 2px 0; vertical-align: top;">${p.required ? '' : '<span class="dim">optional</span>'} ${p.description || ''}</td>
+                        </tr>
+                      `).join('')}
+                    </table>
+                  </div>
+                ` : ''}
+                ${variantCount ? `
+                  <div>
+                    <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Variants</div>
+                    ${c.variants.map(v => `
+                      <div style="margin-bottom: 8px; padding: 8px 10px; background: var(--bg); border-radius: 4px;">
+                        <div class="mono" style="color: var(--text); font-weight: 500;">${v.name}</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                          ${Object.entries(v.props || {}).map(([k, val]) => {
+                            const isColor = typeof val === 'string' && /^(#|rgb|hsl)/.test(val);
+                            return `
+                              <span class="pill" style="font-family: var(--mono); font-size: 10px; padding: 2px 8px;">
+                                ${isColor ? `<span class="swatch" style="background: ${val};"></span>` : ''}
+                                ${k}: <code>${val}</code>
+                              </span>
+                            `;
+                          }).join('')}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            </details>
+          `;
+        }).join('')}
+
+        ${tokenCats.length ? `
+          <h4 style="margin: 20px 0 8px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Tokens</h4>
+          ${tokenCats.map(cat => {
+            const tokens = registry.tokens[cat] || {};
+            const entries = Object.entries(tokens);
+            return `
+              <details style="margin-bottom: 6px;">
+                <summary style="font-size: 12px; color: var(--muted); cursor: pointer;"><code>${cat}</code> <span class="dim">(${entries.length})</span></summary>
+                <div style="padding: 8px 0 0 12px;">
+                  ${entries.map(([name, t]) => {
+                    const val = t.value || t;
+                    const isColor = typeof val === 'string' && /^(#|rgb|hsl)/.test(val);
+                    return `
+                      <div style="display: flex; align-items: center; gap: 8px; padding: 2px 0; font-size: 12px;">
+                        ${isColor ? `<span class="swatch" style="background: ${val};"></span>` : ''}
+                        <span class="mono">${name}</span>
+                        <span class="hex">${val}</span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </details>
+            `;
+          }).join('')}
+        ` : ''}
+      </div>
+    `;
+  }
+
+  async function renderRegistryExplorer() {
+    const el = document.getElementById('registry-explorer-body');
+    if (!el) return;
+    try {
+      const [bungeeR, firestoreR] = await Promise.all([
+        fetch('./bungee-pro/registry.json').then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch('./thefirestore/registry.json').then(r => r.ok ? r.json() : null).catch(() => null),
+      ]);
+      el.innerHTML = `
+        <div class="grid-2">
+          ${renderRegistryCard('bungee-pro', 'bungee-pro.webflow.io', bungeeR)}
+          ${renderRegistryCard('thefirestore', 'thefirestore.com', firestoreR)}
+        </div>
+      `;
+    } catch (e) {
+      el.innerHTML = `<div class="diff-bad" style="font-size: 13px;">Could not load registries: ${e.message}</div>`;
+    }
+  }
+
+  // Kick off both renders
+  renderRolesGallery();
+  renderRegistryExplorer();
 
   // --- Ad-hoc analyzer ---
   function renderAdHocResult(result, container) {
