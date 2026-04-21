@@ -92,6 +92,21 @@ async function runGss(url) {
     let json;
     try { json = JSON.parse(bodyText); }
     catch { throw new Error(`GSS API returned non-JSON body: ${bodyText.slice(0, 200)}`); }
+
+    // DIAGNOSTIC: log the response shape once so we can see what the API
+    // actually returns and compare against the shadcn.analysis.json file
+    // the local CLI writes. Remove once confirmed.
+    try {
+      const topKeys = Object.keys(json || {});
+      const dataKeys = json?.data ? Object.keys(json.data) : null;
+      const bindingsShape = json?.bindings
+        ? `root.bindings has keys: ${Object.keys(json.bindings).join(',')}`
+        : json?.data?.bindings
+          ? `data.bindings has keys: ${Object.keys(json.data.bindings).join(',')}`
+          : 'no bindings field found at root or .data';
+      console.log(`[GSS API shape] top=${topKeys.join(',')} | data=${dataKeys ? dataKeys.join(',') : '(missing)'} | ${bindingsShape} | bodyLen=${bodyText.length}`);
+    } catch (e) { console.log('[GSS API shape] diag failed:', e.message); }
+
     // The hosted API wraps the GSS analysis payload in a REST envelope:
     //   { success, data, meta, timestamp, requestId }
     // Where .data holds the same shape the local subprocess writes directly to
