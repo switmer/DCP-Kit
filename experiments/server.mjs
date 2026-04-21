@@ -195,8 +195,24 @@ async function runGss(url) {
     });
     const bodyText = await r.text();
     if (!r.ok) {
-      // Truncate long error bodies
-      throw new Error(`GSS API ${r.status}: ${bodyText.slice(0, 400)}`);
+      // Try to extract the real error from the GSS envelope, otherwise show
+      // the raw body truncated. Also translate common failures into
+      // human-readable guidance instead of dumping an AxiosError blob.
+      let clean;
+      try {
+        const envelope = JSON.parse(bodyText);
+        const inner = envelope?.error?.message || envelope?.error?.code || bodyText;
+        if (typeof inner === 'string' && /404/.test(inner)) {
+          clean = `Target URL returned 404 — check the URL. For Webflow/Framer/hosted templates, try without the \`www.\` prefix.`;
+        } else if (typeof inner === 'string' && /timeout|ETIMEDOUT/i.test(inner)) {
+          clean = `Target URL timed out. GSS couldn't fetch the page within its timeout.`;
+        } else {
+          clean = typeof inner === 'string' ? inner.slice(0, 300) : JSON.stringify(inner).slice(0, 300);
+        }
+      } catch {
+        clean = bodyText.slice(0, 300);
+      }
+      throw new Error(`GSS ${r.status}: ${clean}`);
     }
     let json;
     try { json = JSON.parse(bodyText); }
