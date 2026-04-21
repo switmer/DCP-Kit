@@ -626,6 +626,40 @@
 
   // Renders a site-spec pack manifest in the given output element, with a
   // clickable list of present files and a muted list of absent ones.
+
+  // Clipboard helper. Uses navigator.clipboard when available; falls back to
+  // textarea+execCommand for older contexts. Returns boolean for success.
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch { return false; }
+  }
+
+  // Briefly flash a button's label to indicate copy success / failure.
+  function flashButton(btn, okText = 'Copied ✓', failText = 'Copy failed', ok = true) {
+    const original = btn.innerHTML;
+    btn.innerHTML = ok ? okText : failText;
+    btn.style.borderColor = ok ? 'rgba(78,201,176,0.6)' : 'rgba(224,123,123,0.6)';
+    btn.style.color = ok ? 'var(--ok)' : 'var(--bad)';
+    setTimeout(() => {
+      btn.innerHTML = original;
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 1200);
+  }
+
   async function renderPackManifest(hostname, outputEl) {
     outputEl.innerHTML = `<div class="muted" style="margin-top: 12px; font-size: 13px;">${IS_STATIC ? 'Loading pre-built pack…' : 'Generating pack…'}</div>`;
     try {
@@ -641,6 +675,10 @@
               tier: ${manifest.tier}
             </span>
             <span class="muted mono" style="font-size: 12px;">substrate ${manifest.substrate_score.toFixed(2)}</span>
+            <button class="pack-copy-all-btn" data-hostname="${hostname}"
+              style="margin-left: auto; padding: 6px 12px; border: 1px solid var(--border); background: var(--panel-alt); color: var(--text); border-radius: 6px; font-size: 12px; cursor: pointer;">
+              📋 Copy all
+            </button>
           </div>
           ${manifest.refused ? `
             <div style="margin-top: 12px; padding: 10px 12px; background: rgba(224,123,123,0.08); border: 1px solid rgba(224,123,123,0.3); border-radius: 6px; color: var(--bad); font-size: 13px;">
@@ -650,10 +688,17 @@
           <div style="margin-top: 16px;">
             <div class="muted" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Present files</div>
             ${Object.entries(manifest.files).map(([name, info]) => `
-              <button class="pack-file-btn" data-hostname="${hostname}" data-filename="${name}"
-                style="display: block; width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 6px; background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px; color: var(--text); cursor: pointer; font-family: var(--mono); font-size: 13px;">
-                ${name} <span class="muted" style="float: right; font-size: 11px;">${info.bytes.toLocaleString()}b · ${info.lines}L</span>
-              </button>
+              <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                <button class="pack-file-btn" data-hostname="${hostname}" data-filename="${name}"
+                  style="flex: 1; text-align: left; padding: 10px 12px; background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px; color: var(--text); cursor: pointer; font-family: var(--mono); font-size: 13px;">
+                  ${name} <span class="muted" style="float: right; font-size: 11px;">${info.bytes.toLocaleString()}b · ${info.lines}L</span>
+                </button>
+                <button class="pack-file-copy-btn" data-hostname="${hostname}" data-filename="${name}"
+                  title="Copy ${name} to clipboard"
+                  style="padding: 10px 12px; background: var(--panel-alt); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); cursor: pointer; font-size: 12px; font-family: var(--mono); white-space: nowrap;">
+                  📋 Copy
+                </button>
+              </div>
             `).join('')}
           </div>
           ${manifest.absent_files?.length ? `
@@ -665,6 +710,8 @@
           <div class="pack-file-viewer" style="margin-top: 16px;"></div>
         </div>
       `;
+
+      // Open-file-in-viewer button
       outputEl.querySelectorAll('.pack-file-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const host = btn.dataset.hostname;
@@ -675,15 +722,76 @@
             const text = await fetchPackFile(host, filename);
             viewer.innerHTML = `
               <details open>
-                <summary style="cursor: pointer; color: var(--muted); font-size: 12px; margin-bottom: 8px;">${filename} (${text.length.toLocaleString()} chars)</summary>
+                <summary style="cursor: pointer; color: var(--muted); font-size: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                  <span>${filename} (${text.length.toLocaleString()} chars)</span>
+                  <button class="pack-viewer-copy-btn" data-hostname="${host}" data-filename="${filename}"
+                    style="margin-left: auto; padding: 4px 10px; border: 1px solid var(--border); background: var(--panel-alt); color: var(--muted); border-radius: 4px; font-size: 11px; cursor: pointer; font-family: var(--mono);">
+                    📋 Copy
+                  </button>
+                </summary>
                 <pre style="padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: auto; max-height: 500px; font-size: 12px; line-height: 1.5; white-space: pre-wrap;">${text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>
               </details>
             `;
+            // Wire the viewer's copy button
+            const copyBtn = viewer.querySelector('.pack-viewer-copy-btn');
+            if (copyBtn) {
+              copyBtn.addEventListener('click', async (ev) => {
+                ev.preventDefault(); // don't toggle the <details>
+                ev.stopPropagation();
+                const ok = await copyToClipboard(text);
+                flashButton(copyBtn, '✓ Copied', '✗ Failed', ok);
+              });
+            }
           } catch (e) {
             viewer.innerHTML = `<div class="diff-bad" style="font-size: 13px;">Load failed: ${e.message}</div>`;
           }
         });
       });
+
+      // Per-file copy button (in the file list row)
+      outputEl.querySelectorAll('.pack-file-copy-btn').forEach(btn => {
+        btn.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const host = btn.dataset.hostname;
+          const filename = btn.dataset.filename;
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '…';
+          try {
+            const text = await fetchPackFile(host, filename);
+            const ok = await copyToClipboard(text);
+            flashButton(btn, `✓ ${filename}`, '✗ Failed', ok);
+          } catch (e) {
+            btn.innerHTML = originalText;
+            flashButton(btn, '✗ Failed', '✗ Failed', false);
+          }
+        });
+      });
+
+      // Copy-all button: concatenate every present file with visible separators
+      const copyAllBtn = outputEl.querySelector('.pack-copy-all-btn');
+      if (copyAllBtn) {
+        copyAllBtn.addEventListener('click', async () => {
+          const originalText = copyAllBtn.innerHTML;
+          copyAllBtn.innerHTML = 'Fetching…';
+          copyAllBtn.disabled = true;
+          try {
+            const names = Object.keys(manifest.files);
+            const files = await Promise.all(names.map(async n => ({
+              name: n,
+              text: await fetchPackFile(hostname, n),
+            })));
+            const combined = files
+              .map(f => `<!-- ===== ${f.name} ===== -->\n\n${f.text}`)
+              .join('\n\n---\n\n');
+            const ok = await copyToClipboard(combined);
+            copyAllBtn.disabled = false;
+            flashButton(copyAllBtn, `✓ Copied ${files.length} files (${combined.length.toLocaleString()} chars)`, '✗ Copy failed', ok);
+          } catch (e) {
+            copyAllBtn.disabled = false;
+            flashButton(copyAllBtn, '✗ Fetch failed', '✗ Fetch failed', false);
+          }
+        });
+      }
     } catch (e) {
       outputEl.innerHTML = `<div class="diff-bad" style="margin-top: 12px; font-size: 13px;">Generation failed: ${e.message}</div>`;
     }
