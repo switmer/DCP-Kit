@@ -8,9 +8,18 @@ services:
     # so no install step is required.
     buildCommand: ""
     startCommand: node experiments/server.mjs
-    # /api/analyze requires Get-Site-Styles to be installed at GSS_ROOT; in this hosted
-    # environment GSS is not deployed, so the analyze button will return a 500 with
-    # "GSS_ROOT not found". The dashboard + cached ad-hoc results (/api/adhoc/*) work.
+    # /api/analyze POSTs to the hosted Get-Site-Styles API when GSS_API_URL +
+    # GSS_API_KEY are set. Without them, the analyze button returns a clear
+    # error; everything else (dashboard, cached ad-hoc sites, pack generation)
+    # works regardless.
+    #
+    # To enable analyze: set both env vars via the Render dashboard → service →
+    # Environment. Suggested URL is the public GSS deploy; obtain a key via the
+    # admin route on that service (or self-host GSS if keys aren't available).
     envVars:
       - key: NODE_VERSION
         value: "20"
+      - key: GSS_API_URL
+        sync: false       # suggested: https://get-site-styles-api.onrender.com/api/v1/analyze
+      - key: GSS_API_KEY
+        sync: false       # X-API-Key header value for the GSS service

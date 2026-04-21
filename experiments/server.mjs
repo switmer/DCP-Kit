@@ -25,6 +25,8 @@ import { buildDesignMd, buildSiteSpecPack } from './lib/build-design-md.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
 const GSS_ROOT = process.env.GSS_ROOT || path.resolve(REPO_ROOT, '..', 'Get-Site-Styles');
+const GSS_API_URL = process.env.GSS_API_URL || null;     // e.g. https://get-site-styles-api.onrender.com/api/v1/analyze
+const GSS_API_KEY = process.env.GSS_API_KEY || null;     // X-API-Key header
 const AD_HOC_DIR = path.join(__dirname, 'ad-hoc');
 const PORT = Number(process.argv[2]) || Number(process.env.PORT) || 8765;
 
@@ -49,15 +51,58 @@ function isSafeUrl(u) {
   }
 }
 
+/**
+ * Invoke Get-Site-Styles. Two modes:
+ *
+ *   1. Hosted API (preferred for deploys): POST to GSS_API_URL with
+ *      X-API-Key: GSS_API_KEY. Returns the shadcn.analysis.json payload
+ *      directly in the response body. No filesystem interaction.
+ *
+ *   2. Local subprocess (dev mode): spawn `npm run start` in GSS_ROOT,
+ *      wait for exit, read the written shadcn.analysis.json from the
+ *      outputs/ directory. Only activates when GSS_API_URL is unset.
+ *
+ * Returns { hosted: boolean, payload: object | null } where payload
+ * contains the full analysis JSON in hosted mode; in local mode it's null
+ * and the caller uses findLatestGssOutput() to locate the file.
+ */
 async function runGss(url) {
-  // Verify GSS_ROOT exists
+  // Mode 1: hosted API.
+  if (GSS_API_URL) {
+    if (!GSS_API_KEY) {
+      throw new Error('GSS_API_URL is set but GSS_API_KEY is missing. Set both as env vars on this service.');
+    }
+    const r = await fetch(GSS_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': GSS_API_KEY,
+      },
+      body: JSON.stringify({
+        url,
+        format: 'shadcn',
+        semanticAnalysis: true,
+      }),
+    });
+    const bodyText = await r.text();
+    if (!r.ok) {
+      // Truncate long error bodies
+      throw new Error(`GSS API ${r.status}: ${bodyText.slice(0, 400)}`);
+    }
+    let json;
+    try { json = JSON.parse(bodyText); }
+    catch { throw new Error(`GSS API returned non-JSON body: ${bodyText.slice(0, 200)}`); }
+    return { hosted: true, payload: json };
+  }
+
+  // Mode 2: local subprocess.
   try {
     await fs.access(path.join(GSS_ROOT, 'package.json'));
   } catch {
-    throw new Error(`GSS_ROOT not found at ${GSS_ROOT}. Set env GSS_ROOT to point at Get-Site-Styles.`);
+    throw new Error(`GSS_ROOT not found at ${GSS_ROOT}. Set GSS_ROOT to a local Get-Site-Styles checkout, or set GSS_API_URL + GSS_API_KEY to use the hosted API.`);
   }
 
-  return new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     const child = spawn(
       'npm',
       ['run', 'start', '--', '--url', url, '--semantic-analysis', '--format', 'shadcn'],
@@ -76,6 +121,7 @@ async function runGss(url) {
     });
     child.on('error', reject);
   });
+  return { hosted: false, payload: null };
 }
 
 async function findLatestGssOutput(hostname, runStartedAt) {
@@ -137,9 +183,16 @@ async function analyzeSite(url) {
   const hostname = parsed.hostname;
   const started = Date.now();
 
-  await runGss(url);
-  const gssPath = await findLatestGssOutput(hostname, started);
-  const gss = JSON.parse(await fs.readFile(gssPath, 'utf8'));
+  const runResult = await runGss(url);
+  let gss;
+  if (runResult.hosted) {
+    // Hosted API returned the payload directly — no disk intermediate.
+    gss = runResult.payload;
+  } else {
+    // Local subprocess wrote to disk; locate and read it.
+    const gssPath = await findLatestGssOutput(hostname, started);
+    gss = JSON.parse(await fs.readFile(gssPath, 'utf8'));
+  }
 
   const outDir = path.join(AD_HOC_DIR, hostname);
   await fs.mkdir(outDir, { recursive: true });
