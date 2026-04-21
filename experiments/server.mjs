@@ -22,6 +22,115 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildDesignMd, buildSiteSpecPack } from './lib/build-design-md.mjs';
 
+// ── Shadcn-variable → DCP-role mapping ───────────────────────────────
+// The hosted GSS API (at least the version currently deployed) returns
+// data.theme with shadcn-convention CSS variables but does NOT emit a
+// bindings field the way the local CLI does. Synthesize bindings on this
+// side from the theme data. This is actually the architecturally-right
+// place for it — role mapping belongs to DCP, not the extractor.
+const SHADCN_TO_DCP = {
+  '--background':            { role: 'bg.default',     confidence: 0.88 },
+  '--card':                  { role: 'bg.elevated',    confidence: 0.82 },
+  '--popover':               { role: 'bg.elevated',    confidence: 0.70 },
+  '--muted':                 { role: 'bg.muted',       confidence: 0.82 },
+  '--foreground':            { role: 'text.primary',   confidence: 0.88 },
+  '--muted-foreground':      { role: 'text.muted',     confidence: 0.85 },
+  '--primary':               { role: 'accent.primary', confidence: 0.85 },
+  '--primary-foreground':    { role: 'text.onAccent',  confidence: 0.80 },
+  '--secondary':             { role: 'accent.secondary', confidence: 0.78 },
+  '--border':                { role: 'border.default', confidence: 0.85 },
+  '--input':                 { role: 'border.muted',   confidence: 0.72 },
+  '--destructive':           { role: 'intent.danger',  confidence: 0.85 },
+};
+
+function hslToHex(hslStr) {
+  if (!hslStr || typeof hslStr !== 'string') return null;
+  // GSS emits shadcn-style strings: "216 92% 52%" (space-separated HSL)
+  // or sometimes hsl(...) form.
+  const cleaned = hslStr.replace(/^hsl\(|\)$/g, '').trim();
+  const m = cleaned.match(/^(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%$/);
+  if (!m) return null;
+  let h = parseFloat(m[1]) / 360;
+  const s = parseFloat(m[2]) / 100;
+  const l = parseFloat(m[3]) / 100;
+  const hue = (t) => {
+    let tt = t;
+    if (tt < 0) tt += 1;
+    if (tt > 1) tt -= 1;
+    if (tt < 1/6) return p + (q - p) * 6 * tt;
+    if (tt < 1/2) return q;
+    if (tt < 2/3) return p + (q - p) * (2/3 - tt) * 6;
+    return p;
+  };
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    r = hue(h + 1/3); g = hue(h); b = hue(h - 1/3);
+  }
+  const to2 = (x) => Math.max(0, Math.min(255, Math.round(x * 255))).toString(16).padStart(2, '0');
+  return `#${to2(r)}${to2(g)}${to2(b)}`;
+}
+
+/**
+ * If the payload is missing the bindings block (deployed GSS version
+ * doesn't emit it), synthesize one from data.theme.light using shadcn
+ * convention matching. No-op if bindings already present.
+ */
+function synthesizeBindingsFromTheme(payload) {
+  if (payload?.bindings?.bindings && Object.keys(payload.bindings.bindings).length > 0) {
+    return payload; // already has bindings; don't overwrite
+  }
+  const themeLight = payload?.theme?.light;
+  if (!themeLight || typeof themeLight !== 'object') return payload;
+
+  const bindings = {};
+  const unmappedShadcnVars = [];
+  for (const [cssVar, value] of Object.entries(themeLight)) {
+    const mapping = SHADCN_TO_DCP[cssVar];
+    if (!mapping) {
+      unmappedShadcnVars.push(cssVar);
+      continue;
+    }
+    if (bindings[mapping.role]) continue; // keep highest-priority match
+    const hex = hslToHex(value) || value;
+    bindings[mapping.role] = {
+      role: mapping.role,
+      hex,
+      confidence: mapping.confidence,
+      source: 'auto',
+      reason: `shadcn convention: ${cssVar} → ${mapping.role}`,
+    };
+  }
+
+  // Compute unmapped DCP roles (for the report)
+  const ALL_DCP_COLOR_ROLES = [
+    'bg.default', 'bg.muted', 'bg.elevated',
+    'text.primary', 'text.muted', 'text.onAccent',
+    'border.default', 'border.muted',
+    'accent.primary', 'accent.secondary',
+    'intent.danger', 'intent.warning', 'intent.success', 'intent.info',
+  ];
+  const unmappedRoles = ALL_DCP_COLOR_ROLES.filter(r => !bindings[r]);
+
+  payload.bindings = {
+    contractVersion: '0.1.0',
+    bindings,
+    report: {
+      totalCandidates: Object.keys(themeLight).length,
+      autoBound: 0,
+      suggested: Object.keys(bindings).length,
+      uncertain: 0,
+      unmappedRoles,
+      reviewItems: Object.values(bindings).map(b => ({
+        role: b.role, hex: b.hex, confidence: b.confidence, reason: b.reason,
+      })),
+    },
+  };
+  return payload;
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
 const GSS_ROOT = process.env.GSS_ROOT || path.resolve(REPO_ROOT, '..', 'Get-Site-Styles');
@@ -93,30 +202,23 @@ async function runGss(url) {
     try { json = JSON.parse(bodyText); }
     catch { throw new Error(`GSS API returned non-JSON body: ${bodyText.slice(0, 200)}`); }
 
-    // DIAGNOSTIC: log the response shape once so we can see what the API
-    // actually returns and compare against the shadcn.analysis.json file
-    // the local CLI writes. Remove once confirmed.
-    try {
-      const topKeys = Object.keys(json || {});
-      const dataKeys = json?.data ? Object.keys(json.data) : null;
-      const bindingsShape = json?.bindings
-        ? `root.bindings has keys: ${Object.keys(json.bindings).join(',')}`
-        : json?.data?.bindings
-          ? `data.bindings has keys: ${Object.keys(json.data.bindings).join(',')}`
-          : 'no bindings field found at root or .data';
-      console.log(`[GSS API shape] top=${topKeys.join(',')} | data=${dataKeys ? dataKeys.join(',') : '(missing)'} | ${bindingsShape} | bodyLen=${bodyText.length}`);
-    } catch (e) { console.log('[GSS API shape] diag failed:', e.message); }
-
     // The hosted API wraps the GSS analysis payload in a REST envelope:
     //   { success, data, meta, timestamp, requestId }
-    // Where .data holds the same shape the local subprocess writes directly to
+    // Where .data holds the same shape the local CLI writes to
     // shadcn.analysis.json. Unwrap so downstream code is shape-agnostic.
-    const payload = (json && typeof json === 'object' && 'data' in json && !('bindings' in json))
+    let payload = (json && typeof json === 'object' && 'data' in json && !('bindings' in json))
       ? json.data
       : json;
     if (!payload || typeof payload !== 'object') {
       throw new Error(`GSS API returned unexpected shape: ${bodyText.slice(0, 200)}`);
     }
+
+    // The deployed GSS version returns data without a bindings field
+    // (predates formatter.ts's bindings: bindingResult addition). Synthesize
+    // bindings from the shadcn theme CSS variables using convention
+    // matching — this is DCP's job per the canonical/semantic split.
+    payload = synthesizeBindingsFromTheme(payload);
+
     return { hosted: true, payload };
   }
 
