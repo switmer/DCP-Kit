@@ -50,6 +50,20 @@ function hslStrToHex(hsl) {
 // ── Noise filters — what to drop from raw observed pools ───────────────
 const NOISE_COLOR_RE = /^#(?:0{3,4}|fff0|[0-9a-f]{6}00|[0-9a-f]{8})$|^rgba?\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)$|^transparent$/i;
 
+function dedupeHexes(arr) {
+  if (!Array.isArray(arr)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const h of arr) {
+    if (typeof h !== 'string') continue;
+    const key = h.trim().toLowerCase();
+    if (!key || seen.has(key) || isNoiseColor(h)) continue;
+    seen.add(key);
+    out.push(h);
+  }
+  return out;
+}
+
 function isNoiseColor(hex) {
   if (!hex || typeof hex !== 'string') return true;
   const h = hex.trim();
@@ -114,6 +128,20 @@ function extractCanonical(gss) {
     typeof r === 'string' && r.includes('%')
   );
 
+  // Color usage context — who uses which hex in what DOM context.
+  // Surfaced from GSS's semanticAnalysis. Critical for distinguishing
+  // "this hex exists in the palette" from "this hex is the CTA color."
+  // Agents consuming the pack have defaulted to the highest-saliency
+  // accent hex as the CTA color; when the site uses black CTAs with a
+  // blue accent elsewhere, that's wrong. This surfaces the real usage.
+  const sa = gss.meta?.semanticAnalysis || {};
+  const usageContext = {
+    buttonColors: dedupeHexes(sa.buttonColors || []),
+    brandColors: dedupeHexes(sa.brandColors || []),
+    highestWeightColors: dedupeHexes(sa.highestWeightColors || []),
+    colorsByContext: sa.colorsByContext || {},
+  };
+
   return {
     colorCandidates,
     bindings,
@@ -127,6 +155,7 @@ function extractCanonical(gss) {
     tailwind: (gss.meta?.semanticAnalysis?.tailwind) || null,
     totalTokens: gss.meta?.totalTokens || null,
     rawCss: gss.css || '',
+    usageContext,
   };
 }
 
@@ -546,6 +575,77 @@ function buildDesignSpecFile({ canonical, bindings, gss, substrate, context }) {
   }
   lines.push('');
 
+  // §2.5 Color usage context — which hexes appear in which DOM contexts.
+  // Role binding alone doesn't tell an agent "use this color for CTAs."
+  // The role table says "accent.primary = #146ef5 (saliency 0.76)" but
+  // gives no signal that the actual buttons on the page use #232324.
+  // This section surfaces GSS's element-level observations directly.
+  const uc = canonical.usageContext || {};
+  const hasUsageContext =
+    (uc.buttonColors?.length) ||
+    (uc.brandColors?.length) ||
+    (uc.highestWeightColors?.length) ||
+    (uc.colorsByContext && Object.keys(uc.colorsByContext).length);
+
+  if (hasUsageContext) {
+    lines.push('## 2.5 Color usage context *(observed, not inferred)*');
+    lines.push('');
+    lines.push('**Hex-in-palette ≠ hex-in-CTA.** The role table above tells you which colors exist and what role each might play. This section tells you which hex values were actually observed in specific DOM contexts. When §2 and §2.5 disagree, **§2.5 is the authority for usage decisions** — the role table is a classification, this is ground truth.');
+    lines.push('');
+
+    const renderHexList = (hexes, limit = 10) =>
+      hexes.slice(0, limit).map(h => {
+        const safe = String(h).replace(/[^#0-9a-fA-F(),rgbahsl. %]/g, '');
+        return `<span style="display:inline-block;vertical-align:middle;width:10px;height:10px;border-radius:2px;background:${safe};border:1px solid rgba(0,0,0,0.2);margin-right:4px;"></span>\`${h}\``;
+      }).join(' ');
+
+    if (uc.buttonColors?.length) {
+      lines.push(`**Colors observed on button elements** (${uc.buttonColors.length} unique, top 10 shown):`);
+      lines.push('');
+      lines.push(renderHexList(uc.buttonColors));
+      lines.push('');
+      lines.push(`*If you're picking a primary CTA color, prefer one of these over whatever §2 flagged as \`accent.primary\`. The role table is a palette classification; this is observed button usage.*`);
+      lines.push('');
+    }
+
+    if (uc.brandColors?.length) {
+      lines.push(`**Colors observed in brand/logo context** (${uc.brandColors.length} unique):`);
+      lines.push('');
+      lines.push(renderHexList(uc.brandColors));
+      lines.push('');
+    }
+
+    if (uc.colorsByContext && Object.keys(uc.colorsByContext).length) {
+      lines.push('**Colors by DOM context:**');
+      lines.push('');
+      for (const [context, entries] of Object.entries(uc.colorsByContext)) {
+        const hexes = Array.isArray(entries)
+          ? dedupeHexes(entries)
+          : (entries && typeof entries === 'object'
+              ? dedupeHexes(Object.keys(entries))
+              : []);
+        if (!hexes.length) continue;
+        lines.push(`- **${context}** — ${renderHexList(hexes, 6)}`);
+      }
+      lines.push('');
+    }
+
+    if (uc.highestWeightColors?.length) {
+      lines.push(`<details><summary>Highest-weight colors across all layout zones (${uc.highestWeightColors.length})</summary>`);
+      lines.push('');
+      lines.push(renderHexList(uc.highestWeightColors, 20));
+      lines.push('');
+      lines.push('</details>');
+      lines.push('');
+    }
+  } else {
+    // No semanticAnalysis data — note that explicitly rather than silently skip
+    lines.push('## 2.5 Color usage context');
+    lines.push('');
+    lines.push('*Usage context not available in this extraction run. Decisions like "which hex is the CTA color" cannot be grounded in DOM evidence here — defer to §2 with the caveat that hex-in-palette ≠ hex-in-CTA.*');
+    lines.push('');
+  }
+
   // §3 Typography — honest about gaps
   lines.push('## 3. Typography tokens *(confidence: low — tokens only, no hierarchy inferred)*');
   lines.push('');
@@ -814,6 +914,104 @@ function buildCaveatsFile({ canonical, bindings, gss, substrate, context }) {
   return lines.join('\n');
 }
 
+/**
+ * ASSUMPTIONS_TO_AVOID.md — the imperative-not-disclaimer file.
+ *
+ * Motivated by empirical agent feedback: CAVEATS.md correctly stated
+ * composition/personality wasn't inferred, but downstream agents
+ * overrode those caveats with SaaS-convention priors and hallucinated
+ * the layout, CTA color, hero strategy, etc. Readers trained on a
+ * million prior landing pages will default to conventions unless the
+ * pack actively forbids the assumption.
+ *
+ * This file is short, prescriptive, first-person-imperative, and
+ * always emitted. Same data CAVEATS already has, rewritten as
+ * instructions-not-information.
+ */
+function buildAssumptionsFile({ canonical, bindings, gss, substrate, context }) {
+  const lines = [];
+  const uc = canonical.usageContext || {};
+  const hasButtonColors = (uc.buttonColors?.length || 0) > 0;
+  const primaryAccent = bindings['accent.primary'];
+
+  lines.push('---');
+  lines.push(`file: ASSUMPTIONS_TO_AVOID.md`);
+  lines.push(`role_in_pack: anti_hallucination_guardrail`);
+  lines.push(`answers_question: "What should I NOT assume about this site?"`);
+  lines.push(`hostname: ${context.hostname}`);
+  lines.push(`status: always_emitted`);
+  lines.push('---');
+  lines.push('');
+  lines.push(`# ASSUMPTIONS_TO_AVOID.md — ${context.hostname}`);
+  lines.push('');
+  lines.push(`> **Read this before DESIGN.md. Seriously.** Agents consuming a design spec default to SaaS-landing-page conventions when the spec is silent, even when the spec explicitly says the thing isn't known. Treat everything below as a **hard negative**: if this pack doesn't provide evidence, do not fill the gap with a convention and do not assume you know what the site does.`);
+  lines.push('');
+
+  lines.push('## Color decisions');
+  lines.push('');
+  lines.push('- **Do not assume** the role tagged `accent.primary` in DESIGN.md §2 is the CTA color. Role classification ≠ usage. Check §2.5 Color usage context for hex values observed on actual button elements. When §2 and §2.5 disagree, §2.5 wins.');
+  if (hasButtonColors && primaryAccent) {
+    // Find the first chromatic (non-grayscale, non-transparent) button color
+    // that differs from accent.primary. White and black buttons are
+    // typically text/outline/state, not the CTA signal — skip them.
+    const isChromatic = (hex) => {
+      if (!hex || typeof hex !== 'string') return false;
+      const h = hex.trim();
+      // Skip alpha-bearing hexes (8-digit or rgba with < 1.0 alpha)
+      if (/^#[0-9a-f]{8}$/i.test(h)) return false;
+      if (/rgba?\([^)]+,\s*0?\.[0-9]+\s*\)$/i.test(h)) return false;
+      // Parse hex (3 or 6 digit)
+      const m = h.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (!m) return false;
+      const full = m[1].length === 3 ? m[1].split('').map(c => c + c).join('') : m[1];
+      const r = parseInt(full.slice(0, 2), 16);
+      const g = parseInt(full.slice(2, 4), 16);
+      const b = parseInt(full.slice(4, 6), 16);
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      // Grayscale if channel range < 15 AND brightness near extreme
+      if (max - min < 15) return false;
+      return true;
+    };
+    const chromaticButton = uc.buttonColors.find(h => isChromatic(h) && h.toLowerCase() !== (primaryAccent.hex || '').toLowerCase());
+    if (chromaticButton) {
+      lines.push(`  - For this site specifically: DESIGN.md §2 says \`accent.primary\` = \`${primaryAccent.hex}\`, but a chromatic color observed on buttons is \`${chromaticButton}\`. **Consider using \`${chromaticButton}\` for CTAs**; \`${primaryAccent.hex}\` may be a palette accent, not a button color. Verify against the live site.`);
+    }
+  }
+  lines.push('- **Do not assume** the canvas is white. Check §2.5 for hero-context observed background colors. A "warm cream" or off-white is common in brand-led marketing sites and will not show up as `bg.default` if the role mapper leans on stereotype-matching.');
+  lines.push('- **Do not assume** high saliency means high validity. See CAVEATS.md § low-validity bindings — transparent overlays and alpha-only rgba can be highly observed and still wrong for the role.');
+  lines.push('');
+
+  lines.push('## Layout and composition');
+  lines.push('');
+  lines.push('- **Do not assume** the hero leads with a product screenshot. No layout inference was performed. If you default to "SaaS hero = headline + screenshot," that is a hallucination, not a recovery. Many brand-led sites lead with typography, illustration, or decorative atmosphere; this pack cannot tell you which.');
+  lines.push('- **Do not assume** section order. The pack has no information about what sections exist, what order they appear in, or which are full-bleed vs contained. See STRUCTURE.md for the explicit gap list.');
+  lines.push('- **Do not assume** the visual weight hierarchy. "What\'s the loudest thing on the page" is not extractable from rendered CSS + DOM alone. Type can dominate, imagery can dominate, decoration can dominate — the pack does not know.');
+  lines.push('- **Do not assume** a specific density / tempo. Whitespace ratios, how much content packs into a viewport, how spacious or dense the hero is — all not recovered.');
+  lines.push('');
+
+  lines.push('## Typography and components');
+  lines.push('');
+  lines.push('- **Do not assume** heading hierarchy from raw font-size tokens. §3 in DESIGN.md gives you the values observed; it does not tell you which is H1 vs H2 vs display. Do not pick the largest value and call it H1 without checking the live site.');
+  lines.push('- **Do not assume** component geometry. Button padding, card radius-per-variant, input heights — not extracted. Any number you use there is invention.');
+  lines.push('- **Do not assume** variant axes. What looks like three button variants in the pack might be one variant × three contexts; what looks like one might be three different components. See bungee-pro/FINDINGS.md for the merge/split ambiguity.');
+  lines.push('');
+
+  lines.push('## Brand personality and content');
+  lines.push('');
+  lines.push('- **Do not invent copy.** Headlines, stats, social-proof claims (e.g., "10,000+ teams") — the pack has none of this. Leave placeholder markers (`<!-- copy TBD -->`) rather than writing plausible-sounding text.');
+  lines.push('- **Do not assume** logo and illustrations are functional/icon-scale. Many brands use large illustration as hero atmosphere. The pack has no image intent information.');
+  lines.push('- **Do not assume** CTA copy from the role name. "accent.primary" is a slot, not a word choice.');
+  lines.push('');
+
+  lines.push('## When you want to recreate the real site');
+  lines.push('');
+  lines.push('Treat the pack as **style priors**, not as a reconstruction spec. Use DESIGN.md §2 + §2.5 for palette decisions, STRUCTURE.md for raw token inventory, and **then look at the live site or a screenshot** for layout, hierarchy, CTA color, hero strategy, and content. The pack is explicit about what it does not know; fill those gaps from direct observation, not from conventions.');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 function buildManifest({ files, substrate, context }) {
   const manifest = {
     hostname: context.hostname,
@@ -829,7 +1027,7 @@ function buildManifest({ files, substrate, context }) {
     ),
     absent_files: [],
   };
-  const ALL = ['DESIGN.md', 'STRUCTURE.md', 'IMPLEMENTATION.md', 'CAVEATS.md', 'REFUSAL.md'];
+  const ALL = ['DESIGN.md', 'STRUCTURE.md', 'IMPLEMENTATION.md', 'CAVEATS.md', 'ASSUMPTIONS_TO_AVOID.md', 'REFUSAL.md'];
   for (const f of ALL) if (!files[f]) manifest.absent_files.push(f);
   return manifest;
 }
@@ -849,6 +1047,10 @@ export function buildSiteSpecPack({ gss, hostname, url, force = false }) {
 
   // CAVEATS.md is always emitted. Always.
   files['CAVEATS.md'] = buildCaveatsFile({ canonical, bindings, gss, substrate, context });
+  // ASSUMPTIONS_TO_AVOID.md is always emitted — same tier as CAVEATS.md. It's
+  // the imperative-not-disclaimer companion, motivated by agents overriding
+  // CAVEATS warnings with SaaS-convention priors.
+  files['ASSUMPTIONS_TO_AVOID.md'] = buildAssumptionsFile({ canonical, bindings, gss, substrate, context });
 
   if (substrate.refuse && !force) {
     // Refusal pack: CAVEATS + REFUSAL, nothing else.
