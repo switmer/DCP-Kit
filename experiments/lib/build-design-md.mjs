@@ -113,6 +113,16 @@ function extractCanonical(gss) {
   const fontSizes = (tokens.fontSizes || []).filter(s =>
     typeof s === 'string' && (s.includes('rem') || s.includes('em') || s.includes('px'))
   );
+  // Font families — GSS returns these, we were dropping them on the floor.
+  // Strip fallback system chains ("system-ui, -apple-system, ...") to surface
+  // the actual brand font first. Not recovering this was one of the pack's
+  // most consequential gaps — font family drives more visual identity than
+  // any single color role.
+  const fontFamilies = (tokens.fontFamilies || [])
+    .filter(f => typeof f === 'string' && f.trim())
+    .map(f => f.trim())
+    // Deduplicate case-insensitively, preserve first-seen casing
+    .filter((f, i, arr) => arr.findIndex(x => x.toLowerCase() === f.toLowerCase()) === i);
 
   // Spacing: classify
   const spacingClassified = { scale: [], section: [], layout: [], fluid: [], other: [] };
@@ -147,6 +157,7 @@ function extractCanonical(gss) {
     bindings,
     shadcnRoles,
     fontSizes,
+    fontFamilies,
     spacingClassified,
     radii,
     percentRadii,
@@ -649,8 +660,32 @@ function buildDesignSpecFile({ canonical, bindings, gss, substrate, context }) {
   // §3 Typography — honest about gaps
   lines.push('## 3. Typography tokens *(confidence: low — tokens only, no hierarchy inferred)*');
   lines.push('');
+
+  // Font families — surface these prominently. Font family drives more
+  // visual identity than any single color role; missing it is one of the
+  // pack's most consequential gaps when not surfaced.
+  if (canonical.fontFamilies && canonical.fontFamilies.length) {
+    lines.push('**Font families observed:**');
+    lines.push('');
+    for (const family of canonical.fontFamilies.slice(0, 8)) {
+      // Strip quoted multi-font stacks to surface the primary face
+      const primary = family.replace(/["']/g, '').split(',')[0].trim();
+      const looksSystem = /^(system-ui|ui-sans-serif|ui-serif|ui-monospace|-apple-system|BlinkMacSystemFont|sans-serif|serif|monospace|Arial|Helvetica|Times|Courier|Georgia)$/i.test(primary);
+      lines.push(`- ${looksSystem ? '*' : '**'}${primary}${looksSystem ? ' (system fallback)*' : '**'} — full stack: \`${family}\``);
+    }
+    if (canonical.fontFamilies.length > 8) {
+      lines.push(`- *… + ${canonical.fontFamilies.length - 8} more*`);
+    }
+    lines.push('');
+    lines.push('*The first non-system-fallback entry above is usually the brand face. System fallbacks (Arial, sans-serif, system-ui) appearing alone likely mean the brand font is loaded from an external source the extractor didn\'t capture.*');
+    lines.push('');
+  } else {
+    lines.push('**Font families:** *Not recovered by this extraction. This is a significant gap — font family drives substantial visual identity. Check the live site\'s \\<link rel="stylesheet"\\> tags or the @font-face rules in the first CSS file.*');
+    lines.push('');
+  }
+
   if (canonical.fontSizes.length) {
-    lines.push('Observed font-size tokens (raw, un-ranked):');
+    lines.push('**Observed font-size tokens (raw, un-ranked):**');
     lines.push('');
     lines.push('```');
     lines.push(canonical.fontSizes.slice(0, 30).join(', '));
@@ -659,7 +694,7 @@ function buildDesignSpecFile({ canonical, bindings, gss, substrate, context }) {
     lines.push('');
     lines.push('**Gap:** H1/H2/H3 hierarchy is not inferred from rendered CSS. Font-family-to-role, line-height-to-role, and letter-spacing systems are not recovered. These sizes are raw material, not a typed scale.');
   } else {
-    lines.push('*No typography tokens recovered.*');
+    lines.push('*No typography sizes recovered.*');
   }
   lines.push('');
 
@@ -757,7 +792,14 @@ function buildStructureFile({ canonical, gss, substrate, context }) {
   } else if (clampCount > 0 && mediaCount > 0) {
     lines.push('**Pattern:** hybrid — fluid scaling paired with explicit breakpoints.');
   } else {
-    lines.push('**Pattern:** indeterminate from available evidence.');
+    lines.push('**Pattern:** **no responsive evidence captured in this extraction run.** ⚠ This does NOT mean the site is non-responsive. The extractor reads parseable CSS from the primary stylesheet; it may miss:');
+    lines.push('');
+    lines.push('- `@media` rules in separate CDN-hosted stylesheets');
+    lines.push('- JS-driven responsive systems (Webflow, Framer, React hooks)');
+    lines.push('- `@container` queries');
+    lines.push('- Breakpoint logic expressed via utility class names (Tailwind `md:`, `lg:` prefixes)');
+    lines.push('');
+    lines.push('**Do not infer "not responsive" from this null result.** Check the live site at narrow viewports directly if responsive behavior matters.');
   }
   lines.push('');
 
